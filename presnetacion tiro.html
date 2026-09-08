@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Movimiento Parabólico y Choque Elástico</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+   <link rel="icon" type="image/x-icon" href="sierra.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  <style>
+    body { font-family: 'Segoe UI', system-ui, sans-serif; }
+    .slide {
+      transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      opacity: 0;
+      transform: translateY(50px);
+    }
+    .slide.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .vector {
+      stroke-dasharray: 1000;
+      stroke-dashoffset: 1000;
+      animation: drawVector 2s linear forwards;
+    }
+    @keyframes drawVector {
+      to { stroke-dashoffset: 0; }
+    }
+    .fade-out { opacity: 0; transform: translateY(-50px); }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-slate-900 to-indigo-950 text-white min-h-screen">
+
+
+<img src="sierra.png" style="position:absolute;top:0px;left:0px;z-index:1;width:280px" />
+  <div class="max-w-5xl mx-auto pt-8 px-4">
+    <div id="presentation" class="relative h-screen flex items-center justify-center overflow-hidden">
+
+      <!-- Diapositiva 1 -->
+      <div id="slide1" class="slide absolute inset-0 flex flex-col items-center justify-center text-center px-8">
+        <h1 class="text-6xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">
+          Movimiento Parabólico
+        </h1>
+        <p class="text-2xl text-cyan-300 mb-12">y Análisis de Choques Elásticos</p>
+        
+        <div class="relative w-96 h-96">
+          <svg width="400" height="400" viewBox="0 0 400 400" class="mx-auto">
+            <path d="M50 350 Q200 100 350 350" fill="none" stroke="#67e8f9" stroke-width="6" stroke-opacity="0.6" class="vector"/>
+            <circle cx="200" cy="100" r="12" fill="#c084fc"/>
+            <circle cx="350" cy="350" r="8" fill="#67e8f9"/>
+          </svg>
+        </div>
+        <p class="mt-10 text-xl text-slate-300">Descomposición vectorial • Cinemática • Impulso y cantidad de movimiento</p>
+      </div>
+
+      <!-- Diapositiva 2 -->
+      <div id="slide2" class="slide hidden absolute inset-0 flex flex-col items-center justify-center px-8">
+        <h2 class="text-4xl font-semibold mb-10 text-cyan-300">Descomposición de la velocidad inicial</h2>
+        <div class="grid grid-cols-2 gap-12 max-w-3xl">
+          <div class="bg-slate-800/70 p-8 rounded-2xl border border-cyan-500/30">
+            <h3 class="text-xl font-bold text-cyan-400 mb-4">Componente Horizontal</h3>
+            <p class="text-lg">Movimiento Rectilíneo Uniforme (MRU)</p>
+            <p class="text-3xl font-mono mt-6">a<sub>x</sub> = 0</p>
+          </div>
+          <div class="bg-slate-800/70 p-8 rounded-2xl border border-purple-500/30">
+            <h3 class="text-xl font-bold text-purple-400 mb-4">Componente Vertical</h3>
+            <p class="text-lg">Movimiento Rectilíneo Uniformemente Acelerado (MRUA)</p>
+            <p class="text-3xl font-mono mt-6">a<sub>y</sub> = –g ≈ –9.8 m/s²</p>
+          </div>
+        </div>
+        <div class="mt-12 text-xl text-slate-300">La trayectoria resultante es una **parábola**</div>
+      </div>
+
+      <!-- Diapositiva 3 -->
+      <div id="slide3" class="slide hidden absolute inset-0 flex flex-col items-center justify-center px-8">
+        <h2 class="text-4xl font-semibold mb-10">Ecuaciones Horarias</h2>
+        <div class="bg-slate-950/80 p-10 rounded-3xl text-left font-mono text-2xl space-y-8 max-w-2xl">
+          <div class="flex items-center gap-6">
+            <span class="text-cyan-400">x(t) =</span>
+            <span>v₀ cos θ · t</span>
+          </div>
+          <div class="flex items-center gap-6">
+            <span class="text-purple-400">y(t) =</span>
+            <span>v₀ sen θ · t – ½ g t²</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Diapositiva 4 -->
+      <div id="slide4" class="slide hidden absolute inset-0 flex flex-col items-center justify-center px-8">
+        <h2 class="text-4xl font-semibold mb-12">Fórmulas Clave</h2>
+        <div class="grid grid-cols-1 gap-8 max-w-3xl w-full">
+          <div class="bg-gradient-to-r from-cyan-900/50 to-transparent p-6 rounded-2xl border-l-8 border-cyan-400">
+            <span class="text-cyan-300 font-bold">Tiempo de vuelo:</span><br>
+            <span class="text-3xl font-mono">tᵥ = 2 v₀ sen θ / g</span>
+          </div>
+          <div class="bg-gradient-to-r from-purple-900/50 to-transparent p-6 rounded-2xl border-l-8 border-purple-400">
+            <span class="text-purple-300 font-bold">Altura máxima:</span><br>
+            <span class="text-3xl font-mono">H = (v₀ sen θ)² / (2 g)</span>
+          </div>
+          <div class="bg-gradient-to-r from-emerald-900/50 to-transparent p-6 rounded-2xl border-l-8 border-emerald-400">
+            <span class="text-emerald-300 font-bold">Alcance horizontal:</span><br>
+            <span class="text-3xl font-mono">R = v₀² sen(2θ) / g</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Diapositiva 5 -->
+      <div id="slide5" class="slide hidden absolute inset-0 flex flex-col items-center justify-center px-8">
+        <h2 class="text-4xl font-semibold mb-8">Ejemplo: Choque Elástico</h2>
+        <div class="text-center max-w-2xl">
+          <p class="text-xl mb-6">Proyectil de 3 kg choca contra una superficie</p>
+          <div class="inline-block bg-slate-800 px-10 py-6 rounded-3xl">
+            <p class="text-5xl font-bold text-orange-400">v = 10 m/s</p>
+            <p class="text-2xl text-slate-400">a 45° respecto a la normal</p>
+            <p class="mt-4 text-slate-300">Δt = 0.2 s</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Diapositiva 6 -->
+      <div id="slide6" class="slide hidden absolute inset-0 flex flex-col items-center justify-center px-8">
+        <h2 class="text-4xl font-semibold mb-10">Descomposición de la velocidad de impacto</h2>
+        <div class="flex gap-16 text-center">
+          <div>
+            <div class="text-cyan-400 text-6xl font-mono mb-2">7.07 m/s</div>
+            <div class="text-lg">v⟂ᵢ (perpendicular)</div>
+            <div class="text-sm text-slate-400">cos 45°</div>
+          </div>
+          <div>
+            <div class="text-purple-400 text-6xl font-mono mb-2">7.07 m/s</div>
+            <div class="text-lg">v∥ (paralela)</div>
+            <div class="text-sm text-slate-400">sen 45°</div>
+          </div>
+        </div>
+        <div class="mt-12 text-emerald-400 text-xl">
+          En choque elástico → la componente perpendicular se invierte
+        </div>
+      </div>
+
+      <!-- Diapositiva 7 -->
+      <div id="slide7" class="slide hidden absolute inset-0 flex flex-col items-center justify-center px-8">
+        <h2 class="text-4xl font-semibold mb-8">Cálculo del Impulso</h2>
+        <div class="bg-slate-900 p-10 rounded-3xl max-w-xl text-left">
+          <p class="text-xl mb-4">Δp⟂ = m (v⟂f – v⟂ᵢ) = 3 × (–7.07 – 7.07) = <span class="text-red-400">–42.4 kg·m/s</span></p>
+          <p class="text-3xl mt-8 font-bold">F<sub>media</sub> = |Δp| / Δt = 42.4 / 0.2 = <span class="text-orange-400">212 N</span></p>
+        </div>
+      </div>
+
+      <!-- Diapositiva 8 - Resumen -->
+      <div id="slide8" class="slide hidden absolute inset-0 flex flex-col items-center justify-center px-8 text-center">
+        <h2 class="text-5xl font-bold mb-10 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-emerald-400">
+          En Resumen
+        </h2>
+        <div class="max-w-3xl text-2xl leading-relaxed text-slate-200">
+          El <strong>tiro parabólico</strong> se estudia mediante <strong>cinemática vectorial</strong>.<br><br>
+          La misma lógica de <strong>descomposición de vectores</strong> permite analizar choques<br>
+          mediante la relación <strong>impulso – cantidad de movimiento</strong>.
+        </div>
+        <div class="mt-16 text-cyan-300 text-xl">¡La Física es elegante cuando se descompone correctamente!</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Controles -->
+  <div class="fixed bottom-8 left-1/2 -translate-x-1/2 flex gap-4 z-50">
+    <button onclick="prevSlide()" class="bg-slate-800 hover:bg-slate-700 px-6 py-3 rounded-2xl text-xl transition-all">
+      ← Anterior
+    </button>
+    <div id="counter" class="bg-slate-800 px-8 py-3 rounded-2xl text-xl font-mono flex items-center">1 / 8</div>
+    <button onclick="nextSlide()" class="bg-violet-600 hover:bg-violet-500 px-6 py-3 rounded-2xl text-xl transition-all">
+      Siguiente →
+    </button>
+  </div>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 8;
+
+    function showSlide(n) {
+      document.querySelectorAll('.slide').forEach(slide => {
+        slide.classList.add('hidden');
+        slide.classList.remove('active');
+      });
+
+      const slide = document.getElementById(`slide${n}`);
+      slide.classList.remove('hidden');
+      
+      // Pequeño delay para activar la animación
+      setTimeout(() => {
+        slide.classList.add('active');
+      }, 50);
+
+      document.getElementById('counter').textContent = `${n} / ${totalSlides}`;
+    }
+
+    function nextSlide() {
+      currentSlide = (currentSlide % totalSlides) + 1;
+      showSlide(currentSlide);
+    }
+
+    function prevSlide() {
+      currentSlide = currentSlide === 1 ? totalSlides : currentSlide - 1;
+      showSlide(currentSlide);
+    }
+
+    // Controles de teclado
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') nextSlide();
+      if (e.key === 'ArrowLeft') prevSlide();
+      if (e.key === ' ') { e.preventDefault(); nextSlide(); }
+    });
+
+    // Iniciar en la primera diapositiva
+    window.onload = () => {
+      showSlide(1);
+    };
+  </script>
+</body>
+</html>

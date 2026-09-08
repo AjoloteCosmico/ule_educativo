@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animación de Tiro Parabólico</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to bottom, #87CEEB, #E0F7FA);
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            position: relative;
+            width: 1000px;
+            height: 600px;
+            border: 4px solid #333;
+            background: #f0f8ff;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0,0,0,0.3);
+        }
+
+        .ground {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 80px;
+            background: linear-gradient(#4CAF50, #2E7D32);
+            border-top: 8px solid #1B5E20;
+        }
+
+        #projectile1 {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background: url('cochi.png') no-repeat center/contain; /* Reemplaza con tu PNG */
+            transition: transform 0.1s;
+        }
+
+        #projectile2 {
+            position: absolute;
+            width: 90px;
+            height: 90px;
+            background: url('https://i.ibb.co/3YkL5kN/oreo.png') no-repeat center/contain; /* Reemplaza con tu PNG de Oreo */
+            transition: transform 0.1s;
+        }
+
+        .info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255,255,255,0.9);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            width: 280px;
+        }
+
+        .equation {
+            font-family: monospace;
+            background: #f8f8f8;
+            padding: 8px;
+            margin: 8px 0;
+            border-left: 4px solid #2196F3;
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,255,255,0.95);
+            padding: 12px 20px;
+            border-radius: 12px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        button {
+            padding: 10px 18px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #1976D2;
+        }
+
+        .title {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            text-shadow: 2px 2px 4px rgba(255,255,255,0.8);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="scene">
+    <div class="title">Tiro Parabólico - Física Divertida</div>
+    
+    <!-- Objeto 1 (asciende desde abajo izquierda) -->
+    <div id="projectile1"></div>
+    
+    <!-- Objeto 2 (Oreo que será golpeada y sigue trayectoria parabólica) -->
+    <div id="projectile2"></div>
+
+    <div class="ground"></div>
+
+    <!-- Panel de información con fórmulas -->
+    <div class="info">
+        <h3>Componentes del Tiro Parabólico</h3>
+        
+        <div><strong>Horizontal (X):</strong></div>
+        <div class="equation">a<sub>x</sub> = 0</div>
+        <div class="equation">v<sub>x</sub> = v₀ cos(θ)</div>
+        <div class="equation">x = v₀ cos(θ) ⋅ t</div>
+        
+        <div><strong>Vertical (Y):</strong></div>
+        <div class="equation">a<sub>y</sub> = -g</div>
+        <div class="equation">v<sub>y</sub> = v₀ sin(θ) - g⋅t</div>
+        <div class="equation">y = y₀ + v₀ sin(θ)⋅t - ½gt²</div>
+        
+        <div style="margin-top:10px; font-size:12px;">
+            <strong>Parámetros:</strong><br>
+            v₀ = <span id="v0_val">25</span> m/s | 
+            θ = <span id="theta_val">45</span>° | 
+            g = 9.8 m/s²
+        </div>
+    </div>
+
+    <div class="controls">
+        <button onclick="lanzarAnimacion()">Lanzar Animación</button>
+        <button onclick="reiniciar()">Reiniciar</button>
+    </div>
+</div>
+
+<script>
+    const projectile1 = document.getElementById('projectile1');
+    const projectile2 = document.getElementById('projectile2');
+    
+    const sceneWidth = 1000;
+    const sceneHeight = 600;
+    const groundHeight = 80;
+
+    let animationFrame;
+    let isAnimating = false;
+
+    // Posiciones iniciales
+    function resetPositions() {
+        // Objeto 1 (sube desde esquina inferior izquierda)
+        projectile1.style.left = '80px';
+        projectile1.style.bottom = '100px';
+        projectile1.style.transform = 'rotate(0deg)';
+        
+        // Objeto 2 (Oreo en el centro)
+        projectile2.style.left = '550px';
+        projectile2.style.bottom = '180px';
+        projectile2.style.transform = 'rotate(0deg)';
+    }
+
+    function lanzarAnimacion() {
+        if (isAnimating) return;
+        isAnimating = true;
+
+        resetPositions();
+
+        // 1. Animación de ascenso del primer objeto (desde abajo izquierda)
+        let pos1x = 80;
+        let pos1y = 100;
+        
+        const ascendInterval = setInterval(() => {
+            pos1y += 12;
+            projectile1.style.bottom = pos1y + 'px';
+            projectile1.style.left = pos1x + 'px';
+            
+            // Rotación ligera
+            projectile1.style.transform = `rotate(${pos1y * 1.5}deg)`;
+            
+            // "Golpe" cuando llega cerca del segundo objeto
+            if (pos1y > 220 && pos1x < 520) {
+                clearInterval(ascendInterval);
+                iniciarTiroParabolico();
+            }
+        }, 20);
+    }
+
+    function iniciarTiroParabolico() {
+        // Simulación del "golpe"
+        projectile1.style.transition = 'all 0.4s';
+        projectile1.style.left = '520px';
+        projectile1.style.bottom = '240px';
+
+        // El segundo objeto (Oreo) comienza su trayectoria parabólica
+        let t = 0;
+        const v0 = 28;      // velocidad inicial
+        const theta = 50;   // ángulo en grados
+        const g = 9.8;
+        
+        const thetaRad = theta * Math.PI / 180;
+        const vx = v0 * Math.cos(thetaRad);
+        const vy0 = v0 * Math.sin(thetaRad);
+        
+        const startX = 550;
+        const startY = 240;
+        
+        const interval = setInterval(() => {
+            t += 0.08; // paso de tiempo
+            
+            // Ecuaciones de tiro parabólico
+            const x = startX + vx * t * 18;                    // componente horizontal
+            const y = startY + (vy0 * t * 18) - (0.5 * g * t * t * 180); // componente vertical
+            
+            projectile2.style.left = x + 'px';
+            projectile2.style.bottom = y + 'px';
+            
+            // Rotación durante el vuelo
+            const rotation = t * 120;
+            projectile2.style.transform = `rotate(${rotation}deg)`;
+            
+            // Detener cuando toca el suelo
+            if (y < 100) {
+                clearInterval(interval);
+                projectile2.style.transition = 'all 0.6s';
+                projectile2.style.bottom = '100px';
+                isAnimating = false;
+            }
+            
+            // Evitar que salga de la pantalla
+            if (x > sceneWidth - 50) {
+                clearInterval(interval);
+                isAnimating = false;
+            }
+        }, 16);
+    }
+
+    function reiniciar() {
+        if (animationFrame) cancelAnimationFrame(animationFrame);
+        isAnimating = false;
+        resetPositions();
+    }
+
+    // Inicializar
+    window.onload = () => {
+        resetPositions();
+        
+        // Mensaje inicial
+        console.log("%cAnimación de Tiro Parabólico cargada correctamente", "color: #2196F3; font-weight: bold;");
+    };
+</script>
+
+</body>
+</html>

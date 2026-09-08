@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Tiro Parabólico con Imágenes y Animación de Impacto</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background: linear-gradient(145deg, #1a3c2c 0%, #0e2a1f 100%);
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .physics-lab {
+            background: rgba(30, 30, 40, 0.85);
+            backdrop-filter: blur(4px);
+            border-radius: 2.5rem;
+            box-shadow: 0 25px 40px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            max-width: 1300px;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        h1 {
+            margin: 0 0 0.25rem 0;
+            font-size: 1.8rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #FFE6B0, #FFB347);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 3px rgba(0,0,0,0.2);
+        }
+
+        .sub {
+            color: #cbd5e6;
+            margin-bottom: 1.2rem;
+            border-left: 4px solid #f59e0b;
+            padding-left: 12px;
+            font-weight: 400;
+            font-size: 0.9rem;
+        }
+
+        .dashboard {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-bottom: 1.8rem;
+            background: #1e2933cc;
+            border-radius: 2rem;
+            padding: 1rem 1.5rem;
+            backdrop-filter: blur(8px);
+        }
+
+        .control-group {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .control-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #FFE1A0;
+            font-weight: 500;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        input {
+            width: 100%;
+            background: #0f1722;
+            border: 1px solid #f59e0b80;
+            padding: 10px 12px;
+            border-radius: 2rem;
+            color: white;
+            font-weight: 500;
+            font-size: 1rem;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        input:focus {
+            border-color: #ffb347;
+            box-shadow: 0 0 0 3px #f59e0b40;
+        }
+
+        button {
+            background: #f59e0b;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-weight: bold;
+            color: #1e1a0c;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 5px black;
+        }
+
+        button:hover {
+            background: #ffb347;
+            transform: scale(1.02);
+        }
+
+        .reset-btn {
+            background: #3b3f5c;
+            color: white;
+        }
+
+        .stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: space-between;
+            background: #00000066;
+            border-radius: 1.5rem;
+            padding: 12px 20px;
+            margin-bottom: 1rem;
+            font-family: monospace;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        .stat-card {
+            background: #0f212e;
+            padding: 6px 14px;
+            border-radius: 40px;
+            color: #ffdd99;
+        }
+
+        .stat-card span {
+            color: white;
+            font-weight: 700;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            background: #0a111a;
+            border-radius: 1.8rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            margin-bottom: 0.5rem;
+        }
+
+        .legend {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            font-size: 0.75rem;
+            color: #bbb;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .dot {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        footer {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #aaa;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 700px) {
+            .physics-lab { padding: 1rem; }
+            .control-group label { font-size: 0.7rem; }
+            .stats { font-size: 0.7rem; }
+        }
+        
+        /* Loader tiny */
+        .loading-msg {
+            text-align: center;
+            color: #ffaa55;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+<div class="physics-lab">
+    <h1>⚡ TIRO PARABÓLICO | IMÁGENES + ANIMACIÓN DE IMPACTO</h1>
+    <div class="sub">📐 Movimiento parabólico realista · Peso · Velocidad · Balanceo previo al lanzamiento</div>
+
+    <div class="dashboard">
+        <div class="control-group">
+            <label>🚀 Velocidad inicial (v₀) [m/s]</label>
+            <input type="range" id="velSlider" min="5" max="45" step="0.5" value="22">
+            <input type="number" id="velNum" step="0.5" value="22" style="margin-top: 5px;">
+        </div>
+        <div class="control-group">
+            <label>📐 Ángulo de lanzamiento θ [°]</label>
+            <input type="range" id="angSlider" min="5" max="85" step="1" value="52">
+            <input type="number" id="angNum" step="1" value="52" style="margin-top: 5px;">
+        </div>
+        <div class="control-group">
+            <label>⚖️ Masa m [kg] → (Peso = m·g)</label>
+            <input type="range" id="massSlider" min="0.2" max="5" step="0.05" value="1.2">
+            <input type="number" id="massNum" step="0.05" value="1.2" style="margin-top: 5px;">
+        </div>
+        <div class="control-group">
+            <label>🌍 Gravedad g [m/s²]</label>
+            <input type="range" id="gSlider" min="3" max="20" step="0.2" value="9.8">
+            <input type="number" id="gNum" step="0.2" value="9.8" style="margin-top: 5px;">
+        </div>
+        <div class="control-group">
+            <label>💪 POTENCIA DE LANZAMIENTO (N·m)</label>
+            <progress id="medidorFuerza" value="0" max="1000" style="width:100%; height:20px; border-radius:20px;"></progress>
+            <span id="fuerzaTexto">0 N·m</span>
+        </div>
+        <div style="display: flex; align-items: flex-end; gap: 8px;">
+            <button id="resetBtn" class="reset-btn">⟳ Reiniciar lanzamiento</button>
+            <button id="fireBtn" style="background:#ef7e1a;">🎯 Disparar (con impacto)</button>
+        </div>
+    </div>
+
+    <div class="stats" id="infoPanel">
+        <div class="stat-card">📏 Alcance máximo: <span id="alcanceVal">0.00</span> m</div>
+        <div class="stat-card">🏔️ Altura máxima: <span id="hmaxVal">0.00</span> m</div>
+        <div class="stat-card">⏱️ Tiempo vuelo: <span id="tvueloVal">0.00</span> s</div>
+        <div class="stat-card">⚡ Peso (W): <span id="pesoVal">0.00</span> N</div>
+        <div class="stat-card">🎯 Velocidad actual: <span id="velActual">0.00</span> m/s</div>
+    </div>
+
+    <canvas id="canvasParabolico" width="1000" height="500" style="width:100%; height:auto; max-width:1000px; aspect-ratio:1000/500; margin:0 auto; display:block;"></canvas>
+    <div class="loading-msg" id="loadStatus">🎨 Cargando fondo.png y pelota.png ...</div>
+    <div class="legend">
+        <div><span class="dot" style="background: #ffaa44;"></span> Trayectoria parabólica</div>
+        <div><span class="dot" style="background: #ff5500;"></span> Proyectil (imagen PNG)</div>
+        <div><span class="dot" style="background: #4cffb0;"></span> Vector velocidad (escala)</div>
+        <div>💥 Antes de disparar: animación de balanceo/rebote en el punto de lanzamiento</div>
+    </div>
+    <footer>🔬 Fórmulas: x = v₀·cosθ·t , y = v₀·senθ·t - ½gt² | Peso = m·g | Fondo personalizado + imagen de proyectil</footer>
+</div>
+
+<script>
+    (function(){
+        // ----- Referencias DOM -----
+        const canvas = document.getElementById('canvasParabolico');
+        const ctx = canvas.getContext('2d');
+        
+        const velSlider = document.getElementById('velSlider');
+        const velNum = document.getElementById('velNum');
+        const angSlider = document.getElementById('angSlider');
+        const angNum = document.getElementById('angNum');
+        const massSlider = document.getElementById('massSlider');
+        const massNum = document.getElementById('massNum');
+        const gSlider = document.getElementById('gSlider');
+        const gNum = document.getElementById('gNum');
+        const resetBtn = document.getElementById('resetBtn');
+        const fireBtn = document.getElementById('fireBtn');
+        
+        const alcanceSpan = document.getElementById('alcanceVal');
+        const hmaxSpan = document.getElementById('hmaxVal');
+        const tvueloSpan = document.getElementById('tvueloVal');
+        const pesoSpan = document.getElementById('pesoVal');
+        const velActualSpan = document.getElementById('velActual');
+        const loadStatusDiv = document.getElementById('loadStatus');
+        
+        // --- IMAGENES EXTERNAS ---
+        let fondoImg = new Image();
+        let pelotaImg = new Image();
+        let cochiImg = new Image();   // cambia por tu archivo
+        let cochiReady = false;
+        let imagesLoaded = 0;
+        let fondoReady = false;
+        let pelotaReady = false;
+        
+        function checkAllImagesLoaded() {
+            if(fondoReady && pelotaReady ) {
+                loadStatusDiv.innerHTML = "✅ Imágenes cargadas correctamente → fondo.png / pelota.png";
+                loadStatusDiv.style.color = "#aaffaa";
+                // Redibujar todo
+                refreshParameters();
+                restartAnimation();
+            } else {
+                loadStatusDiv.innerHTML = "⏳ Cargando imágenes... asegúrate de que fondo.png y pelota.png existan en la misma carpeta";
+            }
+        }
+        
+        fondoImg.onload = () => { fondoReady = true; checkAllImagesLoaded(); };
+        pelotaImg.onload = () => { pelotaReady = true; checkAllImagesLoaded(); };
+        cochiImg.onload = () => { cochiImg = true; checkAllImagesLoaded(); };
+       
+        fondoImg.onerror = () => { loadStatusDiv.innerHTML = "⚠️ No se pudo cargar 'fondo.png'. Se usará cuadrícula por defecto."; fondoReady = true; checkAllImagesLoaded(); };
+        pelotaImg.onerror = () => { loadStatusDiv.innerHTML = "⚠️ No se pudo cargar 'pelota.png'. Se usará círculo naranja."; pelotaReady = true; checkAllImagesLoaded(); };
+        cochiImg.onerror = () => { loadStatusDiv.innerHTML = "⚠️ No se pudo cargar 'cochi.png'. Se usará círculo naranja."; pelotaReady = true; checkAllImagesLoaded(); };
+        
+        fondoImg.src = "fondo2.png";
+        pelotaImg.src = "pelota.png";
+        cochiImg.src="cochi.png"
+
+        // Variables de simulación
+        let v0 = 22, angleDeg = 52, mass = 1.2, g = 9.8;
+        let currentTime = 0;
+        let totalTimeFlight = 0;
+        let reach = 0, maxHeight = 0;
+        let proyectilX = 0, proyectilY = 0;
+        
+        // --- NUEVA ANIMACIÓN DE IMPACTO / BALANCEO ---
+        let impactAnimActive = false;    // si está activa la animación de "golpe/balanceo"
+        let impactAnimTimer = 0;         // tiempo transcurrido de la animación (segundos)
+        const IMPACT_DURATION = 0.45;    // duración del rebote/balanceo en segundos
+        let impactOffsetX = 0;           // desplazamiento horizontal en píxeles (para simular vibración)
+        let impactScale = 1.0;           // escala de la imagen para efecto de aplastamiento/estiramiento
+        
+        // Control del vuelo: mientras estamos en animación de impacto, el proyectil permanece en origen
+        // y no se mueve por la parábola. Después del impacto, se lanza automáticamente.
+        let isFlying = false;              // si el proyectil está volando (movimiento parabólico)
+        
+        // Posición de lanzamiento en el mundo (siempre en x=0, y=0)
+        const launchX = 0;
+        const launchY = 0;
+        
+        // Funciones cinemáticas
+        function toRad(deg) { return deg * Math.PI / 180; }
+        
+        function computeKinematics(v, angDeg, grav, m) {
+            const rad = toRad(angDeg);
+            const vx = v * Math.cos(rad);
+            const vy = v * Math.sin(rad);
+            const tVuelo = (2 * vy) / grav;
+            const R = vx * tVuelo;
+            const H = (vy * vy) / (2 * grav);
+            const peso = m * grav;
+            return { vx, vy, tVuelo, R, H, peso };
+        }
+        
+        function updateStaticInfo() {
+            const { tVuelo, R, H, peso } = computeKinematics(v0, angleDeg, g, mass);
+            alcanceSpan.innerText = R.toFixed(2);
+            hmaxSpan.innerText = H.toFixed(2);
+            tvueloSpan.innerText = tVuelo.toFixed(2);
+            pesoSpan.innerText = peso.toFixed(2);
+            reach = R;
+            maxHeight = H;
+            totalTimeFlight = tVuelo;
+        }
+        
+        function getPositionAtTime(t, v, angDeg, grav) {
+            if(t < 0) t = 0;
+            const rad = toRad(angDeg);
+            const vx = v * Math.cos(rad);
+            const vy = v * Math.sin(rad);
+            const x = vx * t;
+            const y = vy * t - 0.5 * grav * t * t;
+            return { x: Math.max(0, x), y: Math.max(0, y) };
+        }
+        
+        function getSpeedAtTime(t, v, angDeg, grav) {
+            if(t < 0) t = 0;
+            const rad = toRad(angDeg);
+            const vx = v * Math.cos(rad);
+            const vy_init = v * Math.sin(rad);
+            const vy_t = vy_init - grav * t;
+            return Math.hypot(vx, vy_t);
+        }
+        
+        // Transformaciones mundo -> canvas (con escalado dinámico por alcance/altura)
+        let scaleX = 1, scaleY = 1;
+        let worldWidth = 1, worldHeight = 1;
+        
+        function updateWorldTransformation() {
+            let maxWorldX = Math.max(reach, 0.1);
+            let maxWorldY = Math.max(maxHeight, 0.1);
+            const paddingX = 0.05 * maxWorldX;
+            const paddingY = 0.15 * maxWorldY;
+            worldWidth = maxWorldX + paddingX;
+            worldHeight = maxWorldY + paddingY;
+            if(worldWidth <= 0) worldWidth = 20;
+            if(worldHeight <= 0) worldHeight = 20;
+            scaleX = canvas.width / worldWidth;
+            scaleY = canvas.height / worldHeight;
+        }
+        
+        function worldToCanvas(xWorld, yWorld) {
+            const canvasX = xWorld * scaleX;
+            const canvasY = canvas.height - (yWorld * scaleY);
+            return { x: canvasX, y: canvasY };
+        }
+        
+        // Dibujar fondo (si la imagen fondo.png está cargada, la dibuja; sino una cuadrícula)
+        function drawBackground() {
+            if (fondoReady && fondoImg.complete && fondoImg.naturalWidth > 0) {
+                // Dibujar la imagen de fondo escalada al canvas
+                ctx.drawImage(fondoImg, 0, 0, canvas.width, canvas.height);
+                // Opcional: sobreponer leve transparencia para mejorar visibilidad
+                ctx.globalAlpha = 0.85;
+                ctx.fillStyle = "#ffffff10";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.globalAlpha = 1.0;
+            } else {
+                // Fondo cuadrícula como fallback
+                ctx.fillStyle = "#0a111a";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.strokeStyle = "#4488aa30";
+                ctx.lineWidth = 0.7;
+                const stepXgrid = canvas.width / 12;
+                const stepYgrid = canvas.height / 8;
+                for(let i = 0; i <= 12; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(i*stepXgrid, 0);
+                    ctx.lineTo(i*stepXgrid, canvas.height);
+                    ctx.stroke();
+                }
+                for(let i = 0; i <= 8; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, i*stepYgrid);
+                    ctx.lineTo(canvas.width, i*stepYgrid);
+                    ctx.stroke();
+                }
+            }
+            
+            // Dibujar suelo personalizado (realce)
+            let groundStart = worldToCanvas(0, 0);
+            let groundEnd = worldToCanvas(worldWidth, 0);
+            ctx.beginPath();
+            ctx.strokeStyle = "#ddbb77";
+            ctx.lineWidth = 3;
+            ctx.moveTo(groundStart.x, groundStart.y);
+            ctx.lineTo(groundEnd.x, groundEnd.y);
+            ctx.stroke();
+            ctx.fillStyle = "#b87c3e80";
+            ctx.fillRect(0, groundStart.y-3, canvas.width, 5);
+            
+            // Marcar alcance y altura máxima (solo si no estamos en modo impacto?)
+            if(reach > 0 && !impactAnimActive) {
+                let impactPt = worldToCanvas(reach, 0);
+                ctx.beginPath();
+                ctx.fillStyle = "#ff8844cc";
+                ctx.arc(impactPt.x, impactPt.y, 6, 0, 2*Math.PI);
+                ctx.fill();
+                ctx.fillStyle = "#fff0c0";
+                ctx.font = "bold 12px monospace";
+                ctx.fillText("Alcance", impactPt.x-25, impactPt.y-6);
+            }
+            if(maxHeight > 0 && !impactAnimActive) {
+                let t_hmax = (v0 * Math.sin(toRad(angleDeg))) / g;
+                let posHmax = getPositionAtTime(t_hmax, v0, angleDeg, g);
+                let canvasH = worldToCanvas(posHmax.x, posHmax.y);
+                ctx.beginPath();
+                ctx.fillStyle = "#88ffaa";
+                ctx.arc(canvasH.x, canvasH.y, 5, 0, 2*Math.PI);
+                ctx.fill();
+                ctx.fillStyle = "#ccffcc";
+                ctx.fillText("Ymax", canvasH.x+8, canvasH.y-4);
+            }
+        }
+        
+        // Dibujar trayectoria completa
+        function drawTrajectory() {
+            if(totalTimeFlight <= 0 || reach <= 0) return;
+            ctx.beginPath();
+            ctx.strokeStyle = "#ffaa44";
+            ctx.lineWidth = 3;
+            ctx.shadowBlur = 0;
+            let first = true;
+            const steps = 220;
+            for(let i=0; i<=steps; i++) {
+                let t = (i/steps) * totalTimeFlight;
+                let pos = getPositionAtTime(t, v0, angleDeg, g);
+                if(pos.y < 0) pos.y = 0;
+                let canvasPt = worldToCanvas(pos.x, pos.y);
+                if(first) {
+                    ctx.moveTo(canvasPt.x, canvasPt.y);
+                    first = false;
+                } else {
+                    ctx.lineTo(canvasPt.x, canvasPt.y);
+                }
+            }
+            ctx.stroke();
+        }
+        
+        // Dibujar proyectil con imagen pelota.png y efectos de impacto (escala y offset)
+        function drawProjectile() {
+            let drawX = 0, drawY = 0;
+            let extraOffsetX = 0, extraOffsetY = 0;
+            let currentScale = 1.0;
+            // Dibujar imagen extra (mascota) en la misma posición dinámica
+            if(cochiReady && cochiImg.complete) {
+                ctx.save();
+                ctx.translate(drawX, drawY);
+                ctx.scale(currentScale, currentScale);  // MISMA animación de balanceo
+                ctx.translate(-drawX, -drawY);
+                ctx.drawImage(cochiImg, drawX - sizecochi/2, drawY - sizecochi/2, sizecochi, sizecochi);
+                ctx.restore();
+            }
+            if(impactAnimActive) {
+                // Animación de balanceo/rebote: usando curvas senoidales para simular golpe
+                // timer de 0 a IMPACT_DURATION
+                let t = Math.min(1, impactAnimTimer / IMPACT_DURATION);
+                // Efecto de rebote: escala se agranda y luego vuelve (squash)
+                if(t < 0.3) {
+                    currentScale = 1.0 + Math.sin(t * Math.PI / 0.3) * 0.4;
+                } else {
+                    currentScale = 1.0 + (1 - (t-0.3)/0.7) * 0.15;
+                }
+                // Desplazamiento horizontal y vertical tipo vibración
+                extraOffsetX = Math.sin(t * Math.PI * 10) * 5 * (1 - t);
+                extraOffsetY = Math.abs(Math.sin(t * Math.PI * 8)) * 6 * (1 - t);
+                // La posición siempre es el punto de lanzamiento
+                let launchCanvas = worldToCanvas(launchX, launchY);
+                drawX = launchCanvas.x + extraOffsetX;
+                drawY = launchCanvas.y - extraOffsetY;
+            } 
+            else if(isFlying) {
+                // Vuelo normal
+                let canvasPos = worldToCanvas(proyectilX, proyectilY);
+                drawX = canvasPos.x;
+                drawY = canvasPos.y;
+                currentScale = 1.0;
+            }
+            else {
+                // Estado quieto en origen
+                let launchCanvas = worldToCanvas(launchX, launchY);
+                drawX = launchCanvas.x;
+                drawY = launchCanvas.y;
+                currentScale = 1.0;
+            }
+            
+            // Dibujar imagen o círculo
+            ctx.save();
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = "black";
+            ctx.translate(drawX, drawY);
+            ctx.scale(currentScale, currentScale);
+            ctx.translate(-drawX, -drawY);
+            
+            const size = 60; // tamaño fijo para la imagen (pixeles)
+            const sizecochi=150;
+            if(pelotaReady && pelotaImg.complete && pelotaImg.naturalWidth > 0) {
+                ctx.drawImage(pelotaImg, drawX - size/2, drawY - size/2, size, size);
+            } else {
+                // fallback: círculo estilizado
+                ctx.beginPath();
+                ctx.fillStyle = "#ff7700";
+                ctx.arc(drawX, drawY, 13, 0, 2*Math.PI);
+                ctx.fill();
+                ctx.fillStyle = "#ffcc44";
+                ctx.beginPath();
+                ctx.arc(drawX-2, drawY-2, 3, 0, 2*Math.PI);
+                ctx.fill();
+            }
+            ctx.restore();
+            
+            // Vector velocidad si está volando
+            if(isFlying && totalTimeFlight > 0 && currentTime <= totalTimeFlight && !impactAnimActive) {
+                let speedNow = getSpeedAtTime(currentTime, v0, angleDeg, g);
+                velActualSpan.innerText = speedNow.toFixed(2);
+                let rad = toRad(angleDeg);
+                let vx_comp = v0 * Math.cos(rad);
+                let vy_comp = v0 * Math.sin(rad) - g * currentTime;
+                let angleVel = Math.atan2(vy_comp, vx_comp);
+                let scaleVec = Math.min(30, speedNow * 1.6);
+                let endX = drawX + Math.cos(angleVel) * scaleVec;
+                let endY = drawY - Math.sin(angleVel) * scaleVec;
+                ctx.beginPath();
+                ctx.moveTo(drawX, drawY);
+                ctx.lineTo(endX, endY);
+                ctx.strokeStyle = "#4cffb0";
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+                let arrowSize = 8;
+                let backX = endX - Math.cos(angleVel) * arrowSize;
+                let backY = endY - Math.sin(angleVel) * arrowSize;
+                ctx.beginPath();
+                ctx.moveTo(endX, endY);
+                ctx.lineTo(backX - Math.sin(angleVel)*5, backY + Math.cos(angleVel)*5);
+                ctx.lineTo(backX + Math.sin(angleVel)*5, backY - Math.cos(angleVel)*5);
+                ctx.fillStyle = "#aaffdd";
+                ctx.fill();
+            } else if(!impactAnimActive) {
+                if(currentTime > totalTimeFlight) velActualSpan.innerText = "0.00";
+                else if(!isFlying) velActualSpan.innerText = v0.toFixed(2);
+            }
+            
+            if(!impactAnimActive && isFlying && currentTime <= totalTimeFlight) {
+                ctx.font = "bold 11px 'Segoe UI'";
+                ctx.fillStyle = "#f8f2d9";
+                ctx.shadowBlur = 3;
+                ctx.fillText(`${velActualSpan.innerText} m/s`, drawX-15, drawY-16);
+            }
+        }
+        
+        function drawFullScene() {
+            updateWorldTransformation();
+            drawBackground();
+            drawTrajectory();
+            drawProjectile();
+        }
+        
+        // Lanzar animación de impacto (golpe) y luego el proyectil sale volando
+        function startImpactAndLaunch() {
+            if(impactAnimActive) return; // ya en marcha
+            // Si actualmente está volando, reiniciamos todo
+            cancelFlight();
+            // Colocar proyectil en origen
+            currentTime = 0;
+            proyectilX = launchX;
+            proyectilY = launchY;
+            isFlying = false;
+            impactAnimActive = true;
+            impactAnimTimer = 0;
+            // Actualizar info estática por si cambiaron parámetros
+            updateStaticInfo();
+            drawFullScene();
+        }
+        
+        function cancelFlight() {
+            isFlying = false;
+            currentTime = 0;
+            proyectilX = launchX;
+            proyectilY = launchY;
+        }
+        
+        function updateImpactAnimation(deltaTime) {
+            if(!impactAnimActive) return false;
+            impactAnimTimer += deltaTime;
+            if(impactAnimTimer >= IMPACT_DURATION) {
+                // Terminó animación: ahora sí lanzar proyectil
+                impactAnimActive = false;
+                isFlying = true;
+                currentTime = 0;
+                // Asegurar que la posición inicial es correcta
+                let startPos = getPositionAtTime(0, v0, angleDeg, g);
+                proyectilX = startPos.x;
+                proyectilY = startPos.y;
+                drawFullScene();
+                return true; // lanzamiento completado
+            }
+            // Actualizar offset y escala en drawProjectile usando timers
+            drawFullScene();
+            return false;
+        }
+        
+        // Actualiza la física en vuelo
+        function updateFlight(deltaTime) {
+            if(!isFlying) return;
+            if(totalTimeFlight <= 0.001) {
+                isFlying = false;
+                return;
+            }
+            if(currentTime >= totalTimeFlight) {
+                // final del recorrido
+                const finalPos = getPositionAtTime(totalTimeFlight, v0, angleDeg, g);
+                proyectilX = finalPos.x;
+                proyectilY = 0;
+                isFlying = false; // se detiene
+                drawFullScene();
+                return;
+            }
+            let newTime = currentTime + deltaTime;
+            if(newTime > totalTimeFlight) newTime = totalTimeFlight;
+            currentTime = newTime;
+            const pos = getPositionAtTime(currentTime, v0, angleDeg, g);
+            proyectilX = pos.x;
+            proyectilY = Math.max(0, pos.y);
+            drawFullScene();
+        }
+        
+        let lastTimestamp = 0;
+        function animate(currentTimeAnim) {
+            if(!lastTimestamp) lastTimestamp = currentTimeAnim;
+            let delta = Math.min(0.033, (currentTimeAnim - lastTimestamp) / 1000);
+            if(delta > 0.001) {
+                if(impactAnimActive) {
+                    updateImpactAnimation(delta);
+                } else if(isFlying) {
+                    updateFlight(delta);
+                } else {
+                    // idle, asegurar dibujo
+                    drawFullScene();
+                }
+            }
+            lastTimestamp = currentTimeAnim;
+            requestAnimationFrame(animate);
+        }
+        
+        function refreshParameters() {
+            v0 = parseFloat(velSlider.value);
+            velNum.value = v0;
+            angleDeg = parseFloat(angSlider.value);
+            angNum.value = angleDeg;
+            mass = parseFloat(massSlider.value);
+            massNum.value = mass;
+            g = parseFloat(gSlider.value);
+            gNum.value = g;
+            // Dentro de refreshParameters() agrega:
+            let energiaJoules = 0.5 * mass * v0 * v0;
+            let medidor = document.getElementById('medidorFuerza');
+            if(medidor) {
+                medidor.value = Math.min(1000, energiaJoules);
+                document.getElementById('fuerzaTexto').innerText = energiaJoules.toFixed(0) + " N·m";
+            }
+            updateStaticInfo();
+            if(!impactAnimActive && !isFlying) {
+                // reiniciar posición visual
+                cancelFlight();
+                drawFullScene();
+            } else if(isFlying && !impactAnimActive) {
+                // Si está volando y cambian parámetros, reiniciamos para consistencia
+                cancelFlight();
+                drawFullScene();
+            } else {
+                drawFullScene();
+            }
+        }
+        
+        function restartAnimation() {
+            if(impactAnimActive) {
+                impactAnimActive = false;
+            }
+            cancelFlight();
+            drawFullScene();
+        }
+        
+        function bindSliderNumber(slider, number, callback) {
+            slider.addEventListener('input', () => { number.value = slider.value; callback(); });
+            number.addEventListener('input', () => {
+                let val = parseFloat(number.value);
+                if(!isNaN(val)) {
+                    if(slider === velSlider) val = Math.min(45, Math.max(5, val));
+                    if(slider === angSlider) val = Math.min(85, Math.max(5, val));
+                    if(slider === massSlider) val = Math.min(5, Math.max(0.2, val));
+                    if(slider === gSlider) val = Math.min(20, Math.max(3, val));
+                    slider.value = val;
+                    callback();
+                }
+            });
+        }
+        
+        bindSliderNumber(velSlider, velNum, refreshParameters);
+        bindSliderNumber(angSlider, angNum, refreshParameters);
+        bindSliderNumber(massSlider, massNum, refreshParameters);
+        bindSliderNumber(gSlider, gNum, refreshParameters);
+        resetBtn.addEventListener('click', restartAnimation);
+        fireBtn.addEventListener('click', () => { startImpactAndLaunch(); });
+        
+        // Inicializar todo
+        function init() {
+            refreshParameters();
+            cancelFlight();
+            drawFullScene();
+            requestAnimationFrame(animate);
+        }
+        
+        init();
+    })();
+</script>
+</body>
+</html>
