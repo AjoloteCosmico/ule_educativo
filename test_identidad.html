@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ule educativo — Demo de estilos</title>
+
+  <!-- Fuente Ubuntu -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Sistema de diseño -->
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+
+  <style>
+    /* Solo para la demo: favicon y logo placeholder */
+    .logo-placeholder {
+      width: 5.5rem;
+      height: 5.5rem;
+      background: var(--color-principal);
+      border-radius: var(--radius-md);
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-align: center;
+      line-height: 1.2;
+      padding: 0.5rem;
+    }
+    .demo-label {
+      font-family: var(--font-anotaciones);
+      font-style: italic;
+      font-size: var(--fs-anotacion);
+      opacity: 0.6;
+      margin-block-end: var(--space-sm);
+    }
+    .demo-block {
+      margin-block-end: var(--space-2xl);
+      padding-block-end: var(--space-xl);
+      border-bottom: 1px dashed color-mix(in srgb, var(--color-texto) 20%, transparent);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Skip link -->
+  <a class="skip-link" href="#contenido-principal">Saltar al contenido</a>
+
+  <!-- ========== HEADER / NAV ========== -->
+  <header class="container">
+    <nav class="nav" aria-label="Navegación principal">
+      <ul class="nav__lista">
+        <li><a class="nav__link" href="#" aria-current="page">Inicio</a></li>
+        <li><a class="nav__link" href="#indice">Índice</a></li>
+        <li><a class="nav__link" href="#articulo">Artículo</a></li>
+        <li><a class="nav__link" href="#catalogo">Catálogos</a></li>
+        <li><a class="nav__link" href="#recursos">Recursos</a></li>
+      </ul>
+
+      <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Cambiar tema">
+        <span id="theme-label">Oscuro</span>
+      </button>
+    </nav>
+  </header>
+
+  <main id="contenido-principal">
+
+    <!-- ========== HOME: LOGO LOCKUP ========== -->
+    <section class="container demo-block">
+      <p class="demo-label">.logo-lockup</p>
+      <div class="logo-lockup">
+        <div class="logo-lockup__icon logo-placeholder" aria-hidden="true">
+          CANCHA<br>DE<br>PELOTA
+        </div>
+        <h1 class="logo-lockup__nombre">ule educativo</h1>
+      </div>
+      <p style="text-align:center; max-width:40ch; margin-inline:auto;">
+        Sitio educativo sobre el juego de pelota mesoamericano en todas sus variantes.
+      </p>
+    </section>
+
+    <!-- ========== TIPOGRAFÍA Y ENLACES ========== -->
+    <section class="container section demo-block">
+      <p class="demo-label">Tipografía semántica + enlaces + botón</p>
+      <h1>Título de sección (h1)</h1>
+      <h2>Subtítulo de sección (h2)</h2>
+      <h3>Título de card / subtítulo (h3)</h3>
+      <p>
+        Cuerpo de texto regular. El juego de pelota se practicó desde los olmecas
+        hasta el periodo posclásico. Puedes leer más en este
+        <a href="#">enlace de ejemplo</a> o visitar un
+        <a href="https://example.com">enlace visitado</a>.
+      </p>
+      <p class="anotacion">Anotación / pie de foto en Helvetica italic (0.875rem).</p>
+      <button type="button" class="btn">Botón principal</button>
+      <button type="button" class="btn" disabled style="margin-inline-start:var(--space-sm)">Deshabilitado</button>
+    </section>
+
+    <!-- ========== CARD DE TEXTO ========== -->
+    <section class="container demo-block">
+      <p class="demo-label">.card / .card-texto</p>
+      <article class="card card-texto">
+        <h3 class="card__titulo">El juego de cadera</h3>
+        <div class="card__cuerpo">
+          <p>
+            En la variante de cadera los jugadores golpeaban la pelota de hule
+            con la cadera o el muslo. Era la forma más extendida en el área maya
+            y en el Altiplano Central.
+          </p>
+          <p class="anotacion">Nota: las reglas exactas varían según la región y la época.</p>
+        </div>
+      </article>
+    </section>
+
+    <!-- ========== BADGES ========== -->
+    <section class="container demo-block">
+      <p class="demo-label">.badge (todos los tipos definidos)</p>
+      <div class="cluster">
+        <span class="badge badge--periodo-preclasico">Preclásico</span>
+        <span class="badge badge--periodo-clasico">Clásico</span>
+        <span class="badge badge--periodo-posclasico">Posclásico</span>
+        <span class="badge badge--cultura-olmeca">Olmeca</span>
+        <span class="badge badge--cultura-golfo">Golfo</span>
+        <span class="badge badge--cultura-cacaxtla">Cacaxtla</span>
+        <span class="badge badge--cultura-maya">Maya</span>
+        <span class="badge badge--cultura-azteca">Azteca</span>
+        <span class="badge badge--default">Default</span>
+      </div>
+    </section>
+
+    <!-- ========== GRECA ========== -->
+    <section class="container demo-block">
+      <p class="demo-label">.greca / .greca--divider</p>
+      <div class="greca greca--divider" style="height:12px; background: repeating-linear-gradient(90deg, var(--color-principal) 0 12px, transparent 12px 20px); border-radius:2px; opacity:0.6;" role="img" aria-label="Greca decorativa"></div>
+    </section>
+
+    <!-- ========== CATÁLOGO ========== -->
+    <section id="catalogo" class="container section demo-block">
+      <p class="demo-label">.catalog-header + .catalog-grid + .catalog-card</p>
+
+      <header class="catalog-header">
+        <h2 class="catalog-header__titulo">Piezas arqueológicas</h2>
+        <p class="catalog-header__descripcion">
+          Colección de objetos relacionados con el juego de pelota: yugos, hachas,
+          palmas y representaciones de jugadores. Las categorías se pueden filtrar
+          por periodo y cultura.
+        </p>
+      </header>
+
+      <div class="catalog-grid">
+        <!-- Card 1 -->
+        <article class="catalog-card">
+          <img class="catalog-card__imagen"
+               src="https://placehold.co/400x400/058A41/ffffff?text=Yugo"
+               alt="Yugo de piedra con decoración de serpiente"
+               width="400" height="400" loading="lazy">
+          <div class="catalog-card__body">
+            <h3 class="catalog-card__titulo">Yugo con serpiente</h3>
+            <div class="catalog-card__badges">
+              <span class="badge badge--periodo-clasico">Clásico</span>
+              <span class="badge badge--cultura-golfo">Golfo</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 2 -->
+        <article class="catalog-card">
+          <img class="catalog-card__imagen"
+               src="https://placehold.co/400x400/63372C/ffffff?text=Hacha"
+               alt="Hacha ceremonial de piedra verde"
+               width="400" height="400" loading="lazy">
+          <div class="catalog-card__body">
+            <h3 class="catalog-card__titulo">Hacha ceremonial</h3>
+            <div class="catalog-card__badges">
+              <span class="badge badge--periodo-preclasico">Preclásico</span>
+              <span class="badge badge--cultura-olmeca">Olmeca</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 3 -->
+        <article class="catalog-card">
+          <img class="catalog-card__imagen"
+               src="https://placehold.co/400x400/3A5F4A/ffffff?text=Palma"
+               alt="Palma con figura de jugador"
+               width="400" height="400" loading="lazy">
+          <div class="catalog-card__body">
+            <h3 class="catalog-card__titulo">Palma de jugador</h3>
+            <div class="catalog-card__badges">
+              <span class="badge badge--periodo-posclasico">Posclásico</span>
+              <span class="badge badge--cultura-maya">Maya</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 4 -->
+        <article class="catalog-card">
+          <img class="catalog-card__imagen"
+               src="https://placehold.co/400x400/5A3A2A/ffffff?text=Figurilla"
+               alt="Figurilla de barro de un jugador de pelota"
+               width="400" height="400" loading="lazy">
+          <div class="catalog-card__body">
+            <h3 class="catalog-card__titulo">Figurilla de jugador</h3>
+            <div class="catalog-card__badges">
+              <span class="badge badge--periodo-clasico">Clásico</span>
+              <span class="badge badge--cultura-cacaxtla">Cacaxtla</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ========== ANUNCIOS ========== -->
+    <section class="container demo-block">
+      <p class="demo-label">.ad-card (vertical) y .ad-card--horizontal</p>
+
+      <div class="stack stack--lg">
+        <!-- Anuncio vertical -->
+        <article class="ad-card" style="max-width:280px">
+          <img class="ad-card__imagen"
+               src="https://placehold.co/320x400/058A41/ffffff?text=Asociaci%C3%B3n"
+               alt="Banner de asociación de juego de pelota"
+               width="320" height="400" loading="lazy">
+          <div class="ad-card__body">
+            <p class="ad-card__contacto">Asociación Mexicana de Ule</p>
+            <p class="ad-card__slogan">Practica el juego ancestral hoy</p>
+            <p class="ad-card__descripcion">Vigente hasta diciembre 2026 · Condiciones en el sitio</p>
+          </div>
+        </article>
+
+        <!-- Anuncio horizontal -->
+        <article class="ad-card ad-card--horizontal">
+          <img class="ad-card__imagen"
+               src="https://placehold.co/220x275/63372C/ffffff?text=Taller"
+               alt="Banner de taller de juego de pelota"
+               width="220" height="275" loading="lazy">
+          <div class="ad-card__body">
+            <p class="ad-card__contacto">Taller intensivo · Ciudad de México</p>
+            <p class="ad-card__slogan">Aprende las tres variantes en un fin de semana</p>
+            <p class="ad-card__descripcion">Cupo limitado · Inscripciones abiertas</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ========== ARTÍCULO / LECTURA LARGA ========== -->
+    <section id="articulo" class="container section demo-block">
+      <p class="demo-label">.articulo (lectura larga)</p>
+      <article class="articulo">
+        <h2>Orígenes del juego de pelota</h2>
+        <p>
+          El juego de pelota mesoamericano es una de las tradiciones deportivas
+          más antiguas del continente. Sus raíces se remontan al menos al
+          periodo preclásico, con evidencias claras en la cultura olmeca.
+        </p>
+        <p>
+          A lo largo de los siglos se desarrollaron distintas variantes:
+          de cadera, de mazo y de antebrazo. Cada una tenía su propio
+          reglamento, indumentaria y significado ritual.
+        </p>
+        <h3>La cancha</h3>
+        <p>
+          Las canchas presentaban formas y dimensiones variables, aunque
+          la mayoría compartían un eje longitudinal y muros laterales
+          inclinados o verticales. Algunas incluían anillos de piedra
+          a media altura.
+        </p>
+        <figure>
+          <img src="https://placehold.co/680x380/1E352F/c3d4d0?text=Cancha+reconstruida"
+               alt="Reconstrucción de una cancha de pelota mesoamericana"
+               width="680" height="380" loading="lazy"
+               class="foto-arqueologica">
+          <figcaption>Reconstrucción hipotética de una cancha del periodo clásico.</figcaption>
+        </figure>
+        <p>
+          Hoy el juego se mantiene vivo gracias a asociaciones y comunidades
+          que rescatan y adaptan las reglas tradicionales.
+        </p>
+      </article>
+    </section>
+
+    <!-- ========== UTILIDADES ========== -->
+    <section class="container demo-block">
+      <p class="demo-label">.stack / .cluster + estados de catálogo</p>
+
+      <div class="stack">
+        <p>Elemento en stack 1</p>
+        <p>Elemento en stack 2</p>
+        <p>Elemento en stack 3</p>
+      </div>
+
+      <div class="cluster" style="margin-block-start:var(--space-lg)">
+        <span class="badge badge--cultura-azteca">Cluster</span>
+        <button type="button" class="btn">Acción</button>
+        <a href="#">Enlace</a>
+      </div>
+
+      <div class="catalog-empty" style="margin-block-start:var(--space-xl)">
+        No hay piezas que coincidan con los filtros seleccionados.
+      </div>
+      <div class="catalog-loading">
+        Cargando catálogo…
+      </div>
+    </section>
+
+    <!-- ========== ICONOS ========== -->
+    <section class="container demo-block">
+      <p class="demo-label">.icon / .icon--on-principal / .icon--default</p>
+      <div class="cluster">
+        <span class="icon icon--default" style="width:2rem;height:2rem;background:var(--color-icono);border-radius:4px;" title="icon--default"></span>
+        <span class="icon icon--on-principal" style="width:2rem;height:2rem;background:#fff;border-radius:4px;border:2px solid var(--color-principal);" title="icon--on-principal"></span>
+      </div>
+      <p class="anotacion" style="margin-top:var(--space-sm)">
+        Placeholders visuales. En producción se usarán SVG reales (cancha y greca).
+      </p>
+    </section>
+
+  </main>
+
+  <footer class="container section" style="text-align:center; opacity:0.7; font-size:var(--fs-anotacion);">
+    <p>ule educativo · Demo de sistema de diseño · 2026</p>
+  </footer>
+
+  <!-- Theme toggle script mínimo -->
+  <script>
+    (function () {
+      const root = document.documentElement;
+      const btn = document.getElementById('theme-toggle');
+      const label = document.getElementById('theme-label');
+      const KEY = 'ule-theme';
+
+      // Preferencia guardada o prefers-color-scheme
+      const saved = localStorage.getItem(KEY);
+      if (saved === 'dark' || saved === 'light') {
+        root.setAttribute('data-theme', saved);
+      } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        root.setAttribute('data-theme', 'dark');
+      }
+
+      function updateLabel() {
+        const isDark = root.getAttribute('data-theme') === 'dark';
+        label.textContent = isDark ? 'Claro' : 'Oscuro';
+      }
+      updateLabel();
+
+      btn.addEventListener('click', () => {
+        const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        localStorage.setItem(KEY, next);
+        updateLabel();
+      });
+    })();
+  </script>
+</body>
+</html>

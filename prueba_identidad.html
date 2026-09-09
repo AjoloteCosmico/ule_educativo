@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+</head>
+<body>
+<h1>Identidad Gráfica — Sitio del Juego de Pelota Mesoamericano</h1>
+
+<h2>1. Brief de marca</h2>
+<p>Sitio educativo dedicado a difundir la práctica y el conocimiento del juego de pelota mesoamericano en todas sus variantes (cadera, mazo, antebrazo), cubriendo dos vertientes:</p>
+<ul>
+<li><strong>Histórica</strong>: desde los olmecas hasta el periodo posclásico.</li>
+<li><strong>Contemporánea</strong>: asociaciones, reglamentos y práctica actual del deporte.</li>
+</ul>
+<p>El diseño debe verse amigable, agradable a la vista y llamativo, pero siempre priorizando la lectura del texto. Debe conservar cierta seriedad: un sitio educativo agradable, <strong>no</strong> una red social. La estética debe invitar a explorar el contenido.</p>
+<p><strong>Referencia visual/textural</strong>: evocar textura de piedra (superficies, fondos o detalles decorativos con esa sensación material, sin perder legibilidad).</p>
+
+<h2>2. Voz y tono</h2>
+<ul>
+<li>Educativo ligero: no somos "la academia" (no acartonado, no jerga excesiva), pero tampoco una red social (no informal en exceso, no clickbait).</li>
+<li>Nos dirigimos siempre en segunda persona ("tú").</li>
+<li>No afirmamos verdades absolutas ni tomamos postura fija en debates o temas políticos/controvertidos: documentamos y estamos abiertos a observaciones para mejorar la información.</li>
+</ul>
+<p>El sitio se escribe en <strong>español</strong> como idioma principal. A futuro podrá tener versiones en inglés y francés.</p>
+
+<h2>3. Estructura del sitio</h2>
+<p><strong>Home / <code>index.html</code></strong>: hasta arriba, el icono principal (que funciona como logo) y debajo el nombre del sitio. Es el primer punto de contacto con la identidad.</p>
+<p>Secciones principales:</p>
+<ol>
+<li><strong>Índice</strong>: listado de todo el contenido. Debe incluir elementos destacados/llamativos que puedan actualizarse con el tiempo (ej. contenido reciente o curado).</li>
+<li><strong>Artículo / Blog</strong>: texto plano, formato de lectura larga.</li>
+<li><strong>Catálogos</strong>: pensados sobre todo para colecciones de imágenes (ej. piezas arqueológicas). Estructura:
+<ul>
+<li>Encabezado de colección: descripción general.</li>
+<li>Grid dinámico (cuadrícula tipo flex/grid) de elementos, cuadrados medianos.</li>
+<li>Cada card: imagen + título + badges de categoría (ej. periodo: preclásico/clásico/posclásico; cultura: golfo, olmeca, cacaxtla, etc.).</li>
+<li>El mismo mecanismo de catálogo debe poder reutilizarse para distintos catálogos, cada uno con su propio lote de categorías (ver sección 6, componentes nativos).</li>
+</ul>
+</li>
+<li><strong>Recursos dinámicos</strong>: contenido interactivo (simulador de tiro parabólico actualmente; a futuro, minijuegos y otras herramientas interactivas).</li>
+</ol>
+
+<h2>4. Sistema de diseño (CSS)</h2>
+<p>Modos: <strong>claro</strong> y <strong>oscuro</strong> únicamente. Todo declarado como variables CSS en <code>:root</code> para poder modificarse o experimentar sin tocar el resto del código.</p>
+
+<h3>4.1 Color</h3>
+<pre><code>:root {
+  /* Base */
+  --color-principal: #058A41;
+  --color-secundario: #63372C;
+  --color-fondo-claro: #fdfdff;
+  --color-fondo-oscuro: #1E352F;
+  --color-texto-claro: #282828;
+  --color-texto-oscuro: #c3d4d0;
+
+  /* Cards */
+  --color-card-claro: #F5F1E9;          /* tono hueso / piedra clara */
+  --color-card-oscuro: #2A2F2C;         /* gris muy oscuro con leve tinte verdoso */
+
+  /* Texto sobre cards */
+  --color-titulo-card: var(--color-principal);   /* títulos y resaltados */
+  --color-cuerpo-card-claro: #2C2C2C;            /* contraste AA sobre hueso */
+  --color-cuerpo-card-oscuro: #D0D8D5;           /* contraste AA sobre card oscuro */
+
+  /* Links */
+  --color-link: #058A41;
+  --color-link-hover: #046B33;
+  --color-link-visitado: #4A6B5A;
+  --color-link-focus: #058A41;                   /* mismo color + outline visible */
+
+  /* Badges – Periodo */
+  --badge-preclasico: #8B5E3C;
+  --badge-clasico: #2E6B4E;
+  --badge-posclasico: #5C4033;
+
+  /* Badges – Cultura (ejemplos fijos, ampliar según catálogo) */
+  --badge-olmeca: #3D5A45;
+  --badge-golfo: #6B4E31;
+  --badge-cacaxtla: #4A6741;
+  --badge-maya: #2F4F4F;
+  --badge-azteca: #5C3317;
+}
+</code></pre>
+<p><strong>Notas de contraste</strong>:</p>
+<ul>
+<li>Texto de cuerpo sobre cards cumple mínimo WCAG AA.</li>
+<li>Títulos usan el verde principal para mantener identidad y jerarquía clara.</li>
+<li>Los badges usan tonos terrosos/pétreos que evocan la referencia de piedra sin competir con el verde principal.</li>
+</ul>
+
+<h3>4.2 Tipografía</h3>
+<pre><code>:root {
+  --font-principal: "Ubuntu", sans-serif;
+  --font-anotaciones: "Helvetica", sans-serif; /* uso en cursiva vía font-style: italic */
+}
+</code></pre>
+<p><strong>Pesos</strong>:</p>
+<ul>
+<li>Títulos de sección (h1, h2): Ubuntu Bold (700)</li>
+<li>Títulos de card / subtítulos (h3): Ubuntu Medium (500)</li>
+<li>Cuerpo: Ubuntu Regular (400)</li>
+<li>Anotaciones / notas al pie: Helvetica Italic (400 italic)</li>
+</ul>
+<p><strong>Escala tipográfica</strong> (mobile → desktop):</p>
+<table>
+<thead>
+<tr><th>Elemento</th><th>Mobile</th><th>Desktop (≥768px)</th></tr>
+</thead>
+<tbody>
+<tr><td>h1</td><td>1.75rem</td><td>2.25rem</td></tr>
+<tr><td>h2</td><td>1.375rem</td><td>1.75rem</td></tr>
+<tr><td>h3 / título de card</td><td>1.125rem</td><td>1.25rem</td></tr>
+<tr><td>Cuerpo</td><td>1rem</td><td>1.0625rem</td></tr>
+<tr><td>Anotación</td><td>0.875rem</td><td>0.875rem</td></tr>
+</tbody>
+</table>
+<p>Line-height recomendado: 1.5 para cuerpo, 1.25 para títulos.</p>
+
+<h3>4.3 Bordes, espaciado y sombras</h3>
+<pre><code>:root {
+  /* Radios */
+  --radius-sm: 0.375rem;   /* 6px – badges, botones pequeños */
+  --radius-md: 0.75rem;    /* 12px – cards, inputs */
+  --radius-lg: 1rem;       /* 16px – contenedores grandes */
+
+  /* Espaciado */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+
+  /* Sombras */
+  --shadow-card-claro: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-card-oscuro: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+</code></pre>
+<p>Los márgenes generales deben ser generosos para que el contenido “respire”. Preferir <code>--space-lg</code> y <code>--space-xl</code> entre secciones.</p>
+
+<h3>4.4 Responsive</h3>
+<p>Mobile first, obligatorio.</p>
+<pre><code>:root {
+  --bp-sm: 480px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1280px;
+}
+</code></pre>
+<p><strong>Grid de catálogo</strong> (columnas):</p>
+<ul>
+<li>&lt; 480px → 1 columna</li>
+<li>≥ 480px → 2 columnas</li>
+<li>≥ 768px → 3 columnas</li>
+<li>≥ 1024px → 4 columnas</li>
+</ul>
+<p>Gap del grid: <code>var(--space-md)</code> en mobile, <code>var(--space-lg)</code> en desktop.</p>
+
+<h3>4.5 Componentes</h3>
+
+<p><strong>Cards de texto</strong> (artículo/blog):</p>
+<ul>
+<li>Fondo: <code>--color-card-claro</code> / <code>--color-card-oscuro</code></li>
+<li>Título: <code>--color-titulo-card</code> + Ubuntu Medium</li>
+<li>Cuerpo: variables de cuerpo según modo</li>
+<li>Padding interno: <code>var(--space-lg)</code></li>
+<li>Borde redondeado: <code>var(--radius-md)</code></li>
+<li>Sombra: según modo</li>
+</ul>
+
+<p><strong>Badges</strong>:</p>
+<ul>
+<li>Forma: píldora (border-radius: 999px)</li>
+<li>Altura: ~1.5rem / padding horizontal <code>0.625rem</code></li>
+<li>Texto: Ubuntu Regular, 0.75rem, mayúsculas, letter-spacing 0.02em</li>
+<li>Sin icono interno por defecto (mantener minimalismo)</li>
+<li>Color de fondo según categoría (variables de arriba); texto blanco o casi blanco para contraste</li>
+</ul>
+
+<p><strong>Cards de anuncio</strong>:</p>
+<ul>
+<li>Imagen/banner proporción fija <strong>4:5 vertical</strong></li>
+<li>Elementos: imagen + (contacto + slogan) + texto legal/condiciones</li>
+<li><strong>Prioridad visual fija</strong>:
+<ol>
+<li>Imagen (más peso visual)</li>
+<li>Contacto + slogan (segundo nivel)</li>
+<li>Texto legal (más discreto, tamaño anotación)</li>
+</ol>
+</li>
+<li>Layout: columna en mobile; puede pasar a fila (imagen izquierda + contenido derecha) a partir de <code>--bp-md</code> si el contenedor lo permite. El orden de prioridad se mantiene.</li>
+</ul>
+
+<p><strong>Iconos</strong>:</p>
+<ul>
+<li>Estilo: minimalistas, línea limpia o silueta sólida, sin detalles excesivos.</li>
+<li>Color por defecto: blanco, siempre sobre el color principal (no dependen del modo).</li>
+<li>Cuando no están sobre el color principal (badges, texto suelto, fondos claros): usar <code>--color-secundario</code> o un gris neutro oscuro (<code>#3A3A3A</code>) según contexto. Nunca usar el verde principal sobre fondos claros para evitar pérdida de contraste.</li>
+<li>Set inicial: 
+  <ul>
+  <li>Icono principal: cancha de pelota (logo + favicon)</li>
+  <li>Unidad de greca (para repetirse y formar líneas divisorias)</li>
+  </ul>
+</li>
+<li>Se irán agregando más iconos con el tiempo. Mantener el mismo lenguaje visual (peso de trazo, nivel de detalle).</li>
+</ul>
+
+<p><strong>Tratamiento de fotografías</strong> (piezas arqueológicas y juego actual):</p>
+<ul>
+<li>Color natural (sin duotono ni filtros pesados).</li>
+<li>Ligera viñeta o borde sutil en tono piedra (<code>--color-secundario</code> al 15-20% de opacidad) para evocar materialidad sin distorsionar la imagen.</li>
+<li>En modo oscuro: se mantiene el color natural; el contenedor de la card aporta el contraste.</li>
+<li>Evitar overlays fuertes que reduzcan legibilidad del contenido.</li>
+</ul>
+
+<h2>5. Logo / Icono principal</h2>
+<ul>
+<li>No hay wordmark independiente: el <strong>icono de la cancha de pelota es el logo</strong>.</li>
+<li>Uso en Home: icono arriba + nombre del sitio debajo (“ule educativo”), alineados al centro o a la izquierda según el layout.</li>
+<li>Nombre definitivo del sitio: <strong>ule educativo</strong>.</li>
+</ul>
+
+<p><strong>Versiones del logo (máximo 3)</strong>:</p>
+<ol>
+<li><strong>Principal</strong>: icono + texto “ule educativo” debajo (uso en home y cabeceras).</li>
+<li><strong>Icono solo</strong>: para favicon, botones, espacios reducidos.</li>
+<li><strong>Monocromo</strong>: versión en blanco o en <code>--color-secundario</code> para fondos de color o impresión.</li>
+</ol>
+<p>No se requieren más variantes.</p>
+
+<p><strong>Favicon</strong> (mínimo necesario):</p>
+<ul>
+<li>16×16 y 32×32 (PNG o ICO)</li>
+<li>Apple Touch Icon 180×180 (PNG)</li>
+<li>Formato de exportación preferido: PNG con fondo transparente + un .ico que agrupe 16/32.</li>
+</ul>
+
+<p><strong>Espacio de protección</strong>:</p>
+<ul>
+<li>Mínimo equivalente a 1/4 de la altura del icono en todos los lados cuando se usa como logo.</li>
+<li>No colocar texto ni otros elementos dentro de esa zona.</li>
+</ul>
+
+<h2>6. Nota sobre implementación de componentes</h2>
+<p>La intención es construir con <strong>componentes nativos de JS (Web Components)</strong> la mecánica y estilos de catálogo, de forma que se escriban una sola vez y se repliquen en distintos catálogos, cada uno con su propio lote de categorías/badges. Esto es una decisión de arquitectura de código — ver detalle en <code>arquitectura.md</code>, pero se anota aquí porque condiciona el diseño: los estilos de card, grid y badges deben poder parametrizarse (vía atributos/props) sin duplicar CSS.</p>
+
+<hr>
+<p><em>Documento de identidad gráfica completo. Todos los huecos marcados originalmente como pendientes han sido definidos de forma coherente con el brief: legibilidad prioritaria, sensación de piedra, tono educativo amigable y sistema de variables CSS listo para implementar.</em></p>
+</body>
+</html>

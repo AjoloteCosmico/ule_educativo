@@ -1,0 +1,372 @@
+/* ==========================================================================
+   components.css — Componentes reutilizables
+   Cards, badges, catálogo, anuncios, navegación
+   ule educativo
+   ========================================================================== */
+
+/* ---------- Cards de texto (artículo / blog) ---------- */
+.card,
+.card-texto {
+  background-color: var(--color-card);
+  color: var(--color-cuerpo-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-lg);
+}
+
+.card__titulo,
+.card-texto__titulo {
+  color: var(--color-titulo-card);
+  font-weight: 500;
+  font-size: var(--fs-h3);
+  margin-block-end: var(--space-sm);
+}
+
+.card__cuerpo,
+.card-texto__cuerpo {
+  color: var(--color-cuerpo-card);
+  font-size: var(--fs-cuerpo);
+  line-height: var(--lh-cuerpo);
+}
+
+/* ---------- Badges de categoría ---------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 1.6rem;
+  padding-inline: calc(var(--space-sm) + var(--space-xs));
+  border-radius: var(--radius-pill);
+  font-family: var(--font-principal);
+  font-size: var(--fs-anotacion);
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #fff;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/* Periodo */
+.badge--periodo-preclasico { background-color: var(--badge-periodo-preclasico); }
+.badge--periodo-clasico    { background-color: var(--badge-periodo-clasico); }
+.badge--periodo-posclasico { background-color: var(--badge-periodo-posclasico); }
+
+/* Cultura */
+.badge--cultura-olmeca   { background-color: var(--badge-cultura-olmeca); }
+.badge--cultura-golfo    { background-color: var(--badge-cultura-golfo); }
+.badge--cultura-cacaxtla { background-color: var(--badge-cultura-cacaxtla); }
+.badge--cultura-maya     { background-color: var(--badge-cultura-maya); }
+.badge--cultura-azteca   { background-color: var(--badge-cultura-azteca); }
+
+/* Fallback genérico si no se especifica tipo */
+.badge--default {
+  background-color: var(--color-secundario);
+}
+
+/* ---------- Catálogo: grid de cards ---------- */
+.catalog-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-md);
+  width: 100%;
+}
+
+/* ≥ 480px — 2 columnas */
+@media (min-width: 480px) {
+  .catalog-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-md);
+  }
+}
+
+/* ≥ 768px — 3 columnas */
+@media (min-width: 768px) {
+  .catalog-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-lg);
+  }
+}
+
+/* ≥ 1024px — 4 columnas */
+@media (min-width: 1024px) {
+  .catalog-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-lg);
+  }
+}
+
+/* ≥ 1280px — se mantiene en 4 columnas (máximo) */
+@media (min-width: 1280px) {
+  .catalog-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Card individual del catálogo */
+.catalog-card {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.catalog-card:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+
+:root[data-theme="dark"] .catalog-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+}
+
+.catalog-card__imagen {
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  object-fit: cover;
+  border-radius: 0; /* el contenedor ya tiene el radio */
+}
+
+.catalog-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  flex-grow: 1;
+}
+
+.catalog-card__titulo {
+  font-size: var(--fs-h3);
+  font-weight: 500;
+  color: var(--color-titulo-card);
+  line-height: var(--lh-titulo);
+  margin: 0;
+}
+
+.catalog-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-top: auto;
+}
+
+/* Encabezado de colección (catálogo) */
+.catalog-header {
+  margin-block-end: var(--space-xl);
+}
+
+.catalog-header__titulo {
+  font-size: var(--fs-h1);
+  font-weight: 700;
+  color: var(--color-texto);
+  margin-block-end: var(--space-sm);
+}
+
+.catalog-header__descripcion {
+  font-size: var(--fs-cuerpo);
+  color: var(--color-texto);
+  max-width: 65ch;
+  line-height: var(--lh-cuerpo);
+}
+
+/* ---------- Cards de anuncio ---------- */
+.ad-card {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+/* Imagen con proporción 4:5 vertical */
+.ad-card__imagen {
+  aspect-ratio: 4 / 5;
+  width: 100%;
+  object-fit: cover;
+  border-radius: 0;
+}
+
+.ad-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+}
+
+.ad-card__contacto {
+  font-size: var(--fs-h3);
+  font-weight: 500;
+  color: var(--color-titulo-card);
+  margin: 0;
+}
+
+.ad-card__slogan {
+  font-size: var(--fs-cuerpo);
+  font-weight: 400;
+  color: var(--color-cuerpo-card);
+  margin: 0;
+}
+
+.ad-card__descripcion {
+  font-family: var(--font-anotaciones);
+  font-style: italic;
+  font-size: var(--fs-anotacion);
+  color: var(--color-cuerpo-card);
+  opacity: 0.8;
+  margin: 0;
+  margin-top: auto;
+}
+
+/* Variante horizontal (cuando el contenedor lo permite) */
+@media (min-width: 640px) {
+  .ad-card--horizontal {
+    flex-direction: row;
+  }
+
+  .ad-card--horizontal .ad-card__imagen {
+    width: 40%;
+    max-width: 220px;
+    aspect-ratio: 4 / 5;
+    flex-shrink: 0;
+  }
+
+  .ad-card--horizontal .ad-card__body {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+/* ---------- Navegación ---------- */
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md);
+  padding-block: var(--space-md);
+}
+
+.nav__lista {
+  display: flex;
+  flex-wrap: wrap;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  gap: var(--space-sm) var(--space-md);
+}
+
+.nav__link {
+  font-weight: 500;
+  text-decoration: none;
+  color: var(--color-texto);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.nav__link:hover {
+  color: var(--color-principal);
+  background-color: color-mix(in srgb, var(--color-principal) 10%, transparent);
+}
+
+.nav__link[aria-current="page"] {
+  color: var(--color-principal);
+  font-weight: 700;
+}
+
+.nav__link:focus-visible {
+  outline: 2px solid var(--color-principal);
+  outline-offset: 2px;
+}
+
+/* ---------- Iconos ---------- */
+.icon {
+  display: inline-block;
+  width: 1.25em;
+  height: 1.25em;
+  vertical-align: middle;
+  fill: currentColor;
+}
+
+/* Sobre color principal → blanco */
+.icon--on-principal {
+  color: #fff;
+  fill: #fff;
+}
+
+/* Fuera del color principal */
+.icon--default {
+  color: var(--color-icono);
+  fill: var(--color-icono);
+}
+
+/* ---------- Greca (módulo horizontal divisorio) ---------- */
+.greca {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 1.5rem;
+  object-fit: contain;
+  opacity: 0.7;
+}
+
+.greca--divider {
+  margin-block: var(--space-xl);
+}
+
+/* ---------- Artículo / lectura larga ---------- */
+.articulo {
+  max-width: 68ch;
+  margin-inline: auto;
+}
+
+.articulo h2 {
+  margin-block: var(--space-xl) var(--space-md);
+}
+
+.articulo h3 {
+  margin-block: var(--space-lg) var(--space-sm);
+}
+
+.articulo p + p {
+  margin-block-start: var(--space-md);
+}
+
+.articulo img {
+  margin-block: var(--space-lg);
+}
+
+.articulo figcaption {
+  margin-block-start: var(--space-xs);
+  text-align: center;
+}
+
+/* ---------- Utilidades de layout ---------- */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.stack--lg {
+  gap: var(--space-lg);
+}
+
+.cluster {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+/* ---------- Estados de carga / vacío (catálogo) ---------- */
+.catalog-empty,
+.catalog-loading {
+  text-align: center;
+  padding: var(--space-2xl) var(--space-md);
+  color: var(--color-texto);
+  opacity: 0.7;
+  font-size: var(--fs-cuerpo);
+}
