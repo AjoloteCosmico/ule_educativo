@@ -306,14 +306,26 @@
 .greca {
   display: block;
   width: 100%;
-  height: auto;
-  max-height: 1.5rem;
+  height: 1.5rem;
+  color: var(--color-texto);
+  background-color: currentColor;
+  -webkit-mask-image: url('../assets/img/greca.png');
+  mask-image: url('../assets/img/greca.png');
+  -webkit-mask-repeat: repeat-x;
+  mask-repeat: repeat-x;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: auto 100%;
+  mask-size: auto 100%;
   object-fit: contain;
-  opacity: 0.7;
+  opacity: 0.8;
 }
 
 .greca--divider {
   margin-block: var(--space-xl);
+  height: 50px;
+  border-radius: 2px;
+  opacity: 0.6;
 }
 
 /* ---------- Artículo / lectura larga ---------- */
