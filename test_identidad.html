@@ -14,6 +14,8 @@
   <link rel="stylesheet" href="css/variables.css">
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/components.css">
+  
+  <link rel="icon" href="assets/logo/logo.png" type="image/x-icon">
 
   <style>
     /* Solo para la demo: favicon y logo placeholder */
@@ -325,15 +327,16 @@
     <p>ule educativo · Demo de sistema de diseño · 2026</p>
   </footer>
 
-  <!-- Theme toggle script mínimo -->
+  <!-- Theme toggle script + Header hide/show on scroll -->
   <script>
     (function () {
       const root = document.documentElement;
       const btn = document.getElementById('theme-toggle');
       const label = document.getElementById('theme-label');
+      const header = document.querySelector('header');
       const KEY = 'ule-theme';
 
-      // Preferencia guardada o prefers-color-scheme
+      // ========== TEMA ==========
       const saved = localStorage.getItem(KEY);
       if (saved === 'dark' || saved === 'light') {
         root.setAttribute('data-theme', saved);
@@ -352,6 +355,38 @@
         root.setAttribute('data-theme', next);
         localStorage.setItem(KEY, next);
         updateLabel();
+      });
+
+       
+      // ========== HEADER HIDE/SHOW ==========
+      let lastScrollY = 0;
+      const SCROLL_THRESHOLD = 50; // píxeles para activar ocultar
+
+      window.addEventListener('scroll', () => {
+        const currentScrollY = window.scrollY;
+        const isScrollingDown = currentScrollY > lastScrollY;
+        const isAtTop = currentScrollY < SCROLL_THRESHOLD;
+
+        if (isAtTop) {
+          header.classList.remove('header--hidden');
+          header.classList.add('header--visible');
+        } else if (isScrollingDown) {
+          header.classList.add('header--hidden');
+          header.classList.remove('header--visible');
+        } else {
+          header.classList.remove('header--hidden');
+          header.classList.add('header--visible');
+        }
+
+        lastScrollY = currentScrollY;
+      });
+
+      // Mostrar header al pasar el mouse por el borde superior
+      document.addEventListener('mousemove', (e) => {
+        if (e.clientY < 50) {
+          header.classList.remove('header--hidden');
+          header.classList.add('header--visible');
+        }
       });
     })();
   </script>

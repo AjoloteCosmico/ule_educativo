@@ -1,0 +1,103 @@
+/* ==========================================================================
+   theme.css — Comportamiento del modo claro/oscuro
+   ule educativo
+
+   Las variables de color por tema (--color-fondo, --color-texto, etc.)
+   ya están definidas en variables.css bajo :root y :root[data-theme="dark"].
+   Este archivo se encarga de:
+     1. Declarar color-scheme para que los controles nativos del navegador
+        (scrollbar, inputs, selects) respeten el tema activo.
+     2. Dar una transición suave al cambiar de tema (sin afectar la carga inicial).
+     3. Ofrecer un fallback por prefers-color-scheme cuando aún no existe
+        data-theme (p. ej. JS deshabilitado o antes de que main.js corra).
+     4. Ajustes visuales específicos de modo oscuro que no son solo color
+        (imágenes, iconos de tema, opacidad de fotografías).
+   ========================================================================== */
+
+/* ---------- color-scheme nativo ---------- */
+:root {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+/* Fallback: si no hay data-theme todavía (p. ej. JS aún no corrió o está
+   deshabilitado) y el sistema pide oscuro, usamos las variables oscuras. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --color-fondo: var(--color-fondo-oscuro);
+    --color-texto: var(--color-texto-oscuro);
+    --color-card: var(--color-card-oscuro);
+    --color-cuerpo-card: var(--color-cuerpo-card-oscuro);
+    --shadow-card: var(--shadow-card-oscuro);
+    --color-icono: var(--color-texto-oscuro);
+  }
+}
+
+/* ---------- Transición entre temas ----------
+   Se activa solo cuando el usuario cambia el tema manualmente (clase
+   añadida/quitada por main.js), para no animar el primer render de la
+   página y evitar parpadeos o "flash" de color. */
+.theme-transition,
+.theme-transition * {
+  transition: background-color 0.25s ease, color 0.25s ease,
+    border-color 0.25s ease, box-shadow 0.25s ease !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-transition,
+  .theme-transition * {
+    transition: none !important;
+  }
+}
+
+/* ---------- Botón de cambio de tema: icono sol/luna ---------- */
+.theme-toggle__icon {
+  display: inline-flex;
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.theme-toggle__icon svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Por defecto (tema claro) se muestra el icono de luna (para pasar a oscuro) */
+.theme-toggle__icon .icon-sol { display: none; }
+.theme-toggle__icon .icon-luna { display: block; }
+
+:root[data-theme="dark"] .theme-toggle__icon .icon-sol { display: block; }
+:root[data-theme="dark"] .theme-toggle__icon .icon-luna { display: none; }
+
+/* ---------- Imágenes y fotografías en modo oscuro ----------
+   Reduce ligeramente el brillo/contraste de fotografías para que no
+   "exploten" visualmente sobre fondos oscuros. No aplica a logos/iconos. */
+:root[data-theme="dark"] img.foto-arqueologica,
+:root[data-theme="dark"] img.foto-juego,
+:root[data-theme="dark"] .catalog-card__imagen,
+:root[data-theme="dark"] .ad-card__imagen {
+  filter: brightness(0.92) contrast(0.97);
+}
+
+/* ---------- Logo: variante para fondo oscuro ----------
+   Si el logo necesita una versión de trazo claro sobre fondo oscuro,
+   se puede envolver en un contenedor con esta clase y usar
+   mix-blend-mode o invertir según el asset disponible. */
+:root[data-theme="dark"] .logo-lockup__icon img {
+  filter: brightness(1.05);
+}
+
+/* ---------- Placeholder de imagen mientras carga (loader.js) ---------- */
+.img-skeleton {
+  background-color: color-mix(in srgb, var(--color-texto) 8%, transparent);
+}

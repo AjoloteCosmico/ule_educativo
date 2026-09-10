@@ -239,6 +239,25 @@
   }
 }
 
+/* ---------- Header sticky con hide/show ---------- */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background-color: var(--color-fondo);
+  box-shadow: var(--shadow-card);
+  transform: translateY(0);
+  transition: transform 0.3s ease;
+}
+
+header.header--hidden {
+  transform: translateY(-100%);
+}
+
+header.header--visible {
+  transform: translateY(0);
+}
+
 /* ---------- Navegación ---------- */
 .nav {
   display: flex;
@@ -323,7 +342,7 @@
 
 .greca--divider {
   margin-block: var(--space-xl);
-  height: 50px;
+  height: 10vh;
   border-radius: 2px;
   opacity: 0.6;
 }
