@@ -1,6 +1,5 @@
 window.ULE = window.ULE || {};
 
-/* ads.js — selección y renderizado de anuncios vigentes. */
 ULE.ads = (function () {
   'use strict';
 
@@ -9,26 +8,23 @@ ULE.ads = (function () {
 
   async function loadAds() {
     if (cache) return cache;
-
     try {
       const response = await fetch(DATA_PATH, { cache: 'no-cache' });
       if (!response.ok) throw new Error('HTTP ' + response.status);
       const data = await response.json();
       cache = Array.isArray(data.anuncios) ? data.anuncios : [];
-      return cache;
     } catch (error) {
       console.warn('[ULE.ads] No se pudieron cargar los anuncios:', error);
       cache = [];
-      return cache;
     }
+    return cache;
   }
 
   function fechaActual() {
     const ahora = new Date();
-    const y = ahora.getFullYear();
-    const m = String(ahora.getMonth() + 1).padStart(2, '0');
-    const d = String(ahora.getDate()).padStart(2, '0');
-    return y + '-' + m + '-' + d;
+    return ahora.getFullYear() + '-' +
+      String(ahora.getMonth() + 1).padStart(2, '0') + '-' +
+      String(ahora.getDate()).padStart(2, '0');
   }
 
   function isVigente(ad, today) {
@@ -38,34 +34,32 @@ ULE.ads = (function () {
     return true;
   }
 
-  function getValidAds(ads, today) {
+  function getValidAds(ads, today, pagina) {
     return ads.filter(function (ad) {
-      return isVigente(ad, today);
+      if (!isVigente(ad, today)) return false;
+      if (!pagina || !Array.isArray(ad.paginas) || !ad.paginas.length) return true;
+      return ad.paginas.includes('todas') || ad.paginas.includes(pagina);
     });
   }
 
   function weightedRandom(ads) {
     if (!ads.length) return null;
-
-    const totalWeight = ads.reduce(function (sum, ad) {
+    const total = ads.reduce(function (sum, ad) {
       const peso = Number(ad.peso);
-      return sum + (Number.isFinite(peso) && peso > 0 ? peso : 1);
+      return sum + (Number.isFinite(peso) && peso >= 1 ? peso : 1);
     }, 0);
-
-    let random = Math.random() * totalWeight;
-
+    let random = Math.random() * total;
     for (const ad of ads) {
       const peso = Number(ad.peso);
-      random -= Number.isFinite(peso) && peso > 0 ? peso : 1;
+      random -= Number.isFinite(peso) && peso >= 1 ? peso : 1;
       if (random <= 0) return ad;
     }
-
     return ads[ads.length - 1];
   }
 
-  async function getRandomAd() {
+  async function getRandomAd(pagina) {
     const ads = await loadAds();
-    return weightedRandom(getValidAds(ads, fechaActual()));
+    return weightedRandom(getValidAds(ads, fechaActual(), pagina));
   }
 
   function renderSlot(slot, ad) {
@@ -79,52 +73,38 @@ ULE.ads = (function () {
     slot.replaceChildren();
 
     const card = document.createElement('ad-card');
-    if (ad.imagen) card.setAttribute('data-image', ad.imagen);
-    if (ad.contacto) card.setAttribute('data-contacto', ad.contacto);
-    if (ad.slogan) card.setAttribute('data-slogan', ad.slogan);
-    if (ad.descripcion) card.setAttribute('data-descripcion', ad.descripcion);
-    if (ad.vigencia_fin) card.setAttribute('data-vigencia-fin', ad.vigencia_fin);
-    if (ad.enlace) card.setAttribute('data-enlace', ad.enlace);
+    ['imagen','imagen_alt','contacto','slogan','descripcion','vigencia_fin','enlace','tipo'].forEach(function (campo) {
+      if (ad[campo]) card.setAttribute('data-' + campo.replace('_', '-'), ad[campo]);
+    });
 
-    if (slot.dataset.adHorizontal === 'true') {
-      card.setAttribute('horizontal', '');
-    }
-
+    if (slot.dataset.adHorizontal === 'true') card.setAttribute('horizontal', '');
     slot.appendChild(card);
   }
 
-  async function renderSlots(root) {
+  async function renderSlots(root, pagina) {
     const scope = root || document;
     const slots = Array.from(scope.querySelectorAll('[data-ad-slot]'));
     if (!slots.length) return [];
 
     const ads = await loadAds();
-    const validAds = getValidAds(ads, fechaActual());
-
+    const validAds = getValidAds(ads, fechaActual(), pagina);
     slots.forEach(function (slot) {
       renderSlot(slot, weightedRandom(validAds));
     });
-
     return validAds;
   }
 
   function init() {
+    const pagina = document.body && document.body.dataset.adPage;
+    const start = function () { renderSlots(document, pagina); };
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', function () {
-        renderSlots();
-      }, { once: true });
+      document.addEventListener('DOMContentLoaded', start, { once: true });
     } else {
-      renderSlots();
+      start();
     }
   }
 
   init();
 
-  return {
-    loadAds: loadAds,
-    getValidAds: getValidAds,
-    getRandomAd: getRandomAd,
-    renderSlot: renderSlot,
-    renderSlots: renderSlots
-  };
+  return { loadAds, getValidAds, getRandomAd, renderSlot, renderSlots };
 })();
