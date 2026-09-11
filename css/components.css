@@ -392,6 +392,45 @@ header.header--visible {
   align-items: center;
 }
 
+/* ---------- Card como enlace (accesos del dashboard) ---------- */
+.card-link {
+  display: block;
+  text-decoration: none;
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.card-link:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.card-link:focus-visible {
+  outline: 2px solid var(--color-link-focus);
+  outline-offset: 2px;
+}
+
+.card-link .card__flecha {
+  display: inline-block;
+  margin-inline-start: var(--space-xs);
+  transition: transform 0.15s ease;
+}
+
+.card-link:hover .card__flecha {
+  transform: translateX(3px);
+}
+
+/* ---------- Grid de accesos (home) ---------- */
+.accesos-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-lg);
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .accesos-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
 /* ---------- Estados de carga / vacío (catálogo) ---------- */
 .catalog-empty,
 .catalog-loading {

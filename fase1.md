@@ -1,1 +1,0 @@
-a corto plazo
