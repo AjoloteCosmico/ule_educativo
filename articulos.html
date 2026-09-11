@@ -1,166 +1,24 @@
 <!DOCTYPE html>
 <html lang="es" data-theme="light">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Artículos — ule educativo</title>
-  <meta name="description" content="Artículos sobre la historia, arqueología y vigencia del juego de pelota mesoamericano.">
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="css/variables.css">
-  <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/components.css">
-  <link rel="stylesheet" href="css/theme.css">
-
-  <link rel="icon" href="assets/logo/logo.png" type="image/x-icon">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Artículos — ule educativo</title>
+<meta name="description" content="Artículos sobre la historia, arqueología y vigencia del juego de pelota mesoamericano.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/variables.css"><link rel="stylesheet" href="css/base.css"><link rel="stylesheet" href="css/components.css"><link rel="stylesheet" href="css/theme.css"><link rel="stylesheet" href="css/ads.css">
+<link rel="icon" href="assets/logo/logo.png" type="image/png">
 </head>
-<body>
-
-  <a class="skip-link" href="#contenido-principal">Saltar al contenido</a>
-
-  <header class="container">
-    <nav class="nav" aria-label="Navegación principal">
-      <ul class="nav__lista">
-        <li><a class="nav__link" href="index.html">Inicio</a></li>
-        <li><a class="nav__link" href="articulos.html">Artículos</a></li>
-        <li><a class="nav__link" href="bibliografia.html">Bibliografía</a></li>
-        <li><a class="nav__link" href="catalogos.html">Catálogos</a></li>
-      </ul>
-
-      <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Cambiar tema">
-        <span class="theme-toggle__icon">
-          <svg class="icon-sol" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg>
-          <svg class="icon-luna" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"></path></svg>
-        </span>
-        <span id="theme-label">Oscuro</span>
-      </button>
-    </nav>
-  </header>
-
-  <main id="contenido-principal">
-    <section class="container section">
-      <h1>Artículos</h1>
-      <p>Historia, arqueología y vigencia del juego de pelota mesoamericano.</p>
-
-      <form class="filtros" id="filtros-articulos" role="search" aria-label="Filtrar artículos">
-        <div class="filtros__campo">
-          <label for="buscar-articulos">Buscar</label>
-          <input type="search" id="buscar-articulos" name="buscar" placeholder="Título, resumen o etiqueta…" autocomplete="off">
-        </div>
-        <div class="filtros__campo">
-          <label for="categoria-articulos">Categoría</label>
-          <select id="categoria-articulos" name="categoria">
-            <option value="">Todas</option>
-          </select>
-        </div>
-        <div class="filtros__campo">
-          <label for="orden-articulos">Ordenar por fecha</label>
-          <select id="orden-articulos" name="orden">
-            <option value="desc">Más recientes primero</option>
-            <option value="asc">Más antiguos primero</option>
-          </select>
-        </div>
-      </form>
-
-      <p class="filtros__resultados" id="contador-articulos" aria-live="polite"></p>
-
-      <div id="articulos-grid" class="articles-grid">
-        <div class="catalog-loading" role="status">Cargando artículos…</div>
-      </div>
-    </section>
-  </main>
-
-  <footer class="container section" style="text-align:center; opacity:0.7; font-size:var(--fs-anotacion);">
-    <p>ule educativo · 2026</p>
-  </footer>
-
-  <script src="js/main.js"></script>
-  <script src="js/loader.js"></script>
-  <script src="js/components.js"></script>
-  <script>
-    (function () {
-      let allArticles = [];
-
-      const grid = document.getElementById('articulos-grid');
-      const contador = document.getElementById('contador-articulos');
-      const inputBuscar = document.getElementById('buscar-articulos');
-      const selectCategoria = document.getElementById('categoria-articulos');
-      const selectOrden = document.getElementById('orden-articulos');
-
-      function poblarCategorias(articulos) {
-        const categorias = Array.from(new Set(articulos.map((a) => a.categoria).filter(Boolean))).sort();
-        categorias.forEach((cat) => {
-          const opt = document.createElement('option');
-          opt.value = cat;
-          opt.textContent = cat;
-          selectCategoria.appendChild(opt);
-        });
-      }
-
-      function coincideBusqueda(articulo, texto) {
-        if (!texto) return true;
-        const haystack = [
-          articulo.titulo,
-          articulo.resumen,
-          (articulo.etiquetas || []).join(' ')
-        ].join(' ').toLowerCase();
-        return haystack.includes(texto.toLowerCase());
-      }
-
-      function render() {
-        const texto = inputBuscar.value.trim();
-        const categoria = selectCategoria.value;
-        const orden = selectOrden.value;
-
-        let filtrados = allArticles.filter((a) => {
-          return coincideBusqueda(a, texto) && (!categoria || a.categoria === categoria);
-        });
-
-        filtrados.sort((a, b) => {
-          const fa = a.fecha || '';
-          const fb = b.fecha || '';
-          return orden === 'asc' ? fa.localeCompare(fb) : fb.localeCompare(fa);
-        });
-
-        grid.innerHTML = '';
-
-        if (!filtrados.length) {
-          grid.innerHTML = '<div class="catalog-empty">No hay artículos que coincidan con tu búsqueda.</div>';
-        } else {
-          filtrados.forEach((a) => {
-            const card = document.createElement('article-card');
-            card.setAttribute('data-id', a.id);
-            card.setAttribute('data-title', a.titulo || '');
-            card.setAttribute('data-summary', a.resumen || '');
-            card.setAttribute('data-image', a.imagen_destacada || '');
-            card.setAttribute('data-category', a.categoria || '');
-            card.setAttribute('data-date', a.fecha || '');
-            card.setAttribute('data-author', a.autor || '');
-            card.setAttribute('data-href', 'articulo.html?id=' + encodeURIComponent(a.id));
-            grid.appendChild(card);
-          });
-        }
-
-        contador.textContent = filtrados.length === 1
-          ? '1 artículo encontrado'
-          : filtrados.length + ' artículos encontrados';
-      }
-
-      async function init() {
-        allArticles = await ULE.loader.loadArticles();
-        poblarCategorias(allArticles);
-        render();
-      }
-
-      inputBuscar.addEventListener('input', render);
-      selectCategoria.addEventListener('change', render);
-      selectOrden.addEventListener('change', render);
-
-      init();
-    })();
-  </script>
-</body>
-</html>
+<body data-ad-page="articulos">
+<a class="skip-link" href="#contenido-principal">Saltar al contenido</a>
+<header class="container"><nav class="nav" aria-label="Navegación principal"><ul class="nav__lista">
+<li><a class="nav__link" href="index.html">Inicio</a></li><li><a class="nav__link" href="articulos.html" aria-current="page">Artículos</a></li><li><a class="nav__link" href="bibliografia.html">Bibliografía</a></li><li><a class="nav__link" href="catalogos.html">Catálogos</a></li>
+</ul><button class="theme-toggle" type="button" id="theme-toggle" aria-label="Cambiar tema"><span class="theme-toggle__icon"><svg class="icon-sol" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg><svg class="icon-luna" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"></path></svg></span><span id="theme-label">Oscuro</span></button></nav></header>
+<main id="contenido-principal"><section class="container section"><h1>Artículos</h1><p>Historia, arqueología y vigencia del juego de pelota mesoamericano.</p>
+<form class="filtros" id="filtros-articulos" role="search" aria-label="Filtrar artículos"><div class="filtros__campo"><label for="buscar-articulos">Buscar</label><input type="search" id="buscar-articulos" name="buscar" placeholder="Título, resumen o etiqueta…" autocomplete="off"></div><div class="filtros__campo"><label for="categoria-articulos">Categoría</label><select id="categoria-articulos" name="categoria"><option value="">Todas</option></select></div><div class="filtros__campo"><label for="orden-articulos">Ordenar por fecha</label><select id="orden-articulos" name="orden"><option value="desc">Más recientes primero</option><option value="asc">Más antiguos primero</option></select></div></form>
+<p class="filtros__resultados" id="contador-articulos" aria-live="polite"></p><div id="articulos-grid" class="articles-grid"><div class="catalog-loading" role="status">Cargando artículos…</div></div></section>
+<section class="container section ad-section" aria-labelledby="anuncios-articulos"><h2 class="ad-section__title" id="anuncios-articulos">Comunidad</h2><div data-ad-slot data-ad-horizontal="true"></div></section></main>
+<footer class="container section" style="text-align:center; opacity:0.7; font-size:var(--fs-anotacion);"><p>ule educativo · 2026</p></footer>
+<script src="js/main.js"></script><script src="js/loader.js"></script><script src="js/components.js"></script><script src="js/ads.js"></script>
+<script>(function(){let allArticles=[];const grid=document.getElementById('articulos-grid'),contador=document.getElementById('contador-articulos'),inputBuscar=document.getElementById('buscar-articulos'),selectCategoria=document.getElementById('categoria-articulos'),selectOrden=document.getElementById('orden-articulos');function poblarCategorias(a){Array.from(new Set(a.map(x=>x.categoria).filter(Boolean))).sort().forEach(cat=>{const o=document.createElement('option');o.value=cat;o.textContent=cat;selectCategoria.appendChild(o);});}function coincideBusqueda(a,t){if(!t)return true;return[a.titulo,a.resumen,(a.etiquetas||[]).join(' ')].join(' ').toLowerCase().includes(t.toLowerCase());}function render(){const t=inputBuscar.value.trim(),c=selectCategoria.value,o=selectOrden.value;let f=allArticles.filter(a=>coincideBusqueda(a,t)&&(!c||a.categoria===c));f.sort((a,b)=>o==='asc'?(a.fecha||'').localeCompare(b.fecha||''):(b.fecha||'').localeCompare(a.fecha||''));grid.innerHTML='';if(!f.length)grid.innerHTML='<div class="catalog-empty">No hay artículos que coincidan con tu búsqueda.</div>';else f.forEach(a=>{const card=document.createElement('article-card');card.setAttribute('data-id',a.id);card.setAttribute('data-title',a.titulo||'');card.setAttribute('data-summary',a.resumen||'');card.setAttribute('data-image',a.imagen_destacada||'');card.setAttribute('data-category',a.categoria||'');card.setAttribute('data-date',a.fecha||'');card.setAttribute('data-author',a.autor||'');card.setAttribute('data-href','articulo.html?id='+encodeURIComponent(a.id));grid.appendChild(card);});contador.textContent=f.length===1?'1 artículo encontrado':f.length+' artículos encontrados';}async function init(){allArticles=await ULE.loader.loadArticles();poblarCategorias(allArticles);render();}inputBuscar.addEventListener('input',render);selectCategoria.addEventListener('change',render);selectOrden.addEventListener('change',render);init();})();</script>
+</body></html>
