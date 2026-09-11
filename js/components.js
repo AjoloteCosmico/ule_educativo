@@ -286,12 +286,29 @@
 
   /* ==========================================================================
      <ad-card>
-     Atributos: data-image, data-contacto, data-slogan, data-descripcion,
-     data-vigencia-fin, data-enlace. Atributo booleano "horizontal".
+     Atributos: data-image, data-imagen-alt, data-contacto, data-slogan,
+     data-descripcion, data-vigencia-fin, data-enlace. Atributo booleano
+     "horizontal".
+
+     Notas de diseño (ver docs/politica_anuncios.md):
+     - La imagen SIEMPRE ocupa su espacio: si no hay data-image, o si la URL
+       falla al cargar (onerror), se muestra un fallback visual (icono +
+       degradado con los colores de identidad) en vez de dejar un hueco o un
+       ícono de imagen rota. El tamaño de la card nunca depende de si la
+       imagen cargó o no.
+     - object-fit: cover asegura que la imagen se recorte de forma consistente
+       sin importar sus dimensiones originales.
+     - "horizontal" se controla por atributo, pero además el propio host es un
+       contenedor de tamaño (container query): si el espacio real disponible
+       cae por debajo de ~360px, se repliega a layout vertical aunque el
+       atributo "horizontal" siga presente — así nunca se ve apachurrado en
+       slots angostos o en mobile.
+     - Contorno animado sutil (glow pulsante) para distinguir visualmente los
+       anuncios del resto de las cards, respetando prefers-reduced-motion.
      ========================================================================== */
   class AdCard extends HTMLElement {
     static get observedAttributes() {
-      return ['data-image', 'data-contacto', 'data-slogan', 'data-descripcion', 'data-vigencia-fin', 'data-enlace', 'horizontal'];
+      return ['data-image', 'data-imagen-alt', 'data-contacto', 'data-slogan', 'data-descripcion', 'data-vigencia-fin', 'data-enlace', 'horizontal'];
     }
 
     connectedCallback() {
@@ -304,6 +321,7 @@
 
     _render() {
       const image = this.getAttribute('data-image') || '';
+      const imageAlt = this.getAttribute('data-imagen-alt') || '';
       const contacto = this.getAttribute('data-contacto') || '';
       const slogan = this.getAttribute('data-slogan') || '';
       const descripcion = this.getAttribute('data-descripcion') || '';
@@ -315,27 +333,56 @@
 
       this.shadowRoot.innerHTML =
         '<style>' +
-        ':host { display: block; }' +
+        ':host {' +
+        '  display: block; container-type: inline-size;' +
+        '}' +
+        '@keyframes ad-glow {' +
+        '  0%, 100% { box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-principal) 55%, transparent), 0 0 0px 0px transparent, var(--shadow-card); }' +
+        '  50% { box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-principal) 90%, transparent), 0 0 16px 2px color-mix(in srgb, var(--color-principal) 40%, transparent), var(--shadow-card); }' +
+        '}' +
         '.card {' +
-        '  display: flex; flex-direction: ' + (horizontal ? 'row' : 'column') + ';' +
+        '  position: relative; display: flex; flex-direction: ' + (horizontal ? 'row' : 'column') + ';' +
         '  background-color: var(--color-card); border-radius: var(--radius-md);' +
-        '  box-shadow: var(--shadow-card); overflow: hidden; text-decoration: none; color: inherit;' +
+        '  overflow: hidden; text-decoration: none; color: inherit;' +
+        '  animation: ad-glow 2.6s ease-in-out infinite;' +
         '}' +
-        'img {' +
-        '  aspect-ratio: 4/5; object-fit: cover; display: block;' +
+        '@container (max-width: 360px) {' +
+        '  .card { flex-direction: column; }' +
+        '  .media { width: 100%; max-width: none; }' +
+        '}' +
+        '.media {' +
+        '  position: relative; aspect-ratio: 4/5; display: block; flex-shrink: 0; overflow: hidden;' +
         '  width: ' + (horizontal ? '40%' : '100%') + ';' +
-        (horizontal ? '  max-width: 220px; flex-shrink: 0;' : '') +
+        (horizontal ? '  max-width: 200px;' : '') +
+        '  background: linear-gradient(135deg, var(--color-principal), var(--color-secundario));' +
         '}' +
-        '.body { display: flex; flex-direction: column; gap: var(--space-sm); padding: var(--space-md); flex: 1; }' +
+        '.media img {' +
+        '  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; display: block;' +
+        '}' +
+        '.media__fallback {' +
+        '  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #fff;' +
+        '}' +
+        '.media__fallback svg { width: 42%; height: 42%; opacity: 0.9; }' +
+        '.media.is-empty img { display: none; }' +
+        '.media:not(.is-empty) .media__fallback { display: none; }' +
+        '.body { display: flex; flex-direction: column; gap: var(--space-sm); padding: var(--space-md); flex: 1; min-width: 0; }' +
         '.slogan { font-size: var(--fs-h3); font-weight: 700; color: var(--color-titulo-card); margin: 0; }' +
         '.contacto { font-size: var(--fs-cuerpo); color: var(--color-cuerpo-card); margin: 0; }' +
         '.legal { font-family: var(--font-anotaciones); font-style: italic; font-size: var(--fs-anotacion); color: var(--color-cuerpo-card); opacity: 0.8; margin: 0; margin-top: auto; }' +
         'a.wrap:focus-visible { outline: 2px solid var(--color-link-focus); outline-offset: 3px; }' +
+        '@media (prefers-reduced-motion: reduce) {' +
+        '  .card { animation: none; box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--color-principal) 65%, transparent), var(--shadow-card); }' +
+        '}' +
         '</style>' +
         (enlace
           ? '<a class="card wrap" part="card" href="' + this._escapeAttr(enlace) + '" target="_blank" rel="noopener noreferrer">'
           : '<div class="card" part="card">') +
-        (image ? '<img part="imagen" loading="lazy" alt="">' : '') +
+        '<div class="media" part="imagen">' +
+        '<img loading="lazy" alt="">' +
+        '<div class="media__fallback" aria-hidden="true">' +
+        '<svg viewBox="0 0 100 100"><circle cx="50" cy="36" r="15" fill="none" stroke="currentColor" stroke-width="5"></circle><path d="M12 88 Q50 55 88 88" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"></path></svg>' +
+        '</div>' +
+        '</div>' +
         '<div class="body">' +
         '<p class="slogan" part="slogan"></p>' +
         '<p class="contacto" part="contacto"></p>' +
@@ -344,11 +391,20 @@
         (enlace ? '</a>' : '</div>');
 
       const root = this.shadowRoot;
-      const imgEl = root.querySelector('img');
-      if (imgEl) {
+      const mediaEl = root.querySelector('.media');
+      const imgEl = root.querySelector('.media img');
+      const altText = imageAlt || (slogan ? 'Anuncio: ' + slogan : 'Anuncio');
+
+      if (image) {
+        imgEl.alt = altText;
+        imgEl.addEventListener('error', function () {
+          mediaEl.classList.add('is-empty');
+        });
         imgEl.src = image;
-        imgEl.alt = slogan ? 'Anuncio: ' + slogan : 'Anuncio';
+      } else {
+        mediaEl.classList.add('is-empty');
       }
+
       root.querySelector('.slogan').textContent = slogan;
       root.querySelector('.contacto').textContent = contacto;
       const legal = vigenciaFin ? 'Vigente hasta: ' + formatFecha(vigenciaFin) : descripcion;

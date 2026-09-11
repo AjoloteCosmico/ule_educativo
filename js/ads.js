@@ -73,8 +73,22 @@ ULE.ads = (function () {
     slot.replaceChildren();
 
     const card = document.createElement('ad-card');
-    ['imagen','imagen_alt','contacto','slogan','descripcion','vigencia_fin','enlace','tipo'].forEach(function (campo) {
-      if (ad[campo]) card.setAttribute('data-' + campo.replace('_', '-'), ad[campo]);
+    // Mapeo explícito: los campos del JSON (español) no siempre coinciden
+    // 1:1 con el nombre del atributo que lee <ad-card> (ver components.js).
+    // "imagen" -> "data-image" es el caso importante: si se generaba como
+    // "data-imagen" el componente nunca lo leía y la imagen no se mostraba.
+    const attrMap = {
+      imagen: 'image',
+      imagen_alt: 'imagen-alt',
+      contacto: 'contacto',
+      slogan: 'slogan',
+      descripcion: 'descripcion',
+      vigencia_fin: 'vigencia-fin',
+      enlace: 'enlace',
+      tipo: 'tipo'
+    };
+    Object.keys(attrMap).forEach(function (campo) {
+      if (ad[campo]) card.setAttribute('data-' + attrMap[campo], ad[campo]);
     });
 
     if (slot.dataset.adHorizontal === 'true') card.setAttribute('horizontal', '');
