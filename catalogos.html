@@ -1,137 +1,20 @@
 <!DOCTYPE html>
 <html lang="es" data-theme="light">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Catálogos — ule educativo</title>
-  <meta name="description" content="Colecciones visuales sobre piezas arqueológicas, canchas y otras expresiones del juego de pelota mesoamericano.">
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="css/variables.css">
-  <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/components.css">
-  <link rel="stylesheet" href="css/theme.css">
-
-  <link rel="icon" href="assets/logo/logo.png" type="image/png">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catálogos — ule educativo</title>
+<meta name="description" content="Colecciones visuales sobre piezas arqueológicas, canchas y otras expresiones del juego de pelota mesoamericano.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/variables.css"><link rel="stylesheet" href="css/base.css"><link rel="stylesheet" href="css/components.css"><link rel="stylesheet" href="css/theme.css"><link rel="stylesheet" href="css/ads.css"><link rel="icon" href="assets/logo/logo.png" type="image/png">
 </head>
-<body>
-
-  <a class="skip-link" href="#contenido-principal">Saltar al contenido</a>
-
-  <header class="container">
-    <nav class="nav" aria-label="Navegación principal">
-      <ul class="nav__lista">
-        <li><a class="nav__link" href="index.html">Inicio</a></li>
-        <li><a class="nav__link" href="articulos.html">Artículos</a></li>
-        <li><a class="nav__link" href="bibliografia.html">Bibliografía</a></li>
-        <li><a class="nav__link" href="catalogos.html" aria-current="page">Catálogos</a></li>
-      </ul>
-
-      <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Cambiar tema">
-        <span class="theme-toggle__icon">
-          <svg class="icon-sol" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg>
-          <svg class="icon-luna" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"></path></svg>
-        </span>
-        <span id="theme-label">Oscuro</span>
-      </button>
-    </nav>
-  </header>
-
-  <main id="contenido-principal">
-    <section class="container section">
-      <h1>Catálogos</h1>
-      <p>Explora colecciones visuales relacionadas con el juego de pelota. Selecciona una colección y utiliza sus filtros para acercarte a los elementos que te interesen.</p>
-
-      <div class="catalog-selector" aria-label="Seleccionar catálogo">
-        <label for="selector-catalogo">Colección</label>
-        <select id="selector-catalogo">
-          <option value="">Cargando colecciones…</option>
-        </select>
-      </div>
-
-      <div id="catalogo-contenido" aria-live="polite">
-        <div class="catalog-loading" role="status">Cargando catálogo…</div>
-      </div>
-    </section>
-  </main>
-
-  <footer class="container section" style="text-align:center; opacity:0.7; font-size:var(--fs-anotacion);">
-    <p>ule educativo · 2026</p>
-  </footer>
-
-  <script src="js/main.js"></script>
-  <script src="js/loader.js"></script>
-  <script src="js/components.js"></script>
-  <script>
-    (function () {
-      const selector = document.getElementById('selector-catalogo');
-      const contenido = document.getElementById('catalogo-contenido');
-
-      function nombreCatalogo(id) {
-        return id
-          .replace(/\.json$/, '')
-          .split('-')
-          .map((parte) => parte.charAt(0).toUpperCase() + parte.slice(1))
-          .join(' ');
-      }
-
-      function mostrarCatalogo(id) {
-        if (!id) return;
-        contenido.innerHTML = '';
-
-        const grid = document.createElement('catalog-grid');
-        grid.setAttribute('data-source', 'data/catalogos/' + id + '.json');
-        contenido.appendChild(grid);
-      }
-
-      async function init() {
-        try {
-          const ids = await ULE.loader.listCatalogIds();
-
-          selector.innerHTML = '';
-
-          if (!ids.length) {
-            selector.innerHTML = '<option value="">No hay colecciones disponibles</option>';
-            selector.disabled = true;
-            contenido.innerHTML = '<div class="catalog-empty">No hay catálogos disponibles por el momento.</div>';
-            return;
-          }
-
-          const catalogs = await Promise.all(ids.map((id) => ULE.loader.loadCatalog(id)));
-          const visibles = catalogs.filter((catalogo) => catalogo && catalogo.visible !== false);
-
-          visibles.forEach((catalogo) => {
-            const option = document.createElement('option');
-            option.value = catalogo.id;
-            option.textContent = catalogo.titulo || nombreCatalogo(catalogo.id);
-            selector.appendChild(option);
-          });
-
-          if (!visibles.length) {
-            selector.innerHTML = '<option value="">No hay colecciones disponibles</option>';
-            selector.disabled = true;
-            contenido.innerHTML = '<div class="catalog-empty">No hay catálogos visibles por el momento.</div>';
-            return;
-          }
-
-          mostrarCatalogo(visibles[0].id);
-        } catch (error) {
-          console.error('[ULE] Error cargando catálogos:', error);
-          selector.innerHTML = '<option value="">No fue posible cargar las colecciones</option>';
-          selector.disabled = true;
-          contenido.innerHTML = '<div class="catalog-empty">No fue posible cargar los catálogos.</div>';
-        }
-      }
-
-      selector.addEventListener('change', function () {
-        mostrarCatalogo(selector.value);
-      });
-
-      init();
-    })();
-  </script>
-</body>
-</html>
+<body data-ad-page="catalogos">
+<a class="skip-link" href="#contenido-principal">Saltar al contenido</a>
+<header class="container"><nav class="nav" aria-label="Navegación principal"><ul class="nav__lista"><li><a class="nav__link" href="index.html">Inicio</a></li><li><a class="nav__link" href="articulos.html">Artículos</a></li><li><a class="nav__link" href="bibliografia.html">Bibliografía</a></li><li><a class="nav__link" href="catalogos.html" aria-current="page">Catálogos</a></li></ul><button class="theme-toggle" type="button" id="theme-toggle" aria-label="Cambiar tema"><span class="theme-toggle__icon"><svg class="icon-sol" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg><svg class="icon-luna" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"></path></svg></span><span id="theme-label">Oscuro</span></button></nav></header>
+<main id="contenido-principal">
+<section class="container section"><h1>Catálogos</h1><p>Explora colecciones visuales relacionadas con el juego de pelota. Selecciona una colección y utiliza sus filtros para acercarte a los elementos que te interesen.</p><div class="catalog-selector" aria-label="Seleccionar catálogo"><label for="selector-catalogo">Colección</label><select id="selector-catalogo"><option value="">Cargando colecciones…</option></select></div><div id="catalogo-contenido" aria-live="polite"><div class="catalog-loading" role="status">Cargando catálogo…</div></div></section>
+<section class="container section ad-section" aria-labelledby="anuncios-catalogos"><h2 class="ad-section__title" id="anuncios-catalogos">Comunidad</h2><div data-ad-slot data-ad-horizontal="true"></div></section>
+</main>
+<footer class="container section" style="text-align:center; opacity:0.7; font-size:var(--fs-anotacion);"><p>ule educativo · 2026</p></footer>
+<script src="js/main.js"></script><script src="js/loader.js"></script><script src="js/components.js"></script><script src="js/ads.js"></script>
+<script>(function(){const selector=document.getElementById('selector-catalogo'),contenido=document.getElementById('catalogo-contenido');function nombreCatalogo(id){return id.replace(/\.json$/,'').split('-').map(p=>p.charAt(0).toUpperCase()+p.slice(1)).join(' ');}function mostrarCatalogo(id){if(!id)return;contenido.innerHTML='';const grid=document.createElement('catalog-grid');grid.setAttribute('data-source','data/catalogos/'+id+'.json');contenido.appendChild(grid);}async function init(){try{const ids=await ULE.loader.listCatalogIds();selector.innerHTML='';if(!ids.length){selector.innerHTML='<option value="">No hay colecciones disponibles</option>';selector.disabled=true;contenido.innerHTML='<div class="catalog-empty">No hay catálogos disponibles por el momento.</div>';return;}const catalogs=await Promise.all(ids.map(id=>ULE.loader.loadCatalog(id)));const visibles=catalogs.filter(c=>c&&c.visible!==false);visibles.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.titulo||nombreCatalogo(c.id);selector.appendChild(o);});if(!visibles.length){selector.innerHTML='<option value="">No hay colecciones disponibles</option>';selector.disabled=true;contenido.innerHTML='<div class="catalog-empty">No hay catálogos visibles por el momento.</div>';return;}mostrarCatalogo(visibles[0].id);}catch(e){console.error('[ULE] Error cargando catálogos:',e);selector.innerHTML='<option value="">No fue posible cargar las colecciones</option>';selector.disabled=true;contenido.innerHTML='<div class="catalog-empty">No fue posible cargar los catálogos.</div>';}}selector.addEventListener('change',()=>mostrarCatalogo(selector.value));init();})();</script>
+</body></html>
