@@ -136,12 +136,12 @@ En horizontal la imagen ocupa ~40 % (máx. 220 px) y mantiene 4:5.
 
 | Página            | ¿Anuncios? | Cantidad sugerida | Orientación recomendada | Notas |
 |-------------------|------------|-------------------|--------------------------|-------|
-| `index.html` (Home) | Sí       | 1–2 slots         | Vertical (móvil) / horizontal si el contenedor lo permite | Sección “Patrocinadores” o “Comunidad”. Ya existen 2 slots. |
-| `articulos.html`  | Opcional   | 0–1               | Vertical o sidebar futuro | Solo al final de la lista o en un área secundaria. No intercalar entre cards. |
-| `articulo.html` (lectura) | No / muy restringido | 0            | —                        | Priorizar lectura. Evitar interrupciones. |
-| `catalogos.html`  | Opcional   | 0–1               | Vertical                 | Debajo del grid o en footer de sección. |
-| `bibliografia.html` | Opcional | 0–1             | Vertical                 | Igual que catálogos. |
-| Recursos / simulador | No      | 0                 | —                        | Mantener foco en la herramienta. |
+| `index.html` (Home) | Sí       | 1–2 slots         | Vertical (móvil) / horizontal si el contenedor lo permite | Sección “Patrocinadores” o “Comunidad”.  |
+| `articulos.html`  | SI   | 2              | Vertical o sidebar futuro | a ser posible ponerlo lateral visible |
+| `articulo.html` (lectura) |SI, al final | 1            | —                        | Priorizar lectura. Evitar interrupciones. |
+| `catalogos.html`  | i   | 1               | Vertical                 | Debajo del grid o en footer de sección. |
+| `bibliografia.html` | Si | 1             | Vertical                 | Igual que catálogos. |
+| Recursos / simulador | Si       | como un modal                 | —                        | Mantener foco en la herramienta. |
 
 **Reglas generales de colocación:**
 
