@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ule educativo — Demo de estilos</title>
+  <meta name="description" content="ule educativo: un espacio para explorar la historia, el conocimiento y la práctica contemporánea del juego de pelota mesoamericano.">
+  <title>ule educativo — Juego de pelota mesoamericano</title>
 
   <!-- Fuente Ubuntu -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,14 +12,92 @@
   <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet">
 
   <!-- Sistema de diseño -->
- <link rel="stylesheet" href="css/variables.css">
-<link rel="stylesheet" href="css/base.css">
-<link rel="stylesheet" href="css/components.css">
-<link rel="stylesheet" href="css/theme.css">
-  <link rel="icon" href="assets/logo/logo.png" type="image/x-icon">
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/theme.css">
 
+  <link rel="icon" href="assets/logo/logo.png" type="image/png">
 </head>
 <body>
 
+  <a class="skip-link" href="#contenido-principal">Saltar al contenido</a>
+
+  <header class="container">
+    <nav class="nav" aria-label="Navegación principal">
+      <ul class="nav__lista">
+        <li><a class="nav__link" href="index.html" aria-current="page">Inicio</a></li>
+        <li><a class="nav__link" href="articulos.html">Artículos</a></li>
+        <li><a class="nav__link" href="bibliografia.html">Bibliografía</a></li>
+        <li><a class="nav__link" href="catalogos.html">Colecciones</a></li>
+      </ul>
+
+      <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Cambiar tema">
+        <span class="theme-toggle__icon">
+          <svg class="icon-sol" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg>
+          <svg class="icon-luna" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"></path></svg>
+        </span>
+        <span id="theme-label">Oscuro</span>
+      </button>
+    </nav>
+  </header>
+
+  <main id="contenido-principal">
+    <section class="container section" aria-labelledby="titulo-principal">
+      <div style="text-align:center; max-width:48rem; margin:0 auto;">
+        <img src="assets/logo/logo.png" alt="Icono de la cancha de pelota" style="width:min(180px,45vw); height:auto; margin:var(--space-lg) auto var(--space-md);">
+        <h1 id="titulo-principal">ule educativo</h1>
+        <p style="font-size:var(--fs-cuerpo-desktop); max-width:42rem; margin:var(--space-md) auto 0;">
+          Un espacio para conocer, explorar y acercarte al juego de pelota mesoamericano.
+          Reunimos información histórica, fuentes de consulta y colecciones visuales para
+          comprender sus distintas expresiones, desde el pasado mesoamericano hasta su práctica contemporánea.
+        </p>
+      </div>
+    </section>
+
+    <section class="container section" aria-labelledby="explora-titulo">
+      <h2 id="explora-titulo">Explora el sitio</h2>
+      <div class="articles-grid">
+        <a class="card" href="articulos.html" style="text-decoration:none;">
+          <h3>Artículos</h3>
+          <p>Lecturas sobre la historia, arqueología, cultura y vigencia del juego de pelota mesoamericano.</p>
+          <span class="button">Leer artículos</span>
+        </a>
+
+        <a class="card" href="bibliografia.html" style="text-decoration:none;">
+          <h3>Bibliografía</h3>
+          <p>Libros, artículos y recursos web que sirven como fuentes para conocer y profundizar en el tema.</p>
+          <span class="button">Consultar bibliografía</span>
+        </a>
+
+        <a class="card" href="catalogos.html" style="text-decoration:none;">
+          <h3>Colecciones</h3>
+          <p>Explora colecciones visuales de piezas, espacios y otros elementos relacionados con el juego de pelota.</p>
+          <span class="button">Explorar colecciones</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="container section" aria-labelledby="acerca-titulo">
+      <div class="card">
+        <h2 id="acerca-titulo">Un proyecto para aprender y explorar</h2>
+        <p>
+          El juego de pelota mesoamericano forma parte de una historia amplia y diversa.
+          En este sitio encontrarás información sobre sus variantes, contextos históricos,
+          evidencias arqueológicas y formas de práctica actuales.
+        </p>
+        <p>
+          El contenido busca ser claro y accesible, pero también ofrecer fuentes para que puedas
+          profundizar, contrastar información y formarte tu propia perspectiva.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="container section" style="text-align:center; opacity:0.7; font-size:var(--fs-anotacion);">
+    <p>ule educativo · 2026</p>
+  </footer>
+
+  <script src="js/main.js"></script>
 </body>
 </html>
