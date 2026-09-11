@@ -14,7 +14,8 @@ No son publicidad genérica ni un muro comercial. Deben sentirse parte del ecosi
 **Principios:**
 
 - El contenido editorial (artículos, catálogos, bibliografía) siempre tiene prioridad visual y de espacio.
-- Los anuncios no interrumpen la lectura de artículos largos.
+- Los anuncios no interrumpen la lectura de artículos largos. sin embargo se pueden posicionar al lado en pantalla horizontal, sobre todo en el buscador de articulos/bibliografia/colecciones
+-la imagen y el card deben ajustarse perfectamente segun la situación independientemente de las dimensiones de la imagen
 - El tono debe ser educativo-ligero, nunca agresivo ni clickbait.
 - Todo anuncio visible debe estar vigente y marcado como activo.
 
