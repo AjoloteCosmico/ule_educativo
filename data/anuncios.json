@@ -1,0 +1,16 @@
+{
+  "anuncios": [
+    {
+      "id": "anuncio-001",
+      "imagen": "",
+      "contacto": "ule educativo",
+      "slogan": "Comparte una actividad relacionada con el juego de pelota",
+      "descripcion": "Espacio para anunciar talleres, encuentros, exhibiciones y actividades de interés para la comunidad.",
+      "vigencia_inicio": "2026-01-01",
+      "vigencia_fin": "2027-12-31",
+      "activo": true,
+      "peso": 1,
+      "enlace": ""
+    }
+  ]
+}
