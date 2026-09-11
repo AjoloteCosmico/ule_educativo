@@ -1,0 +1,13 @@
+{
+  "id": "articulo-002",
+  "titulo": "La Cancha: Arquitectura de un Ritual",
+  "autor": "Jorge Etxeberria",
+  "fecha": "2026-02-03",
+  "resumen": "Las canchas de juego de pelota variaban en forma y tamaño según la región y la época, pero compartían elementos arquitectónicos que revelan su función ceremonial.",
+  "contenido_html": "<p>Las canchas presentaban formas y dimensiones variables, aunque la mayoría compartía un eje longitudinal alargado con muros laterales inclinados o verticales que delimitaban el terreno de juego.</p><p>Algunas canchas, como la Gran Cancha de Chichén Itzá, incluían anillos de piedra colocados a media altura de los muros, elemento característico del periodo posclásico en el área maya.</p><h3>Del Preclásico al Posclásico</h3><p>Con el paso del tiempo, la arquitectura de las canchas se fue formalizando: de espacios abiertos y poco definidos en el preclásico, se pasó a estructuras monumentales con marcadores, taludes y decoración escultórica durante el clásico y posclásico.</p>",
+  "imagen_destacada": "https://placehold.co/800x450/1E352F/c3d4d0?text=Cancha",
+  "categoria": "Arquitectura",
+  "etiquetas": ["maya", "posclasico", "canchas"],
+  "bibliografía_relacionada": ["biblio-002", "biblio-003"],
+  "visible": true
+}

@@ -1,0 +1,13 @@
+{
+  "id": "articulo-001",
+  "titulo": "Historia del Juego de Pelota Mesoamericano",
+  "autor": "Fernanda Ríos",
+  "fecha": "2026-01-15",
+  "resumen": "Un recorrido por los orígenes del juego de pelota, desde sus primeras evidencias en la cultura olmeca hasta su papel ritual en el periodo clásico.",
+  "contenido_html": "<p>El juego de pelota mesoamericano es una de las tradiciones deportivas más antiguas del continente. Sus raíces se remontan al menos al periodo preclásico, con evidencias claras en la cultura olmeca en sitios como El Manatí y San Lorenzo.</p><p>A lo largo de los siglos se desarrollaron distintas variantes regionales: de cadera, de mazo y de antebrazo, cada una con su propio reglamento, indumentaria y significado ritual dentro de la cosmovisión mesoamericana.</p><h3>Un juego con múltiples significados</h3><p>Más allá de su dimensión deportiva, el juego de pelota tenía connotaciones religiosas y políticas: representaba el movimiento de los astros y, en muchos casos, el desenlace de las partidas se vinculaba con sacrificios rituales o con la resolución simbólica de conflictos entre comunidades.</p>",
+  "imagen_destacada": "https://placehold.co/800x450/058A41/ffffff?text=Juego+de+Pelota",
+  "categoria": "Historia",
+  "etiquetas": ["olmeca", "clasico", "rituales"],
+  "bibliografía_relacionada": ["biblio-001", "biblio-002"],
+  "visible": true
+}

@@ -1,0 +1,13 @@
+{
+  "id": "articulo-003",
+  "titulo": "El Ule Hoy: Comunidades que Preservan la Tradición",
+  "autor": "Fernanda Ríos",
+  "fecha": "2026-03-20",
+  "resumen": "En varias regiones de México, asociaciones y comunidades mantienen vivo el juego de pelota, adaptando las reglas tradicionales a contextos contemporáneos.",
+  "contenido_html": "<p>Hoy el juego de pelota se mantiene vivo gracias a asociaciones y comunidades que rescatan y adaptan las reglas tradicionales para nuevas generaciones.</p><p>Estados como Sinaloa y Michoacán conservan variantes de cadera que se practican en torneos regionales, mientras que en el sureste del país se realizan demostraciones rituales inspiradas en las prácticas mayas.</p><h3>Un patrimonio vivo</h3><p>La transmisión del conocimiento se da principalmente de forma oral y práctica, de maestros a jóvenes jugadores, lo que convierte al ule en un patrimonio cultural inmaterial en constante renovación.</p>",
+  "imagen_destacada": "https://placehold.co/800x450/63372C/ffffff?text=Ule+Hoy",
+  "categoria": "Cultura contemporánea",
+  "etiquetas": ["azteca", "posclasico", "comunidad"],
+  "bibliografía_relacionada": ["biblio-003"],
+  "visible": true
+}

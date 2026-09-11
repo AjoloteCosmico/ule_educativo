@@ -1,0 +1,68 @@
+{
+  "id": "piezas-arqueologicas",
+  "titulo": "Piezas Arqueológicas",
+  "descripcion": "Colección de artefactos relacionados con el juego de pelota: yugos, hachas, palmas y representaciones de jugadores encontrados en distintos sitios de Mesoamérica.",
+  "imagen_portada": "https://placehold.co/1000x300/058A41/ffffff?text=Piezas+Arqueologicas",
+  "elementos": [
+    {
+      "id": "pieza-001",
+      "titulo": "Collar de Piedra",
+      "imagen": "https://placehold.co/400x400/8B5E3C/ffffff?text=Collar",
+      "descripcion": "Collar votivo de piedra tallada, posiblemente usado como ofrenda relacionada con el ritual del juego de pelota. Hallado en contexto ceremonial.",
+      "categorias": { "periodo": "preclasico", "cultura": "olmeca", "material": "piedra" },
+      "año_descubrimiento": 1980,
+      "ubicacion": "Museo Nacional de Antropología"
+    },
+    {
+      "id": "pieza-002",
+      "titulo": "Marcador de Cancha",
+      "imagen": "https://placehold.co/400x400/C17A3A/ffffff?text=Marcador",
+      "descripcion": "Marcador circular de piedra caliza que se colocaba en el eje central de la cancha para señalar puntos durante el juego.",
+      "categorias": { "periodo": "clasico", "cultura": "maya", "material": "piedra caliza" },
+      "año_descubrimiento": 1995,
+      "ubicacion": "Museo de Sitio de Copán"
+    },
+    {
+      "id": "pieza-003",
+      "titulo": "Yugo con Serpiente",
+      "imagen": "https://placehold.co/400x400/4A7A6A/ffffff?text=Yugo",
+      "descripcion": "Yugo de piedra tallado con motivos de serpiente entrelazada, usado como protección ritual en la cintura de los jugadores en representaciones ceremoniales.",
+      "categorias": { "periodo": "clasico", "cultura": "golfo", "material": "piedra" },
+      "año_descubrimiento": 1972,
+      "ubicacion": "Museo de Antropología de Xalapa"
+    },
+    {
+      "id": "pieza-004",
+      "titulo": "Hacha Ceremonial",
+      "imagen": "https://placehold.co/400x400/3A5F4A/ffffff?text=Hacha",
+      "descripcion": "Hacha de piedra verde con forma antropomorfa, elemento del conjunto yugo-hacha-palma asociado a la parafernalia ritual del juego.",
+      "categorias": { "periodo": "preclasico", "cultura": "olmeca", "material": "piedra" },
+      "año_descubrimiento": 1988,
+      "ubicacion": "Museo Nacional de Antropología"
+    },
+    {
+      "id": "pieza-005",
+      "titulo": "Figurilla de Jugador",
+      "imagen": "https://placehold.co/400x400/6B4A3A/ffffff?text=Figurilla",
+      "descripcion": "Figurilla de cerámica que representa a un jugador con indumentaria protectora, incluyendo rodilleras y cinturón de cuero o cadera.",
+      "categorias": { "periodo": "posclasico", "cultura": "azteca", "material": "cerámica" },
+      "año_descubrimiento": 2003,
+      "ubicacion": "Templo Mayor, Ciudad de México"
+    },
+    {
+      "id": "pieza-006",
+      "titulo": "Palma de Jugador",
+      "imagen": "https://placehold.co/400x400/2E5A4A/ffffff?text=Palma",
+      "descripcion": "Palma de piedra tallada con la figura de un jugador en actitud ceremonial, pieza asociada al conjunto ritual del juego de pelota en Veracruz.",
+      "categorias": { "periodo": "clasico", "cultura": "cacaxtla", "material": "piedra" },
+      "año_descubrimiento": 1991,
+      "ubicacion": "Museo de Antropología de Xalapa"
+    }
+  ],
+  "categorias_disponibles": {
+    "periodo": ["preclasico", "clasico", "posclasico"],
+    "cultura": ["olmeca", "maya", "azteca", "golfo", "cacaxtla"],
+    "material": ["piedra", "cerámica", "obsidiana", "piedra caliza"]
+  },
+  "visible": true
+}

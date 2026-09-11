@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Artículo — ule educativo</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/theme.css">
+
+  <link rel="icon" href="assets/logo/logo.png" type="image/x-icon">
+</head>
+<body>
+
+  <a class="skip-link" href="#contenido-principal">Saltar al contenido</a>
+
+  <header class="container">
+    <nav class="nav" aria-label="Navegación principal">
+      <ul class="nav__lista">
+        <li><a class="nav__link" href="index.html">Inicio</a></li>
+        <li><a class="nav__link" href="articulos.html">Artículos</a></li>
+        <li><a class="nav__link" href="bibliografia.html">Bibliografía</a></li>
+        <li><a class="nav__link" href="catalogos.html">Catálogos</a></li>
+      </ul>
+
+      <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Cambiar tema">
+        <span class="theme-toggle__icon">
+          <svg class="icon-sol" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg>
+          <svg class="icon-luna" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"></path></svg>
+        </span>
+        <span id="theme-label">Oscuro</span>
+      </button>
+    </nav>
+  </header>
+
+  <main id="contenido-principal">
+    <section class="container section">
+      <p><a class="nav__link" href="articulos.html" style="padding-inline-start:0;">← Volver a artículos</a></p>
+      <div id="articulo-contenedor">
+        <p class="catalog-loading" role="status">Cargando artículo…</p>
+      </div>
+
+      <div id="biblio-relacionada-contenedor" hidden>
+        <h2>Bibliografía relacionada</h2>
+        <div class="biblio-list" id="biblio-relacionada-lista"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="container section" style="text-align:center; opacity:0.7; font-size:var(--fs-anotacion);">
+    <p>ule educativo · 2026</p>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script src="js/loader.js"></script>
+  <script src="js/components.js"></script>
+  <script>
+    (function () {
+      const contenedor = document.getElementById('articulo-contenedor');
+      const biblioWrap = document.getElementById('biblio-relacionada-contenedor');
+      const biblioLista = document.getElementById('biblio-relacionada-lista');
+
+      function formatFecha(iso) {
+        if (!iso) return '';
+        const d = new Date(iso + 'T00:00:00');
+        if (isNaN(d.getTime())) return iso;
+        return d.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
+      }
+
+      async function init() {
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
+
+        if (!id) {
+          contenedor.innerHTML = '<div class="catalog-empty">No se especificó ningún artículo.</div>';
+          return;
+        }
+
+        const articulo = await ULE.loader.loadArticleById(id);
+
+        if (!articulo) {
+          contenedor.innerHTML = '<div class="catalog-empty">No se encontró el artículo solicitado.</div>';
+          return;
+        }
+
+        document.title = articulo.titulo + ' — ule educativo';
+
+        const etiquetasHtml = (articulo.etiquetas || [])
+          .map((tag) => '<ule-badge type="etiqueta-' + tag + '" label="' + tag + '"></ule-badge>')
+          .join('');
+
+        contenedor.innerHTML =
+          '<article class="articulo">' +
+          '<div class="cluster" style="margin-block-end:var(--space-sm);">' +
+          '<ule-badge type="categoria-' + (articulo.categoria || '').toLowerCase().replace(/\s+/g, '-') + '" label="' + (articulo.categoria || '') + '"></ule-badge>' +
+          etiquetasHtml +
+          '</div>' +
+          '<h1></h1>' +
+          '<p class="anotacion"></p>' +
+          (articulo.imagen_destacada
+            ? '<img class="foto-arqueologica" style="width:100%;border-radius:var(--radius-md);" src="' + articulo.imagen_destacada + '" alt="">'
+            : '') +
+          '<div class="articulo__cuerpo"></div>' +
+          '</article>';
+
+        contenedor.querySelector('h1').textContent = articulo.titulo || '';
+        const metaParts = [articulo.autor, formatFecha(articulo.fecha)].filter(Boolean);
+        contenedor.querySelector('.anotacion').textContent = metaParts.join(' · ');
+        const img = contenedor.querySelector('img');
+        if (img) img.alt = 'Imagen destacada: ' + (articulo.titulo || '');
+        // contenido_html viene del propio equipo editorial (dato estático en el repo,
+        // no entrada de usuarios), por eso se inserta como HTML de confianza.
+        contenedor.querySelector('.articulo__cuerpo').innerHTML = articulo.contenido_html || '';
+
+        const refs = await ULE.loader.loadBiblioForArticle(articulo);
+        if (refs.length) {
+          biblioWrap.hidden = false;
+          refs.forEach((ref) => {
+            const card = document.createElement('biblio-card');
+            card.setAttribute('data-id', ref.id);
+            card.setAttribute('data-title', ref.titulo || '');
+            card.setAttribute('data-authors', (ref.autores || []).join(', '));
+            card.setAttribute('data-year', ref['año'] || '');
+            card.setAttribute('data-type', ref.tipo || '');
+            card.setAttribute('data-editorial', ref.editorial || '');
+            card.setAttribute('data-url', ref.url || '');
+            card.setAttribute('data-summary', ref.resumen || '');
+            biblioLista.appendChild(card);
+          });
+        }
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>

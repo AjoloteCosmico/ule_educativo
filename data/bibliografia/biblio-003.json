@@ -1,0 +1,12 @@
+{
+  "id": "biblio-003",
+  "titulo": "Ulama: El Juego de Pelota Vivo de Sinaloa",
+  "autores": ["Manuel Aguilar-Moreno", "Erik Boot"],
+  "año": 2018,
+  "editorial": "ulama.org",
+  "tipo": "web",
+  "url": "https://example.com/ulama-sinaloa",
+  "resumen": "Documentación etnográfica de las comunidades que practican ulama de cadera en Sinaloa, con testimonios de jugadores actuales y comparación con fuentes históricas.",
+  "articulos_relacionados": ["articulo-002", "articulo-003"],
+  "visible": true
+}

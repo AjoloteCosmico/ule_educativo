@@ -401,3 +401,122 @@ header.header--visible {
   opacity: 0.7;
   font-size: var(--fs-cuerpo);
 }
+
+/* ---------- Grid de artículos ----------
+   Mobile: 1 columna · Tablet (≥768px): 2 · Desktop (≥1024px): 3 */
+.articles-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-lg);
+  width: 100%;
+  align-items: stretch;
+}
+
+@media (min-width: 768px) {
+  .articles-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 1024px) {
+  .articles-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ---------- Lista de bibliografía ----------
+   Lista de una columna; en pantallas amplias aprovecha el ancho en 2. */
+.biblio-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-md);
+  width: 100%;
+}
+
+@media (min-width: 900px) {
+  .biblio-list { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ---------- Barra de filtros (artículos / bibliografía / catálogos) ---------- */
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-sm) var(--space-md);
+  margin-block-end: var(--space-lg);
+}
+
+.filtros__campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  flex: 1 1 180px;
+  min-width: 160px;
+}
+
+.filtros__campo label {
+  font-family: var(--font-anotaciones);
+  font-style: italic;
+  font-size: var(--fs-anotacion);
+  color: var(--color-texto);
+  opacity: 0.85;
+}
+
+.filtros input[type="search"],
+.filtros input[type="text"],
+.filtros select {
+  font-family: var(--font-principal);
+  font-size: var(--fs-cuerpo);
+  color: var(--color-texto);
+  background-color: var(--color-fondo);
+  border: 1px solid color-mix(in srgb, var(--color-texto) 25%, transparent);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.75rem;
+  min-height: 2.5rem;
+}
+
+.filtros input:focus-visible,
+.filtros select:focus-visible {
+  outline: 2px solid var(--color-link-focus);
+  outline-offset: 2px;
+}
+
+.filtros__resultados {
+  font-size: var(--fs-anotacion);
+  opacity: 0.75;
+  margin-block-end: var(--space-md);
+}
+
+/* ---------- Selector de catálogo (tabs) ---------- */
+.catalog-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-block-end: var(--space-lg);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-texto) 15%, transparent);
+  padding-block-end: var(--space-sm);
+}
+
+.catalog-selector__tab {
+  font-family: var(--font-principal);
+  font-weight: 500;
+  font-size: var(--fs-cuerpo);
+  color: var(--color-texto);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  padding: 0.45rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.catalog-selector__tab:hover {
+  background-color: color-mix(in srgb, var(--color-principal) 10%, transparent);
+}
+
+.catalog-selector__tab[aria-selected="true"] {
+  background-color: var(--color-principal);
+  color: #fff;
+  font-weight: 700;
+}
+
+.catalog-selector__tab:focus-visible {
+  outline: 2px solid var(--color-link-focus);
+  outline-offset: 2px;
+}

@@ -1,0 +1,13 @@
+{
+  "id": "articulo-004",
+  "titulo": "Las misteriosas hachas del juego de pelota",
+  "autor": "Felipe González",
+  "fecha": "2026-09-11",
+  "resumen": "Hablemos sobre los debates en torno a las hachas del juego de pelota, abordando brevemente las palmas y yugos.",
+  "contenido_html": "<p>Los nombres usados comúnmente por los arqueólogos para clasificar las diferentes piezas arqueológicas relacionadas al juego de pelota pueden llegar a confundir al lector sobre su verdadera función: Hachas, palmas, yugos sugieren al lector curioso herramientas para trabajar, o arar el campo, Sin embargo son nombres modernos otorgados por su similitud a cosas familiares para la cultura occidental y quiza del mismo modo, las funciones q se especulan de ellos.<br>Aunque no hay un consenso respecto a la función específica de estos mitad misterioso artefacto mitad obra escultorica de enorme maestría, te compartimos algunas de las ideas más interesantes en torno a ellos.</p>",
+  "imagen_destacada": "https://scontent.fntr2-1.fna.fbcdn.net/v/t39.99422-6/802123612_2802799923452882_342196044552138279_n.png?stp=dst-jpg_tt6&cstp=mx1307x2015&ctp=p526x296&_nc_cat=107&ccb=1-7&_nc_sid=127cfc&_nc_eui2=AeFfSsqW6I8rYX-ftBzhNYa9PlfJTOGC2Xc-V8lM4YLZd2nPcWy2SksCCHr4GsmWoO9jKgzvuczwS6hp5LXue65M&_nc_ohc=Jyjv4XNyf7oQ7kNvwFACFfx&_nc_oc=AdrNLqdFVCP7XqNDOo_48TekD3fmxJd1zCI3b4GgaXCIL5C7ABNjxaME6ujcDJJCrVQ&_nc_zt=14&_nc_ht=scontent.fntr2-1.fna&_nc_gid=j8z0QExUEcBNjqor05tasg&_nc_ss=7b2a8&oh=00_AQJ5fYaV3wBh05d2tCO-iaMbkgMmK6T-6uhCm3TYpeR9YQ&oe=6AA9ECEE",
+  "categoria": "Historia",
+  "etiquetas": ["olmeca", "clasico", "rituales","hachas","arqueología"],
+  "bibliografía_relacionada": ["biblio-001", "biblio-002"],
+  "visible": true
+}

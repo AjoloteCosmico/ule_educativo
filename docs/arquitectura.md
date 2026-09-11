@@ -47,6 +47,7 @@ La estructura debe separar contenido, componentes, estilos y datos:
 /
 ├── index.html
 ├── articulos/
+|── docs/
 ├── catalogos/
 ├── recursos/
 ├── components/

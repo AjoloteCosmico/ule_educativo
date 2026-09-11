@@ -1,0 +1,12 @@
+{
+  "id": "biblio-001",
+  "titulo": "The Ball Game of the Ancient Mesoamerica",
+  "autores": ["John E. Clark", "Mary Pye"],
+  "año": 2020,
+  "editorial": "University Press of Colorado",
+  "tipo": "libro",
+  "url": "https://example.com/ball-game-ancient-mesoamerica",
+  "resumen": "Estudio arqueológico sobre los orígenes del juego de pelota en el periodo preclásico, con énfasis en los hallazgos olmecas de El Manatí.",
+  "articulos_relacionados": ["articulo-001"],
+  "visible": true
+}

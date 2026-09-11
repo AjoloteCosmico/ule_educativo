@@ -1,0 +1,12 @@
+{
+  "id": "biblio-002",
+  "titulo": "Arquitectura Ritual de las Canchas de Juego de Pelota Maya",
+  "autores": ["Ana Luisa Izquierdo"],
+  "año": 2015,
+  "editorial": "Revista Estudios de Cultura Maya",
+  "tipo": "articulo",
+  "url": "https://example.com/arquitectura-canchas-maya",
+  "resumen": "Análisis comparativo de canchas de juego de pelota en sitios mayas del periodo clásico y posclásico, con especial atención a los marcadores y anillos de piedra.",
+  "articulos_relacionados": ["articulo-001", "articulo-002"],
+  "visible": true
+}

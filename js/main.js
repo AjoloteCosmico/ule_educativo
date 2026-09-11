@@ -190,6 +190,50 @@ ULE.nav = (function () {
     });
   }
 
+  function initHeaderScroll() {
+    // Oculta el header sticky al hacer scroll hacia abajo y lo vuelve a
+    // mostrar al subir, al llegar arriba del todo, o al acercar el mouse
+    // al borde superior de la ventana.
+    const header = document.querySelector('header');
+    if (!header) return;
+
+    let lastScrollY = window.scrollY;
+    const SCROLL_THRESHOLD = 50; // píxeles para activar el ocultamiento
+    let ticking = false;
+
+    function show() {
+      header.classList.remove('header--hidden');
+      header.classList.add('header--visible');
+    }
+
+    function updateOnScroll() {
+      const currentScrollY = window.scrollY;
+      const isScrollingDown = currentScrollY > lastScrollY;
+      const isAtTop = currentScrollY < SCROLL_THRESHOLD;
+
+      if (isAtTop || !isScrollingDown) {
+        show();
+      } else {
+        header.classList.add('header--hidden');
+        header.classList.remove('header--visible');
+      }
+
+      lastScrollY = currentScrollY;
+      ticking = false;
+    }
+
+    window.addEventListener('scroll', function () {
+      if (!ticking) {
+        window.requestAnimationFrame(updateOnScroll);
+        ticking = true;
+      }
+    });
+
+    document.addEventListener('mousemove', function (e) {
+      if (e.clientY < 50) show();
+    });
+  }
+
   function initAnchorFocus() {
     // Al navegar a un ancla interna (#seccion), mueve el foco al destino
     // para usuarios de teclado/lector de pantalla (mejor accesibilidad
@@ -215,6 +259,7 @@ ULE.nav = (function () {
   function init() {
     highlightActiveLink();
     initMobileMenu();
+    initHeaderScroll();
     initAnchorFocus();
   }
 
