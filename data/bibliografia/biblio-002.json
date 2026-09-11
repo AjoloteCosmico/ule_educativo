@@ -1,12 +1,12 @@
 {
   "id": "biblio-002",
-  "titulo": "Arquitectura Ritual de las Canchas de Juego de Pelota Maya",
-  "autores": ["Ana Luisa Izquierdo"],
-  "año": 2015,
-  "editorial": "Revista Estudios de Cultura Maya",
+  "titulo": "Estudio sobre los yugos. Análisis comparativo de los yugos y sus contextos en Mesoamérica, en especial, los yugos de la Costa del Golfo de México",
+  "autores": ["Kurosaki Maekawa, Mitsuru"],
+  "año": 2006,
+  "editorial": "Escuela Nacional de Antropología e Historia. México, D.F.",
   "tipo": "articulo",
-  "url": "https://example.com/arquitectura-canchas-maya",
-  "resumen": "Análisis comparativo de canchas de juego de pelota en sitios mayas del periodo clásico y posclásico, con especial atención a los marcadores y anillos de piedra.",
+  "url": "https://cdigital.uv.mx/items/7e9ebf94-86e1-46a1-8d45-fcc4b2ddbbcb",
+  "resumen": "El enfoque principal de este trabajo reside en el análisis de los contextos asociados al Yugo. Este contexto se refiere al estado y los materiales asociados al Yugo encontrado en la excavación controlada.",
   "articulos_relacionados": ["articulo-001", "articulo-002"],
   "visible": true
 }
