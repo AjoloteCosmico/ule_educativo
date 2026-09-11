@@ -13,6 +13,7 @@ Crear la siguiente estructura en el repositorio:
 /
 ├── index.html                    (Home principal)
 ├── articulos.html               (Página de artículos)
+
 ├── bibliografia.html            (Página de bibliografía)
 ├── catalogos.html               (Página de catálogos)
 │
@@ -63,6 +64,11 @@ Crear la siguiente estructura en el repositorio:
 │   └── logo/
 │       ├── logo-simple.svg
 │       └── logo-completo.svg
+├── docs/
+│       ├── primera_fase.md
+│       └── docs_fase1.md
+│       ├── arquitectura.md
+│       └── identidad.md
 ```
 
 ---
