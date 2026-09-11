@@ -3,6 +3,7 @@
     {
       "id": "anuncio-001",
       "imagen": "",
+      "imagen_alt": "",
       "contacto": "ule educativo",
       "slogan": "Comparte una actividad relacionada con el juego de pelota",
       "descripcion": "Espacio para anunciar talleres, encuentros, exhibiciones y actividades de interés para la comunidad.",
@@ -10,19 +11,26 @@
       "vigencia_fin": "2027-12-31",
       "activo": true,
       "peso": 1,
-      "enlace": ""
+      "enlace": "",
+      "tipo": "comunidad",
+      "paginas": ["home", "articulos", "catalogos", "bibliografia"],
+      "prioridad_slot": "normal"
     },
-     {
+    {
       "id": "anuncio-002",
       "imagen": "https://scontent.fntr2-1.fna.fbcdn.net/v/t39.30808-6/483919787_1204642454995323_834062041125278873_n.jpg?stp=dst-jpg_tt6&cstp=mx500x500&ctp=s500x500&_nc_cat=100&ccb=1-7&_nc_sid=cc71e4&_nc_eui2=AeFGMsvvEnQCWc1TnXRCSI6OXXehPTPpvdBdd6E9M-m90JQuUC-hRstPvkGVrDJ1N2yV55W0hRdMxdaZ06pko-ri&_nc_ohc=va7EiQkIemAQ7kNvwFRQjwQ&_nc_oc=AdpZrFfFO624TlB_SHmEp94Je6vPNFC92NfeNCbKd7klD9wTUCOEW07Y0Kj1ljhdcOU&_nc_zt=23&_nc_ht=scontent.fntr2-1.fna&_nc_gid=4BBdDpiH-QOPPmHNL4g4Nw&_nc_ss=7b2a8&oh=00_AQLxiT7NfAKWqjHp-dkwXp31i9cengrp7eGNU_ZcFXlnJQ&oe=6AAA2386",
+      "imagen_alt": "Pulque y productos de una iniciativa comunitaria",
       "contacto": "Pulques del Lic",
-      "slogan": "si es del lic, es del lic-sioso",
-      "descripcion": "Agua miel, curados, pulque natural, actividades de divulgación sobre la tradición pulquera",
+      "slogan": "Si es del Lic, es del lic-sioso",
+      "descripcion": "Aguamiel, curados, pulque natural y actividades de divulgación sobre la tradición pulquera.",
       "vigencia_inicio": "2026-01-01",
       "vigencia_fin": "",
       "activo": true,
       "peso": 2,
-      "enlace": ""
+      "enlace": "",
+      "tipo": "comunidad",
+      "paginas": ["home", "articulos", "catalogos", "bibliografia"],
+      "prioridad_slot": "normal"
     }
   ]
 }
