@@ -390,16 +390,16 @@ async function getRandomAd() {
 
 ### Fase 1.1: Infraestructura CSS y JS
 
-- [ ] Crear `css/variables.css` con todas las variables de la identidad
-- [ ] Crear `css/base.css` con reset y estilos globales
-- [ ] Crear `css/components.css` con componentes base (cards, badges, grid)
-- [ ] Crear `css/theme.css` para modo claro/oscuro
-- [ ] Crear `js/main.js` con lógica de tema y navegación global
-- [ ] Crear `js/loader.js` con funciones de fetch y mapeo de JSON
+- [x] Crear `css/variables.css` con todas las variables de la identidad
+- [x] Crear `css/base.css` con reset y estilos globales
+- [x] Crear `css/components.css` con componentes base (cards, badges, grid)
+- [x] Crear `css/theme.css` para modo claro/oscuro
+- [x] Crear `js/main.js` con lógica de tema y navegación global
+- [x] Crear `js/loader.js` con funciones de fetch y mapeo de JSON
 
 ### Fase 1.2: Web Components
 
-- [ ] Crear `js/components.js` con:
+- [x] Crear `js/components.js` con:
   - `<article-card>`
   - `<catalog-grid>`
   - `<biblio-card>`
@@ -408,28 +408,37 @@ async function getRandomAd() {
 
 ### Fase 1.3: Páginas y datos
 
-- [ ] Crear `articulos.html` (estructura base + script de carga)
-- [ ] Crear `bibliografia.html` (estructura base + script de carga)
-- [ ] Crear `catalogos.html` (estructura base + script de carga)
-- [ ] Crear carpetas de datos:
-  - [ ] `data/articulos/`
-  - [ ] `data/bibliografia/`
-  - [ ] `data/catalogos/`
-- [ ] Crear 2-3 archivos JSON ejemplo en cada carpeta
+- [x] Crear `articulos.html` (estructura base + script de carga)
+- [x] Crear `bibliografia.html` (estructura base + script de carga)
+- [x] Crear `catalogos.html` (estructura base + script de carga)
+- [x] Crear carpetas de datos:
+  - [x] `data/articulos/`
+  - [x] `data/bibliografia/`
+  - [x] `data/catalogos/`
+- [x] Crear 2-3 archivos JSON ejemplo en cada carpeta
 
 ### Fase 1.4: Anuncios
 
-- [ ] Crear `data/anuncios.json` con 2-3 anuncios de ejemplo
-- [ ] Crear `js/ads.js` con lógica de selección
-- [ ] Integrar anuncios en `index.html`
+> **Estado actual (post 1.3):** ya existen `data/anuncios.json`, `js/ads.js`, el Web Component `<ad-card>` y 2 slots en `index.html`.  
+> Esta sub-fase se centra en **alinear con la política de anuncios** y cerrar huecos de datos/accesibilidad.
+
+- [x] Crear `data/anuncios.json` con anuncios de ejemplo
+- [x] Crear `js/ads.js` con lógica de selección ponderada + vigencia
+- [x] Integrar anuncios en `index.html` (slots `data-ad-slot`)
+- [ ] Revisar y aplicar `docs/politica_anuncios.md`
+- [ ] Ampliar el esquema JSON con campos opcionales recomendados (`imagen_alt`, `tipo`, `paginas`)
+- [ ] Actualizar `<ad-card>` para preferir `imagen_alt` cuando exista
+- [ ] Decidir y documentar número de slots y páginas permitidas (ver política §4)
+- [ ] Añadir 1–2 anuncios de ejemplo que cumplan la política de contenido
 
 ### Fase 1.5: Testing y documentación
 
 - [ ] Verificar que JSON se carga correctamente
 - [ ] Verificar responsividad en mobile, tablet, desktop
-- [ ] Verificar contraste WCAG AA
-- [ ] Verificar navegación por teclado
-- [ ] Crear `GUIA_CONTENIDO.md` con instrucciones para agregar artículos/catálogos
+- [ ] Verificar contraste WCAG AA (incluyendo cards de anuncio en ambos temas)
+- [ ] Verificar navegación por teclado y `aria-label` de anuncios con enlace
+- [ ] Crear `GUIA_CONTENIDO.md` con instrucciones para agregar artículos/catálogos **y anuncios**
+- [ ] Enlazar `politica_anuncios.md` desde la documentación principal
 
 ---
 
@@ -457,11 +466,14 @@ async function getRandomAd() {
 
 ### Agregar un anuncio
 
-1. Subir imagen a `assets/images/anuncios/`
-2. Agregar objeto a `data/anuncios.json`
-3. Establecer `vigencia_inicio` y `vigencia_fin` apropiadamente
-4. Hacer push a GitHub
-5. ✅ El anuncio será seleccionado automáticamente si está activo y dentro del rango
+Consultar primero `docs/politica_anuncios.md` (requisitos de contenido, campos y reglas de colocación).
+
+1. Subir imagen a `assets/images/anuncios/` (preferible proporción 4:5)
+2. Agregar objeto a `data/anuncios.json` siguiendo el esquema (campos obligatorios + opcionales recomendados)
+3. Establecer `vigencia_inicio`, `vigencia_fin`, `activo` y `peso`
+4. (Opcional) Completar `imagen_alt`, `tipo` y `paginas`
+5. Hacer push a GitHub
+6. ✅ El anuncio será seleccionado automáticamente si está activo y dentro del rango de vigencia
 
 ---
 
