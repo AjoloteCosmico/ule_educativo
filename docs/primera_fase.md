@@ -464,16 +464,20 @@ async function getRandomAd() {
 
 **Tareas — aprovechar datos ya existentes que no se muestran:**
 - [ ] `<biblio-card>` — mostrar "Aparece en: [artículo]" usando `articulos_relacionados` (dato ya existe en el JSON, falta consumirlo)
-- [ ] `index.html` — sección "Artículos recientes" (2–3 cards) usando `loadArticles()` ordenado por fecha, antes o junto a la sección "Explora el sitio"
+- [x] `index.html` — sección "Artículos recientes" (2–3 cards) usando `loadArticles()` ordenado por fecha, antes o junto a la sección "Explora el sitio"
 - [ ] (Opcional, evaluar si vale la pena) URL propia por pieza de catálogo (`?pieza=id` o hash) para que el modal de `<catalog-grid>` sea enlazable
 
 **Tareas — herramienta de generación de JSON (ver arquitectura §13.3 para el detalle completo):**
-- [ ] Crear `herramientas/generador-json.html` con selector de tipo de contenido (artículo / bibliografía / elemento de catálogo / anuncio)
-- [ ] Un `<form>` por tipo, campos alineados 1:1 con el esquema de la sección 2 de este documento (y con `politica_anuncios.md` §2 para anuncios)
-- [ ] Botón "Descargar JSON": serializa el formulario y descarga vía `Blob` + `<a download>`, con nombre de archivo sugerido según convención
-- [ ] Mostrar en pantalla el recordatorio de actualizar el `index.json` de la carpeta correspondiente (no se puede automatizar sin backend)
-- [ ] Conversión de campos tipo lista (`etiquetas`, `autores`) de texto separado por comas a array antes de serializar
-- [ ] Página no enlazada desde el nav público (uso interno del equipo editorial)
+- [x] Crear `herramientas/generador-json.html` con selector de tipo de contenido (artículo / bibliografía / elemento de catálogo / anuncio)
+- [x] Un `<form>` por tipo, campos alineados 1:1 con el esquema de la sección 2 de este documento (y con `politica_anuncios.md` §2 para anuncios)
+- [x] Botón "Descargar JSON": serializa el formulario y descarga vía `Blob` + `<a download>`, con nombre de archivo sugerido según convención
+- [x] Mostrar en pantalla el recordatorio de actualizar el `index.json` de la carpeta correspondiente (no se puede automatizar sin backend)
+- [x] Conversión de campos tipo lista (`etiquetas`, `autores`) de texto separado por comas a array antes de serializar
+- [x] Página no enlazada desde el nav público (uso interno del equipo editorial); `<meta name="robots" content="noindex, nofollow">` para que tampoco la indexen buscadores
+- [x] Botón "Copiar" además de "Descargar" (portapapeles vía `navigator.clipboard`)
+- [x] Caso especial "elemento de catálogo": se genera como **fragmento** para pegar en el array `elementos` de un catálogo existente, no como archivo nuevo — no requiere tocar `index.json`
+- [x] Caso especial "anuncio": también se genera como fragmento para `data/anuncios.json` (no usa manifiesto); el formulario cubre los campos opcionales de `politica_anuncios.md` §2.2 (`imagen_alt`, `tipo`, `paginas`, `prioridad_slot`)
+- [x] Campos vacíos/opcionales no aparecen en el JSON de salida (no se generan claves con `""` o `undefined`)
 
 ---
 
