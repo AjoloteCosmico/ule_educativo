@@ -441,8 +441,8 @@ async function getRandomAd() {
 - [x] Verificar que JSON se carga correctamente
 - [x] Verificar responsividad en mobile, tablet, desktop
 - [x] Verificar contraste WCAG AA (incluyendo cards de anuncio en ambos temas)
-- [ ] Verificar navegación por teclado y `aria-label` de anuncios con enlace
-- [ ] Crear `GUIA_CONTENIDO.md` con instrucciones para agregar artículos/catálogos **y anuncios**
+- [x] Verificar navegación por teclado y `aria-label` de anuncios con enlace
+- [x] Crear `GUIA_CONTENIDO.md` con instrucciones para agregar artículos/catálogos **y anuncios**
 
 ### Fase 1.6: Experiencia de usuario y herramienta de contenido (planeación)
 
@@ -458,9 +458,9 @@ async function getRandomAd() {
 4. Las piezas de `<catalog-grid>` no tienen URL propia (no se pueden compartir).
 
 **Tareas — "Artículo siguiente/anterior" (ver arquitectura §13.2):**
-- [ ] En `articulo.html`, calcular anterior/siguiente a partir de `ULE.loader.loadArticles()` ordenado por fecha
-- [ ] Bloque de navegación al final del artículo (anterior + siguiente), antes o junto a "Bibliografía relacionada"
-- [ ] Decidir comportamiento en los extremos (ocultar el que no aplica, o wrap-around)
+- [x] En `articulo.html`, calcular anterior/siguiente a partir de `ULE.loader.loadArticles()` ordenado por fecha
+- [x] Bloque de navegación al final del artículo (anterior + siguiente), antes o junto a "Bibliografía relacionada"
+- [x] Decidir comportamiento en los extremos: ocultar el enlace que no aplica
 
 **Tareas — aprovechar datos ya existentes que no se muestran:**
 - [ ] `<biblio-card>` — mostrar "Aparece en: [artículo]" usando `articulos_relacionados` (dato ya existe en el JSON, falta consumirlo)
