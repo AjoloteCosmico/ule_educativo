@@ -49,6 +49,10 @@
 <a class="card" href="catalogos.html" style="text-decoration:none;"><h3>Colecciones</h3><p>Explora colecciones visuales de piezas, espacios y otros elementos relacionados con el juego de pelota.</p><span class="button">Explorar colecciones</span></a>
 </div><div class="greca greca--divider" role="img" aria-label="Greca decorativa"></div>
 </section>
+<section class="container section" aria-labelledby="recientes-titulo">
+<h2 id="recientes-titulo">Artículos recientes</h2>
+<div id="articulos-recientes" class="articles-grid"><div class="catalog-loading" role="status">Cargando artículos…</div></div>
+</section>
 <section class="container section" aria-labelledby="acerca-titulo">
 <div class="card"><h2 id="acerca-titulo">Un proyecto para aprender y explorar</h2><p>El juego de pelota mesoamericano forma parte de una historia amplia y diversa. En este sitio encontrarás información sobre sus variantes, contextos históricos, evidencias arqueológicas y formas de práctica actuales.</p><p>El contenido busca ser claro y accesible, pero también ofrecer fuentes para que puedas profundizar, contrastar información y formarte tu propia perspectiva.</p></div>
 </section>
@@ -60,4 +64,35 @@
 </main>
 <footer class="container section" style="text-align:center; opacity:0.7; font-size:var(--fs-anotacion);"><p>ule educativo · 2026 · F.gonzalez · Colectivo Ulama Sierra Tonantzin </p></footer>
 <script src="js/main.js"></script><script src="js/loader.js"></script><script src="js/components.js"></script><script src="js/ads.js"></script>
+<script>
+(function () {
+  const contenedor = document.getElementById('articulos-recientes');
+  if (!contenedor || !window.ULE || !ULE.loader) return;
+  ULE.loader.loadArticles().then(function (articulos) {
+    const recientes = articulos
+      .filter(function (a) { return a.visible !== false; })
+      .sort(function (a, b) { return (b.fecha || '').localeCompare(a.fecha || ''); })
+      .slice(0, 3);
+    contenedor.replaceChildren();
+    if (!recientes.length) {
+      contenedor.innerHTML = '<div class="catalog-empty">Todavía no hay artículos publicados.</div>';
+      return;
+    }
+    recientes.forEach(function (articulo) {
+      const card = document.createElement('article-card');
+      card.setAttribute('data-id', articulo.id || '');
+      card.setAttribute('data-title', articulo.titulo || '');
+      card.setAttribute('data-summary', articulo.resumen || '');
+      card.setAttribute('data-image', articulo.imagen_destacada || '');
+      card.setAttribute('data-category', articulo.categoria || '');
+      card.setAttribute('data-date', articulo.fecha || '');
+      card.setAttribute('data-author', articulo.autor || '');
+      contenedor.appendChild(card);
+    });
+  }).catch(function (error) {
+    console.error('[ULE] Error cargando artículos recientes:', error);
+    contenedor.innerHTML = '<div class="catalog-empty">No fue posible cargar los artículos recientes.</div>';
+  });
+})();
+</script>
 </body></html>
