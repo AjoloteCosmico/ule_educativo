@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Generador de JSON — herramienta interna — ule educativo</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/theme.css">
+  <link rel="stylesheet" href="../css/herramientas.css">
+
+  <link rel="icon" href="../assets/logo/logo.png" type="image/x-icon">
+</head>
+<body>
+
+  <a class="skip-link" href="#contenido-principal">Saltar al contenido</a>
+
+  <header class="container">
+    <nav class="nav" aria-label="Navegación de la herramienta">
+      <ul class="nav__lista">
+        <li><a class="nav__link" href="../index.html">← Volver al sitio</a></li>
+      </ul>
+
+      <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Cambiar tema">
+        <span class="theme-toggle__icon">
+          <svg class="icon-sol" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg>
+          <svg class="icon-luna" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"></path></svg>
+        </span>
+        <span id="theme-label">Oscuro</span>
+      </button>
+    </nav>
+  </header>
+
+  <main id="contenido-principal">
+    <section class="container section">
+      <h1>Generador de JSON</h1>
+      <p>Arma el archivo (o fragmento) de contenido a partir de un formulario, en vez de escribir el JSON a mano.</p>
+
+      <div class="herramienta-aviso">
+        <strong>Herramienta interna, no pública.</strong> No está enlazada desde el menú del sitio y no escribe nada en el repositorio.
+        <ol>
+          <li>Completa el formulario del tipo de contenido que quieras crear.</li>
+          <li>Descarga o copia el JSON generado.</li>
+          <li>Colócalo tú mismo en la carpeta correspondiente (y actualiza el <code>index.json</code> si aplica — la herramienta te lo recuerda en cada caso).</li>
+          <li>Haz commit y push como siempre.</li>
+        </ol>
+        Esto sigue los mismos pasos que <code>docs/GUIA_CONTENIDO.md</code> — la herramienta solo evita errores de sintaxis y campos faltantes al escribir el JSON.
+      </div>
+
+      <div class="catalog-selector" id="selector-tipo" role="tablist" aria-label="Tipo de contenido a generar">
+        <button type="button" class="catalog-selector__tab" role="tab" data-tipo="articulo" aria-selected="true">Artículo</button>
+        <button type="button" class="catalog-selector__tab" role="tab" data-tipo="biblio" aria-selected="false">Bibliografía</button>
+        <button type="button" class="catalog-selector__tab" role="tab" data-tipo="catalogo" aria-selected="false">Elemento de catálogo</button>
+        <button type="button" class="catalog-selector__tab" role="tab" data-tipo="anuncio" aria-selected="false">Anuncio</button>
+      </div>
+
+      <!-- ============ ARTÍCULO ============ -->
+      <form class="form-tool is-active" id="form-articulo" data-tipo="articulo" novalidate>
+        <div class="form-tool__fila form-tool__fila--2">
+          <div class="form-tool__grupo">
+            <label for="art-id">id</label>
+            <input type="text" id="art-id" name="id" placeholder="articulo-005" pattern="[a-z0-9]+(-[a-z0-9]+)*" required>
+            <p class="form-tool__ayuda">kebab-case, único. Será también el nombre del archivo.</p>
+          </div>
+          <div class="form-tool__grupo">
+            <label for="art-categoria">categoria</label>
+            <input type="text" id="art-categoria" name="categoria" placeholder="Historia" required>
+          </div>
+        </div>
+
+        <div class="form-tool__grupo">
+          <label for="art-titulo">titulo</label>
+          <input type="text" id="art-titulo" name="titulo" required>
+        </div>
+
+        <div class="form-tool__fila form-tool__fila--2">
+          <div class="form-tool__grupo">
+            <label for="art-autor">autor</label>
+            <input type="text" id="art-autor" name="autor" required>
+          </div>
+          <div class="form-tool__grupo">
+            <label for="art-fecha">fecha</label>
+            <input type="date" id="art-fecha" name="fecha" required>
+          </div>
+        </div>
+
+        <div class="form-tool__grupo">
+          <label for="art-resumen">resumen</label>
+          <textarea id="art-resumen" name="resumen" required></textarea>
+          <p class="form-tool__ayuda">Se muestra truncado a 150 caracteres en la grilla de artículos.</p>
+        </div>
+
+        <div class="form-tool__grupo">
+          <label for="art-contenido">contenido_html</label>
+          <textarea id="art-contenido" name="contenido_html" class="form-tool__contenido-html" required></textarea>
+          <p class="form-tool__ayuda">HTML válido (p. ej. &lt;p&gt;, &lt;h3&gt;). Se inserta tal cual en la página del artículo.</p>
+        </div>
+
+        <div class="form-tool__grupo">
+          <label for="art-imagen">imagen_destacada <span class="opcional">(opcional)</span></label>
+          <input type="text" id="art-imagen" name="imagen_destacada" placeholder="assets/images/articulos/articulo-005.jpg">
+          <p class="form-tool__ayuda">Ruta relativa (sin "/" inicial). Si se omite, se muestra un contenedor vacío.</p>
+        </div>
+
+        <div class="form-tool__fila form-tool__fila--2">
+          <div class="form-tool__grupo">
+            <label for="art-etiquetas">etiquetas <span class="opcional">(opcional)</span></label>
+            <input type="text" id="art-etiquetas" name="etiquetas" placeholder="olmeca, clasico, rituales">
+            <p class="form-tool__ayuda">Separadas por comas.</p>
+          </div>
+          <div class="form-tool__grupo">
+            <label for="art-biblio">bibliografía_relacionada <span class="opcional">(opcional)</span></label>
+            <input type="text" id="art-biblio" name="bibliografía_relacionada" placeholder="biblio-001, biblio-002">
+            <p class="form-tool__ayuda">IDs separados por comas.</p>
+          </div>
+        </div>
+
+        <div class="form-tool__checkbox-fila">
+          <input type="checkbox" id="art-visible" name="visible" checked>
+          <label for="art-visible">visible (aparece en el sitio)</label>
+        </div>
+
+        <div class="form-tool__acciones">
+          <button type="submit" class="btn">Generar JSON</button>
+          <button type="reset" class="btn">Limpiar formulario</button>
+        </div>
+      </form>
+
+      <!-- ============ BIBLIOGRAFÍA ============ -->
+      <form class="form-tool" id="form-biblio" data-tipo="biblio" novalidate>
+        <div class="form-tool__fila form-tool__fila--2">
+          <div class="form-tool__grupo">
+            <label for="bib-id">id</label>
+            <input type="text" id="bib-id" name="id" placeholder="biblio-004" pattern="[a-z0-9]+(-[a-z0-9]+)*" required>
+            <p class="form-tool__ayuda">kebab-case, único. Será también el nombre del archivo.</p>
+          </div>
+          <div class="form-tool__grupo">
+            <label for="bib-tipo">tipo</label>
+            <select id="bib-tipo" name="tipo" required>
+              <option value="libro">Libro</option>
+              <option value="articulo">Artículo</option>
+              <option value="web">Sitio web</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-tool__grupo">
+          <label for="bib-titulo">titulo</label>
+          <input type="text" id="bib-titulo" name="titulo" required>
+        </div>
+
+        <div class="form-tool__fila form-tool__fila--2">
+          <div class="form-tool__grupo">
+            <label for="bib-autores">autores</label>
+            <input type="text" id="bib-autores" name="autores" placeholder="Nombre Autor 1, Nombre Autor 2" required>
+            <p class="form-tool__ayuda">Separados por comas.</p>
+          </div>
+          <div class="form-tool__grupo">
+            <label for="bib-anio">año</label>
+            <input type="number" id="bib-anio" name="año" min="1800" max="2100" required>
+          </div>
+        </div>
+
+        <div class="form-tool__fila form-tool__fila--2">
+          <div class="form-tool__grupo">
+            <label for="bib-editorial">editorial <span class="opcional">(opcional)</span></label>
+            <input type="text" id="bib-editorial" name="editorial">
+          </div>
+          <div class="form-tool__grupo">
+            <label for="bib-url">url <span class="opcional">(opcional)</span></label>
+            <input type="url" id="bib-url" name="url" placeholder="https://ejemplo.com">
+          </div>
+        </div>
+
+        <div class="form-tool__grupo">
+          <label for="bib-resumen">resumen</label>
+          <textarea id="bib-resumen" name="resumen" required></textarea>
+        </div>
+
+        <div class="form-tool__grupo">
+          <label for="bib-articulos">articulos_relacionados <span class="opcional">(opcional)</span></label>
+          <input type="text" id="bib-articulos" name="articulos_relacionados" placeholder="articulo-001, articulo-003">
+          <p class="form-tool__ayuda">IDs separados por comas — qué artículos citan esta fuente.</p>
+        </div>
+
+        <div class="form-tool__checkbox-fila">
+          <input type="checkbox" id="bib-visible" name="visible" checked>
+          <label for="bib-visible">visible (aparece en el sitio)</label>
+        </div>
+
+        <div class="form-tool__acciones">
+          <button type="submit" class="btn">Generar JSON</button>
+          <button type="reset" class="btn">Limpiar formulario</button>
+        </div>
+      </form>
+
+      <!-- ============ ELEMENTO DE CATÁLOGO ============ -->
+      <form class="form-tool" id="form-catalogo" data-tipo="catalogo" novalidate>
+        <div class="form-tool__grupo">
+          <label for="cat-destino">Catálogo destino</label>
+          <input type="text" id="cat-destino" name="catalogo_destino" placeholder="piezas-arqueologicas" required>
+          <p class="form-tool__ayuda">Nombre del archivo en <code>data/catalogos/</code> (sin <code>.json</code>). Solo se usa para las instrucciones — no forma parte del objeto generado.</p>
+        </div>
+
+        <div class="form-tool__fila form-tool__fila--2">
+          <div class="form-tool__grupo">
+            <label for="cat-id">id</label>
+            <input type="text" id="cat-id" name="id" placeholder="pieza-007" pattern="[a-z0-9]+(-[a-z0-9]+)*" required>
+          </div>
+          <div class="form-tool__grupo">
+            <label for="cat-titulo">titulo</label>
+            <input type="text" id="cat-titulo" name="titulo" required>
+          </div>
+        </div>
+
+        <div class="form-tool__grupo">
+          <label for="cat-imagen">imagen <span class="opcional">(opcional)</span></label>
+          <input type="text" id="cat-imagen" name="imagen" placeholder="assets/images/catalogos/pieza-007.jpg">
+        </div>
+
+        <div class="form-tool__grupo">
+          <label for="cat-descripcion">descripcion</label>
+          <textarea id="cat-descripcion" name="descripcion" required></textarea>
+        </div>
+
+        <div class="form-tool__grupo">
+          <label for="cat-categorias">categorias</label>
+          <textarea id="cat-categorias" name="categorias" placeholder="periodo: clasico&#10;cultura: maya&#10;material: piedra" required></textarea>
+          <p class="form-tool__ayuda">Una pareja "clave: valor" por línea — deben coincidir con las claves de <code>categorias_disponibles</code> del catálogo destino, para que los filtros funcionen.</p>
+        </div>
+
+        <div class="form-tool__fila form-tool__fila--2">
+          <div class="form-tool__grupo">
+            <label for="cat-anio">año_descubrimiento <span class="opcional">(opcional)</span></label>
+            <input type="number" id="cat-anio" name="año_descubrimiento" min="0" max="2100">
+          </div>
+          <div class="form-tool__grupo">
+            <label for="cat-ubicacion">ubicacion <span class="opcional">(opcional)</span></label>
+            <input type="text" id="cat-ubicacion" name="ubicacion">
+          </div>
+        </div>
+
+        <div class="form-tool__acciones">
+          <button type="submit" class="btn">Generar JSON</button>
+          <button type="reset" class="btn">Limpiar formulario</button>
+        </div>
+      </form>
+
+      <!-- ============ ANUNCIO ============ -->
+      <form class="form-tool" id="form-anuncio" data-tipo="anuncio" novalidate>
+        <div class="form-tool__fila form-tool__fila--2">
+          <div class="form-tool__grupo">
+            <label for="ad-id">id</label>
+            <input type="text" id="ad-id" name="id" placeholder="anuncio-004" pattern="[a-z0-9]+(-[a-z0-9]+)*" required>
+          </div>
+          <div class="form-tool__grupo">
+            <label for="ad-tipo">tipo <span class="opcional">(opcional)</span></label>
+            <select id="ad-tipo" name="tipo">
+              <option value="comunidad" selected>Comunidad</option>
+              <option value="evento">Evento</option>
+              <option value="taller">Taller</option>
+              <option value="exhibicion">Exhibición</option>
+              <option value="sponsor">Sponsor</option>
+              <option value="otro">Otro</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-tool__grupo">
+          <label for="ad-slogan">slogan</label>
+          <input type="text" id="ad-slogan" name="slogan" maxlength="70" required>
+          <p class="form-tool__ayuda">Máx. ~70 caracteres recomendados.</p>
+        </div>
+
+        <div class="form-tool__grupo">
+          <label for="ad-contacto">contacto</label>
+          <input type="text" id="ad-contacto" name="contacto" placeholder="info@ejemplo.com · @usuario" required>
+        </div>
+
+        <div class="form-tool__grupo">
+          <label for="ad-descripcion">descripcion</label>
+          <textarea id="ad-descripcion" name="descripcion" required></textarea>
+        </div>
+
+        <div class="form-tool__fila form-tool__fila--2">
+          <div class="form-tool__grupo">
+            <label for="ad-imagen">imagen <span class="opcional">(recomendado)</span></label>
+            <input type="text" id="ad-imagen" name="imagen" placeholder="assets/images/anuncios/anuncio-004.jpg">
+            <p class="form-tool__ayuda">Preferible al repositorio; evitar hotlinking a redes sociales (política §2.3).</p>
+          </div>
+          <div class="form-tool__grupo">
+            <label for="ad-imagen-alt">imagen_alt <span class="opcional">(opcional)</span></label>
+            <input type="text" id="ad-imagen-alt" name="imagen_alt">
+            <p class="form-tool__ayuda">Si se omite, se usa el slogan como alt.</p>
+          </div>
+        </div>
+
+        <div class="form-tool__fila form-tool__fila--2">
+          <div class="form-tool__grupo">
+            <label for="ad-vigencia-inicio">vigencia_inicio <span class="opcional">(opcional)</span></label>
+            <input type="date" id="ad-vigencia-inicio" name="vigencia_inicio">
+          </div>
+          <div class="form-tool__grupo">
+            <label for="ad-vigencia-fin">vigencia_fin <span class="opcional">(opcional)</span></label>
+            <input type="date" id="ad-vigencia-fin" name="vigencia_fin">
+          </div>
+        </div>
+
+        <div class="form-tool__fila form-tool__fila--2">
+          <div class="form-tool__grupo">
+            <label for="ad-peso">peso</label>
+            <input type="number" id="ad-peso" name="peso" min="1" step="1" value="1" required>
+            <p class="form-tool__ayuda">Entero ≥ 1. Mayor peso = más probabilidad de selección.</p>
+          </div>
+          <div class="form-tool__grupo">
+            <label for="ad-enlace">enlace <span class="opcional">(opcional)</span></label>
+            <input type="url" id="ad-enlace" name="enlace" placeholder="https://ejemplo.org">
+            <p class="form-tool__ayuda">Si existe, toda la card es clicable (se abre en pestaña nueva).</p>
+          </div>
+        </div>
+
+        <div class="form-tool__grupo">
+          <label for="ad-prioridad">prioridad_slot <span class="opcional">(opcional)</span></label>
+          <select id="ad-prioridad" name="prioridad_slot">
+            <option value="normal" selected>Normal</option>
+            <option value="alta">Alta</option>
+            <option value="baja">Baja</option>
+          </select>
+        </div>
+
+        <div class="form-tool__grupo">
+          <label>paginas <span class="opcional">(opcional — si no se marca ninguna, se asume "home")</span></label>
+          <div class="form-tool__checkbox-grupo" id="ad-paginas">
+            <label><input type="checkbox" name="paginas" value="home"> home</label>
+            <label><input type="checkbox" name="paginas" value="articulos"> articulos</label>
+            <label><input type="checkbox" name="paginas" value="articulo"> articulo (detalle)</label>
+            <label><input type="checkbox" name="paginas" value="bibliografia"> bibliografia</label>
+            <label><input type="checkbox" name="paginas" value="catalogos"> catalogos</label>
+            <label><input type="checkbox" name="paginas" value="todas"> todas</label>
+          </div>
+        </div>
+
+        <div class="form-tool__checkbox-fila">
+          <input type="checkbox" id="ad-activo" name="activo" checked>
+          <label for="ad-activo">activo</label>
+        </div>
+
+        <div class="form-tool__acciones">
+          <button type="submit" class="btn">Generar JSON</button>
+          <button type="reset" class="btn">Limpiar formulario</button>
+        </div>
+      </form>
+
+      <!-- ============ RESULTADO ============ -->
+      <div class="form-tool__resultado" id="resultado">
+        <h2>JSON generado</h2>
+        <div class="form-tool__resultado-instrucciones" id="resultado-instrucciones"></div>
+        <pre id="resultado-json" tabindex="0"></pre>
+        <div class="form-tool__acciones">
+          <button type="button" class="btn" id="btn-copiar">Copiar</button>
+          <button type="button" class="btn" id="btn-descargar">Descargar .json</button>
+        </div>
+        <p class="form-tool__ayuda" id="resultado-copiado" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="container section" style="text-align:center; opacity:0.7; font-size:var(--fs-anotacion);">
+    <p>ule educativo · herramienta interna · no indexada</p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script>
+    (function () {
+      const tabs = document.querySelectorAll('#selector-tipo [role="tab"]');
+      const forms = document.querySelectorAll('.form-tool');
+      const resultado = document.getElementById('resultado');
+      const resultadoInstrucciones = document.getElementById('resultado-instrucciones');
+      const resultadoJson = document.getElementById('resultado-json');
+      const resultadoCopiado = document.getElementById('resultado-copiado');
+
+      function mostrarTipo(tipo) {
+        tabs.forEach((t) => t.setAttribute('aria-selected', String(t.dataset.tipo === tipo)));
+        forms.forEach((f) => f.classList.toggle('is-active', f.dataset.tipo === tipo));
+        resultado.classList.remove('is-visible');
+      }
+
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => mostrarTipo(tab.dataset.tipo));
+      });
+
+      // --- Helpers de conversión ---
+      function listaDesdeTexto(texto) {
+        return String(texto || '')
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean);
+      }
+
+      function categoriasDesdeTexto(texto) {
+        const obj = {};
+        String(texto || '')
+          .split('\n')
+          .map((l) => l.trim())
+          .filter(Boolean)
+          .forEach((linea) => {
+            const idx = linea.indexOf(':');
+            if (idx === -1) return;
+            const clave = linea.slice(0, idx).trim();
+            const valor = linea.slice(idx + 1).trim();
+            if (clave && valor) obj[clave] = valor;
+          });
+        return obj;
+      }
+
+      function escaparHtml(texto) {
+        const div = document.createElement('div');
+        div.textContent = texto;
+        return div.innerHTML;
+      }
+
+      // --- Construcción de cada tipo de objeto (orden de claves = esquema de docs/primera_fase.md) ---
+      function construirArticulo(fd) {
+        return {
+          id: fd.get('id').trim(),
+          titulo: fd.get('titulo').trim(),
+          autor: fd.get('autor').trim(),
+          fecha: fd.get('fecha'),
+          resumen: fd.get('resumen').trim(),
+          contenido_html: fd.get('contenido_html'),
+          imagen_destacada: fd.get('imagen_destacada').trim(),
+          categoria: fd.get('categoria').trim(),
+          etiquetas: listaDesdeTexto(fd.get('etiquetas')),
+          'bibliografía_relacionada': listaDesdeTexto(fd.get('bibliografía_relacionada')),
+          visible: fd.get('visible') === 'on'
+        };
+      }
+
+      function construirBiblio(fd) {
+        return {
+          id: fd.get('id').trim(),
+          titulo: fd.get('titulo').trim(),
+          autores: listaDesdeTexto(fd.get('autores')),
+          'año': Number(fd.get('año')),
+          editorial: fd.get('editorial').trim(),
+          tipo: fd.get('tipo'),
+          url: fd.get('url').trim(),
+          resumen: fd.get('resumen').trim(),
+          articulos_relacionados: listaDesdeTexto(fd.get('articulos_relacionados')),
+          visible: fd.get('visible') === 'on'
+        };
+      }
+
+      function construirCatalogo(fd) {
+        return {
+          id: fd.get('id').trim(),
+          titulo: fd.get('titulo').trim(),
+          imagen: fd.get('imagen').trim(),
+          descripcion: fd.get('descripcion').trim(),
+          categorias: categoriasDesdeTexto(fd.get('categorias')),
+          'año_descubrimiento': fd.get('año_descubrimiento') ? Number(fd.get('año_descubrimiento')) : undefined,
+          ubicacion: fd.get('ubicacion').trim() || undefined
+        };
+      }
+
+      function construirAnuncio(fd) {
+        const paginas = Array.from(document.querySelectorAll('#ad-paginas input:checked')).map((c) => c.value);
+        return {
+          id: fd.get('id').trim(),
+          imagen: fd.get('imagen').trim() || undefined,
+          imagen_alt: fd.get('imagen_alt').trim() || undefined,
+          contacto: fd.get('contacto').trim(),
+          slogan: fd.get('slogan').trim(),
+          descripcion: fd.get('descripcion').trim(),
+          vigencia_inicio: fd.get('vigencia_inicio') || undefined,
+          vigencia_fin: fd.get('vigencia_fin') || undefined,
+          activo: fd.get('activo') === 'on',
+          peso: Number(fd.get('peso')),
+          enlace: fd.get('enlace').trim() || undefined,
+          tipo: fd.get('tipo') || undefined,
+          paginas: paginas.length ? paginas : undefined,
+          prioridad_slot: fd.get('prioridad_slot') || undefined
+        };
+      }
+
+      // Quita claves con valor undefined para no ensuciar el JSON de salida
+      function limpiar(obj) {
+        const copia = {};
+        Object.keys(obj).forEach((k) => {
+          if (obj[k] !== undefined) copia[k] = obj[k];
+        });
+        return copia;
+      }
+
+      const instrucciones = {
+        articulo: (obj) =>
+          '<p>Guarda como <code>data/articulos/' + escaparHtml(obj.id) + '.json</code>.</p>' +
+          '<p>Agrega <code>"' + escaparHtml(obj.id) + '.json"</code> a <code>data/articulos/index.json</code>.</p>',
+        biblio: (obj) =>
+          '<p>Guarda como <code>data/bibliografia/' + escaparHtml(obj.id) + '.json</code>.</p>' +
+          '<p>Agrega <code>"' + escaparHtml(obj.id) + '.json"</code> a <code>data/bibliografia/index.json</code>.</p>',
+        catalogo: (obj, extra) =>
+          '<p>Esto es un <strong>fragmento</strong>, no un archivo nuevo: pégalo dentro del array <code>elementos</code> de <code>data/catalogos/' + escaparHtml(extra.catalogo_destino || '<catálogo>') + '.json</code>.</p>' +
+          '<p>No requiere tocar ningún <code>index.json</code> (no es un archivo nuevo).</p>' +
+          '<p>Verifica que las claves de <code>categorias</code> existan en <code>categorias_disponibles</code> de ese catálogo, o los filtros no las reconocerán.</p>',
+        anuncio: (obj) =>
+          '<p>Esto es un <strong>fragmento</strong>: pégalo dentro del array de <code>data/anuncios.json</code>.</p>' +
+          '<p>No requiere <code>index.json</code> (anuncios no usa manifiesto).</p>' +
+          '<p>Antes de subirlo, confirma que cumple <code>docs/politica_anuncios.md</code> §2.3 (reglas de contenido).</p>'
+      };
+
+      const constructores = {
+        articulo: construirArticulo,
+        biblio: construirBiblio,
+        catalogo: construirCatalogo,
+        anuncio: construirAnuncio
+      };
+
+      function nombreArchivoSugerido(tipo, obj, extra) {
+        if (tipo === 'articulo' || tipo === 'biblio') return obj.id + '.json';
+        if (tipo === 'catalogo') return (obj.id || 'elemento') + '.fragmento.json';
+        return (obj.id || 'anuncio') + '.fragmento.json';
+      }
+
+      forms.forEach((form) => {
+        form.addEventListener('submit', (e) => {
+          e.preventDefault();
+
+          if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+          }
+
+          const tipo = form.dataset.tipo;
+          const fd = new FormData(form);
+          const extra = { catalogo_destino: fd.get('catalogo_destino') || '' };
+
+          const objetoCrudo = constructores[tipo](fd);
+          const objeto = limpiar(objetoCrudo);
+          const json = JSON.stringify(objeto, null, 2);
+
+          resultadoInstrucciones.innerHTML = instrucciones[tipo](objeto, extra);
+          resultadoJson.textContent = json;
+          resultado.dataset.filename = nombreArchivoSugerido(tipo, objeto, extra);
+          resultado.classList.add('is-visible');
+          resultadoCopiado.textContent = '';
+          if (typeof resultado.scrollIntoView === 'function') {
+            resultado.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      });
+
+      document.getElementById('btn-copiar').addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(resultadoJson.textContent);
+          resultadoCopiado.textContent = 'Copiado al portapapeles.';
+        } catch (err) {
+          resultadoCopiado.textContent = 'No se pudo copiar automáticamente; selecciona el texto manualmente.';
+        }
+      });
+
+      document.getElementById('btn-descargar').addEventListener('click', () => {
+        const nombre = resultado.dataset.filename || 'contenido.json';
+        const blob = new Blob([resultadoJson.textContent], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = nombre;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      });
+    })();
+  </script>
+</body>
+</html>

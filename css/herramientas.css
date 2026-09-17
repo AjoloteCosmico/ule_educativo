@@ -1,0 +1,207 @@
+/* ==========================================================================
+   herramientas.css — Formularios de la herramienta interna
+   ule educativo
+
+   Página objetivo: herramientas/generador-json.html
+   No forma parte del sistema de diseño público: es una hoja aparte (igual
+   que ads.css) para no mezclar reglas de uso interno con components.css.
+   Reutiliza las variables de variables.css como todo lo demás.
+   ========================================================================== */
+
+.herramienta-aviso {
+  background-color: color-mix(in srgb, var(--color-principal) 10%, var(--color-card));
+  border: 1px solid color-mix(in srgb, var(--color-principal) 35%, transparent);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  margin-block-end: var(--space-lg);
+  font-size: var(--fs-cuerpo);
+  color: var(--color-texto);
+}
+
+.herramienta-aviso strong {
+  color: var(--color-principal);
+}
+
+.herramienta-aviso ol,
+.herramienta-aviso ul {
+  margin: var(--space-sm) 0 0;
+  padding-inline-start: 1.25em;
+}
+
+.herramienta-aviso li + li {
+  margin-block-start: var(--space-xs);
+}
+
+/* ---------- Selector de tipo de contenido ---------- */
+/* Reutiliza .catalog-selector / .catalog-selector__tab de components.css */
+
+/* ---------- Formularios ---------- */
+.form-tool {
+  display: none;
+  flex-direction: column;
+  gap: var(--space-md);
+  background-color: var(--color-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-lg);
+  margin-block-end: var(--space-lg);
+}
+
+.form-tool.is-active {
+  display: flex;
+}
+
+.form-tool__fila {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-md);
+}
+
+@media (min-width: 640px) {
+  .form-tool__fila--2 { grid-template-columns: 1fr 1fr; }
+  .form-tool__fila--3 { grid-template-columns: 1fr 1fr 1fr; }
+}
+
+.form-tool__grupo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.form-tool__grupo label {
+  font-family: var(--font-principal);
+  font-weight: 500;
+  font-size: var(--fs-cuerpo);
+  color: var(--color-texto);
+}
+
+.form-tool__grupo .opcional {
+  font-weight: 400;
+  opacity: 0.65;
+  font-size: var(--fs-anotacion);
+}
+
+.form-tool__ayuda {
+  font-family: var(--font-anotaciones);
+  font-style: italic;
+  font-size: var(--fs-anotacion);
+  color: var(--color-texto);
+  opacity: 0.75;
+  margin: 0;
+}
+
+.form-tool input[type="text"],
+.form-tool input[type="url"],
+.form-tool input[type="date"],
+.form-tool input[type="number"],
+.form-tool select,
+.form-tool textarea {
+  font-family: var(--font-principal);
+  font-size: var(--fs-cuerpo);
+  color: var(--color-texto);
+  background-color: var(--color-fondo);
+  border: 1px solid color-mix(in srgb, var(--color-texto) 25%, transparent);
+  border-radius: var(--radius-sm);
+  padding: 0.55rem 0.75rem;
+  min-height: 2.5rem;
+  width: 100%;
+}
+
+.form-tool textarea {
+  min-height: 6rem;
+  resize: vertical;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.9rem;
+}
+
+.form-tool textarea.form-tool__contenido-html {
+  min-height: 12rem;
+}
+
+.form-tool input:focus-visible,
+.form-tool select:focus-visible,
+.form-tool textarea:focus-visible {
+  outline: 2px solid var(--color-link-focus);
+  outline-offset: 2px;
+}
+
+.form-tool input:invalid:not(:placeholder-shown) {
+  border-color: #b3261e;
+}
+
+.form-tool__checkbox-fila {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.form-tool__checkbox-fila label {
+  font-weight: 400;
+}
+
+.form-tool__checkbox-grupo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm) var(--space-md);
+}
+
+.form-tool__checkbox-grupo label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-weight: 400;
+  font-size: var(--fs-anotacion);
+}
+
+.form-tool__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  padding-block-start: var(--space-sm);
+  border-top: 1px solid color-mix(in srgb, var(--color-texto) 12%, transparent);
+}
+
+/* ---------- Resultado ---------- */
+.form-tool__resultado {
+  display: none;
+  background-color: var(--color-card);
+  border: 1px solid color-mix(in srgb, var(--color-principal) 40%, transparent);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  margin-block-end: var(--space-2xl);
+}
+
+.form-tool__resultado.is-visible {
+  display: block;
+}
+
+.form-tool__resultado h2 {
+  margin-block-start: 0;
+}
+
+.form-tool__resultado pre {
+  background-color: var(--color-fondo);
+  border-radius: var(--radius-sm);
+  padding: var(--space-md);
+  overflow-x: auto;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  max-height: 26rem;
+  overflow-y: auto;
+}
+
+.form-tool__resultado-instrucciones {
+  background-color: color-mix(in srgb, var(--color-principal) 8%, transparent);
+  border-radius: var(--radius-sm);
+  padding: var(--space-md);
+  margin-block-end: var(--space-md);
+  font-size: var(--fs-cuerpo);
+}
+
+.form-tool__resultado-instrucciones code {
+  background-color: color-mix(in srgb, var(--color-texto) 10%, transparent);
+  padding: 0.1em 0.35em;
+  border-radius: 0.25em;
+  font-size: 0.9em;
+}
