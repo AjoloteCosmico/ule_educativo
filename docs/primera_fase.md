@@ -424,27 +424,60 @@ async function getRandomAd() {
 
 - [x] Crear `data/anuncios.json` con anuncios de ejemplo
 - [x] Crear `js/ads.js` con lógica de selección ponderada + vigencia
-- [x] Integrar anuncios en `index.html` (slots `data-ad-slot`)
-- [ ] Revisar y aplicar `docs/politica_anuncios.md`
-- [ ] Ampliar el esquema JSON con campos opcionales recomendados (`imagen_alt`, `tipo`, `paginas`)
-- [ ] Actualizar `<ad-card>` para preferir `imagen_alt` cuando exista
-- [ ] Decidir y documentar número de slots y páginas permitidas (ver política §4)
-- [ ] Añadir 1–2 anuncios de ejemplo que cumplan la política de contenido
+- [x] Integrar anuncios en `index.html` (slot `data-ad-slot`, 1 slot — política §9.3)
+- [x] Revisar y aplicar `docs/politica_anuncios.md`
+- [x] Ampliar el esquema JSON con campos opcionales recomendados (`imagen_alt`, `tipo`, `paginas`)
+- [x] Actualizar `<ad-card>` para preferir `imagen_alt` cuando exista
+- [x] Decidir y documentar número de slots y páginas permitidas (ver política §4 y §9)
+- [x] Añadir 1–2 anuncios de ejemplo que cumplan la política de contenido
+- [x] Corregir bug: `js/ads.js` generaba `data-imagen` pero `<ad-card>` leía `data-image` — la imagen nunca llegaba al componente
+- [x] Corregir `css/ads.css` (el archivo se había corrompido: saltos de línea literales `\n` en vez de reales, lo que invalidaba silenciosamente todas sus reglas)
+- [x] Fallback visual en `<ad-card>` cuando no hay imagen o la imagen falla al cargar (`onerror`), en vez de dejar un hueco
+- [x] Layout horizontal responsivo por sí mismo (container query interna), ya no depende de que el slot le imponga un ancho correcto
+- [x] Reemplazar en los datos de ejemplo la URL de imagen que violaba la política (hotlink frágil a CDN de Facebook)
 
 ### Fase 1.5: Testing y documentación
 
-- [ ] Verificar que JSON se carga correctamente
-- [ ] Verificar responsividad en mobile, tablet, desktop
-- [ ] Verificar contraste WCAG AA (incluyendo cards de anuncio en ambos temas)
+- [x] Verificar que JSON se carga correctamente
+- [x] Verificar responsividad en mobile, tablet, desktop
+- [x] Verificar contraste WCAG AA (incluyendo cards de anuncio en ambos temas)
 - [ ] Verificar navegación por teclado y `aria-label` de anuncios con enlace
 - [ ] Crear `GUIA_CONTENIDO.md` con instrucciones para agregar artículos/catálogos **y anuncios**
-- [ ] Enlazar `politica_anuncios.md` desde la documentación principal
+
+### Fase 1.6: Experiencia de usuario y herramienta de contenido (planeación)
+
+> Solo planeación por ahora — no implementar todavía. Razonamiento completo
+> en `docs/arquitectura.md` §13. Nace de una revisión de fricción real del
+> sitio: menos clics para llegar a las cosas, y una forma más segura de
+> agregar contenido que escribir JSON a mano.
+
+**Auditoría de fricción (ver arquitectura §13.1 para el detalle):**
+1. `articulo.html` no tiene forma de seguir leyendo sin volver al listado.
+2. `articulos_relacionados` de bibliografía existe en el esquema pero ningún componente lo usa (falta el enlace de vuelta biblio → artículo).
+3. Home no muestra artículos recientes, solo accesos genéricos.
+4. Las piezas de `<catalog-grid>` no tienen URL propia (no se pueden compartir).
+
+**Tareas — "Artículo siguiente/anterior" (ver arquitectura §13.2):**
+- [ ] En `articulo.html`, calcular anterior/siguiente a partir de `ULE.loader.loadArticles()` ordenado por fecha
+- [ ] Bloque de navegación al final del artículo (anterior + siguiente), antes o junto a "Bibliografía relacionada"
+- [ ] Decidir comportamiento en los extremos (ocultar el que no aplica, o wrap-around)
+
+**Tareas — aprovechar datos ya existentes que no se muestran:**
+- [ ] `<biblio-card>` — mostrar "Aparece en: [artículo]" usando `articulos_relacionados` (dato ya existe en el JSON, falta consumirlo)
+- [ ] `index.html` — sección "Artículos recientes" (2–3 cards) usando `loadArticles()` ordenado por fecha, antes o junto a la sección "Explora el sitio"
+- [ ] (Opcional, evaluar si vale la pena) URL propia por pieza de catálogo (`?pieza=id` o hash) para que el modal de `<catalog-grid>` sea enlazable
+
+**Tareas — herramienta de generación de JSON (ver arquitectura §13.3 para el detalle completo):**
+- [ ] Crear `herramientas/generador-json.html` con selector de tipo de contenido (artículo / bibliografía / elemento de catálogo / anuncio)
+- [ ] Un `<form>` por tipo, campos alineados 1:1 con el esquema de la sección 2 de este documento (y con `politica_anuncios.md` §2 para anuncios)
+- [ ] Botón "Descargar JSON": serializa el formulario y descarga vía `Blob` + `<a download>`, con nombre de archivo sugerido según convención
+- [ ] Mostrar en pantalla el recordatorio de actualizar el `index.json` de la carpeta correspondiente (no se puede automatizar sin backend)
+- [ ] Conversión de campos tipo lista (`etiquetas`, `autores`) de texto separado por comas a array antes de serializar
+- [ ] Página no enlazada desde el nav público (uso interno del equipo editorial)
 
 ---
 
 ## 7. Escalabilidad: Cómo agregar contenido
-
-### Agregar un artículo nuevo
 
 1. Crear archivo `data/articulos/articulo-NNN.json` siguiendo el esquema
 2. Hacer push a GitHub

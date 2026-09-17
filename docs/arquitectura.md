@@ -31,7 +31,7 @@ La implementación inicial utilizará:
 
 HTML5.
 CSS3.
-JavaScript moderno (ES Modules).
+JavaScript moderno.
 Web Components nativos.
 Archivos JSON para datos.
 SVG para iconos y elementos gráficos vectoriales.
@@ -40,18 +40,34 @@ No se utilizará un framework frontend en esta etapa.
 
 No se utilizará npm ni un proceso de build salvo que posteriormente aparezca una necesidad concreta que lo justifique.
 
+**Corrección respecto al plan original:** se descartaron los ES Modules
+(`import`/`export`). En su lugar, cada archivo de `js/` es un script plano
+que se carga con `<script src="...">` (sin `type="module"`) y expone su
+API pública bajo un único namespace global compartido, `window.ULE`
+(`ULE.theme`, `ULE.nav`, `ULE.loader`, `ULE.ads`). Motivo: los ES Modules
+imponen CORS al abrir archivos con `file://` (sin servidor local) y exigen
+cuidar el orden de carga con más ceremonia de la que este sitio necesita.
+El orden de `<script>` en cada página sigue siendo el contrato: `main.js` →
+`loader.js` → `components.js` → (`ads.js` si la página tiene anuncios) →
+script propio de la página.
+
 Estructura general
 
 La estructura debe separar contenido, componentes, estilos y datos:
 
 /
 ├── index.html
-├── articulos/
-|── docs/
-├── catalogos/
-├── recursos/
-├── components/
+├── articulos.html
+├── articulo.html                 (detalle de un artículo, vía ?id=)
+├── bibliografia.html
+├── catalogos.html
+├── herramientas/                 (planeado — ver §13; formularios internos
+│   └── generador-json.html        que generan JSON descargable, no público)
+├── docs/
 ├── data/
+│   ├── articulos/
+│   ├── bibliografia/
+│   ├── catalogos/
 │   ├── anuncios.json
 │   └── ...
 ├── assets/
@@ -62,11 +78,23 @@ La estructura debe separar contenido, componentes, estilos y datos:
 │   ├── variables.css
 │   ├── base.css
 │   ├── components.css
+│   ├── theme.css
+│   ├── ads.css
 │   └── ...
 └── js/
     ├── main.js
+    ├── loader.js
+    ├── components.js
     ├── ads.js
     └── ...
+
+**Nota (corrección respecto al boceto original):** las páginas de contenido
+(`articulos.html`, `catalogos.html`, etc.) son archivos HTML sueltos en la
+raíz, no carpetas (`articulos/`, `catalogos/`) como se esbozó al inicio. No
+existe una carpeta `components/` con HTML de navbar/footer — la navegación
+vive en `js/main.js` y los componentes reutilizables son los Web Components
+de `js/components.js`. `recursos/` sigue sin implementarse (era un boceto
+para un simulador futuro, no confundir con `herramientas/`, que es interno).
 
 La estructura podrá crecer, pero se evitará crear abstracciones o directorios que no correspondan a una necesidad real.
 
@@ -120,7 +148,7 @@ Cada anuncio tendrá como mínimo:
 
 {
   "id": "ejemplo-01",
-  "imagen": "/assets/images/anuncios/ejemplo.jpg",
+  "imagen": "assets/images/anuncios/ejemplo.jpg",
   "contacto": "Información de contacto",
   "slogan": "Frase principal",
   "descripcion": "Información adicional",
@@ -130,7 +158,15 @@ Cada anuncio tendrá como mínimo:
   "peso": 1
 }
 
-Los campos podrán ampliarse cuando exista una necesidad concreta.
+**El esquema completo y actualizado (campos opcionales como `imagen_alt`,
+`tipo`, `paginas`, reglas de contenido y de colocación por página) vive en
+`docs/politica_anuncios.md`, no aquí.** Ese documento evoluciona con más
+frecuencia que esta arquitectura general; mantener el esquema duplicado en
+dos archivos ya causó que este quedara desactualizado una vez. `imagen` es
+recomendado, no obligatorio: si falta, o si la URL falla al cargar,
+`<ad-card>` muestra un fallback visual (icono + degradado) en vez de dejar
+un hueco o un ícono de imagen rota — la card nunca depende de que la
+imagen exista para verse bien.
 
 Selección
 
@@ -223,9 +259,17 @@ Componente principal
 Se utilizará un componente reutilizable equivalente a:
 
 <catalog-grid
-    data-source="/data/catalogos/piezas.json"
+    data-source="data/catalogos/piezas.json"
     categories="periodo,cultura">
 </catalog-grid>
+
+**Convención de rutas (importante):** todas las rutas internas (`data/...`,
+`assets/...`) son **relativas, sin `/` inicial**. El sitio se publica como
+proyecto de GitHub Pages bajo un subpath
+(`usuario.github.io/ule_educativo/`), no en la raíz del dominio; una ruta
+absoluta como `/data/catalogos/piezas.json` resolvería contra la raíz del
+dominio y rompería. Esta convención aplica a todo el sitio, no solo a
+`catalog-grid`.
 
 La API concreta del componente podrá modificarse durante la implementación, pero deberá mantenerse pequeña y predecible.
 
@@ -246,7 +290,7 @@ Cada elemento podrá definir sus propias categorías:
 {
   "id": "pieza-001",
   "titulo": "Nombre de la pieza",
-  "imagen": "/assets/images/catalogos/pieza-001.jpg",
+  "imagen": "assets/images/catalogos/pieza-001.jpg",
   "categorias": {
     "periodo": "preclasico",
     "cultura": "olmeca"
@@ -283,18 +327,29 @@ De esta manera se conserva el aislamiento de los componentes sin perder la capac
 
 Los estilos internos del componente se limitarán a la presentación que realmente le corresponde. Los estilos generales del documento permanecerán fuera del Shadow DOM.
 
+**Excepción documentada — `<catalog-grid>`:** a diferencia del resto (`article-card`, `biblio-card`, `ad-card`, `ule-badge`), `<catalog-grid>` se implementó en **Light DOM** (sin Shadow Root). Es un componente grande, con su propia grilla responsive, filtros y estados de carga/vacío; encapsularlo hubiera significado duplicar buena parte de `components.css` dentro de un shadow root. Al quedar en Light DOM reutiliza directamente esas clases y se beneficia de cualquier ajuste futuro a esas reglas sin tocar el componente. Es una decisión aprobada, no una inconsistencia por corregir.
+
+### Localización de archivos en un sitio 100% estático
+
+Un detalle no cubierto en el plan original pero que ya es parte real de la arquitectura: un sitio estático **no puede listar el contenido de una carpeta** (no hay `ls` disponible para el navegador). Por eso cada carpeta de datos que crece con el tiempo (`data/articulos/`, `data/bibliografia/`, `data/catalogos/`) incluye un archivo `index.json` con la lista de nombres de archivo que contiene:
+
+```
+data/articulos/index.json → ["articulo-001.json", "articulo-002.json", ...]
+```
+
+`js/loader.js` lee ese manifiesto antes de pedir cada archivo individual. Si el manifiesto falta, cae a un sondeo secuencial (`prefijo-001.json`, `002`, …) como respaldo, pero el manifiesto es siempre el método soportado. **Agregar contenido nuevo implica dos pasos, no uno:** crear el `.json` del contenido y añadir su nombre a `index.json` de esa carpeta. Esto es relevante para el punto 13 (herramienta de generación de JSON): el formulario deberá recordarle a quien lo usa que el manifiesto también se actualiza.
+
 7. Sistema de componentes
 
 Los componentes reutilizables se limitarán inicialmente a los elementos que realmente aparezcan en varias partes del sitio.
 
-Componentes iniciales:
+Componentes iniciales (nombres reales — ver `js/components.js`):
 
-navegación;
-anuncio;
-catálogo;
-card de catálogo;
-badge;
-elementos interactivos de recursos.
+navegación (`js/main.js`, no es un Web Component);
+`<ad-card>` (anuncio);
+`<catalog-grid>` (catálogo, Light DOM — ver excepción documentada arriba);
+`<article-card>`, `<biblio-card>` (cards de contenido);
+`<ule-badge>` (badge; se llama `ule-badge` y no `badge` porque el estándar de Custom Elements exige un guion en el nombre de la etiqueta).
 
 No se creará una biblioteca de componentes propia ni un sistema de diseño JavaScript.
 
@@ -435,6 +490,110 @@ backend;
 sistema de usuarios;
 analítica propia;
 API genérica.
+
+Cada uno podrá incorporarse posteriormente si una necesidad real lo justifica.
+
+---
+
+13. Próximos ajustes de experiencia (planeación, pre-Fase 2)
+
+Esta sección es solo planeación. El detalle operativo y el checklist de
+ejecución viven en `docs/primera_fase.md` (Fase 1.6); aquí se documenta el
+razonamiento arquitectónico de cada decisión para que no se pierda.
+
+13.1 Auditoría de clics / fricción actual
+
+Revisando el flujo real del sitio (no solo el plan) se identificaron estos
+puntos de fricción, de mayor a menor impacto:
+
+1. **Terminar un artículo es un callejón sin salida.** `articulo.html` no
+   ofrece ninguna forma de continuar leyendo: hay que volver a
+   `articulos.html` (1 clic) y elegir otro de la grilla (2º clic) para leer
+   el siguiente. Un enlace "Artículo siguiente" lo reduce a 1 clic. Ver §13.2.
+2. **La bibliografía no enlaza de vuelta a los artículos que la citan.**
+   El esquema de `biblio-XXX.json` ya tiene `articulos_relacionados`, pero
+   ningún componente lo consume — hoy es un campo muerto. Añadir "Aparece
+   en: [artículo]" en `<biblio-card>` es una mejora de navegación barata
+   (el dato ya existe, falta consumirlo) que además funciona en ambas
+   direcciones junto con `bibliografía_relacionada` en el artículo.
+3. **Home no expone contenido reciente.** Hoy `index.html` solo tiene 3
+   accesos genéricos (Artículos / Bibliografía / Colecciones) más una
+   sección "Acerca de". Alguien que solo quiere "ver lo último" tiene que
+   entrar a `articulos.html` igual. Mostrar 2–3 artículos recientes
+   directamente en home ahorra un clic para el caso de uso más común.
+4. **Las piezas de catálogo no tienen URL propia.** El modal de
+   `<catalog-grid>` es puramente de estado JS (no hay deep link); no se
+   puede compartir ni recargar la página en una pieza específica. Es un
+   tema de riqueza de experiencia más que de clics, pero vale resolverlo
+   junto con lo anterior si se toca el componente.
+
+Fuera de estos puntos, el resto del sitio ya cumple el principio de "todo a
+un clic desde el nav": los filtros de artículos/bibliografía/catálogos son
+visibles sin interacción previa (no hay que "abrir" un panel de filtros), y
+el selector de catálogo ya preselecciona el primero automáticamente.
+
+13.2 "Artículo siguiente" — especificación
+
+- Vive en `articulo.html`, debajo del cuerpo del artículo (antes o junto a
+  la sección de bibliografía relacionada).
+- Criterio de "siguiente": el artículo con `fecha` inmediatamente posterior
+  dentro de la lista completa cargada por `ULE.loader.loadArticles()`
+  (mismo orden que usa `articulos.html` por defecto). Si el artículo actual
+  es el más reciente, no mostrar "siguiente" (o hacer wrap-around al más
+  antiguo — decidir en implementación, no bloqueante).
+- Se aprovecha para agregar también "Artículo anterior" en el mismo bloque,
+  ya que el costo de calcularlo es el mismo (misma lista ordenada).
+- No requiere cambios de esquema de datos ni de `loader.js`: se resuelve
+  enteramente en el script de `articulo.html` con los artículos ya
+  cargados. Es la mejora de más impacto por menos esfuerzo de esta lista.
+
+13.3 Herramienta de generación de JSON — especificación
+
+**Problema que resuelve:** hoy, agregar un artículo/referencia/pieza de
+catálogo implica escribir el JSON a mano siguiendo el esquema de memoria (o
+copiando un archivo existente y editándolo), con riesgo de errores de
+sintaxis o de campos faltantes/mal nombrados — exactamente el tipo de bug
+que ya causó problemas en la integración de anuncios (ver
+`docs/politica_anuncios.md` y el historial de correcciones de Fase 1.4).
+
+**Qué es y qué no es:**
+- Una página **interna** (no enlazada desde el nav público) con un
+  formulario HTML por tipo de contenido: artículo, referencia bibliográfica,
+  elemento de catálogo, anuncio.
+- Al enviarlo, genera el JSON correspondiente en memoria (siguiendo
+  exactamente el esquema de `docs/primera_fase.md` §2 / `politica_anuncios.md`
+  §2) y dispara una descarga (`Blob` + `<a download>`), con el nombre de
+  archivo sugerido según la convención (`articulo-00N.json`, etc.).
+- **No escribe al repositorio ni hace commit.** Quien la usa descarga el
+  archivo, lo coloca a mano en la carpeta correcta y hace push, igual que
+  hoy — coherente con el principio de "sin backend" de la sección 1. No es
+  un CMS ni un panel administrativo (evitar ambos está explícitamente en la
+  "Regla general" de esta arquitectura); es un generador de texto con forma
+  de formulario, nada más.
+- Debe recordar explícitamente el paso del manifiesto (§ "Localización de
+  archivos en un sitio 100% estático" arriba): junto con el JSON, mostrar
+  en pantalla el nombre exacto que hay que añadir a `index.json` de esa
+  carpeta, ya que ese paso es fácil de olvidar y no puede automatizarse sin
+  backend.
+
+**Ubicación propuesta:** `herramientas/generador-json.html` (ver árbol en
+§2). Reutiliza todo el sistema de diseño (`variables.css`, `base.css`,
+`components.css`, `theme.css`) y `js/main.js` para el toggle de tema — es
+una página interna, pero no hay razón para que no sea cómoda de usar de
+noche. No necesita `js/loader.js`, `js/components.js` ni `js/ads.js`: no
+consume datos existentes ni Web Components de contenido, solo genera texto.
+
+**Validación:** validación de formulario nativa de HTML (`required`,
+`pattern`, `type="date"`, etc.) más una capa mínima de JS para campos
+compuestos (arrays como `etiquetas` o `autores`, que se escriben como texto
+separado por comas y se convierten a array antes de serializar). Sin
+librerías de validación — coherente con "evitar dependencias innecesarias".
+
+**Fuera de alcance de esta herramienta (no implementar ahora):** edición de
+JSON existentes (solo creación), subida de imágenes (se sigue haciendo por
+fuera, a mano, a `assets/images/...`), y cualquier automatización de
+Git/GitHub — todo eso requeriría backend y no es necesario para el problema
+que se está resolviendo (reducir errores al escribir el JSON a mano).
 
 Cada uno podrá incorporarse posteriormente si una necesidad real lo justifica.
 
