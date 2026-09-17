@@ -46,6 +46,8 @@
         <p class="catalog-loading" role="status">Cargando artículo…</p>
       </div>
 
+      <div id="navegacion-articulos" class="articulo-navegacion" hidden aria-label="Navegación entre artículos"></div>
+
       <div id="biblio-relacionada-contenedor" hidden>
         <h2>Bibliografía relacionada</h2>
         <div class="biblio-list" id="biblio-relacionada-lista"></div>
@@ -65,6 +67,7 @@
       const contenedor = document.getElementById('articulo-contenedor');
       const biblioWrap = document.getElementById('biblio-relacionada-contenedor');
       const biblioLista = document.getElementById('biblio-relacionada-lista');
+      const navArticulos = document.getElementById('navegacion-articulos');
 
       function formatFecha(iso) {
         if (!iso) return '';
@@ -117,6 +120,19 @@
         // contenido_html viene del propio equipo editorial (dato estático en el repo,
         // no entrada de usuarios), por eso se inserta como HTML de confianza.
         contenedor.querySelector('.articulo__cuerpo').innerHTML = articulo.contenido_html || '';
+
+        const todos = (await ULE.loader.loadArticles()).filter((a) => a.visible !== false).sort((a, b) => (a.fecha || '').localeCompare(b.fecha || ''));
+        const posicion = todos.findIndex((a) => a.id === articulo.id);
+        if (posicion !== -1) {
+          const anterior = todos[posicion - 1];
+          const siguiente = todos[posicion + 1];
+          if (anterior || siguiente) {
+            navArticulos.hidden = false;
+            navArticulos.innerHTML = '';
+            if (anterior) navArticulos.insertAdjacentHTML('beforeend', '<a class="articulo-navegacion__link articulo-navegacion__link--anterior" href="articulo.html?id=' + encodeURIComponent(anterior.id) + '"><span>Artículo anterior</span><strong>' + anterior.titulo.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</strong></a>');
+            if (siguiente) navArticulos.insertAdjacentHTML('beforeend', '<a class="articulo-navegacion__link articulo-navegacion__link--siguiente" href="articulo.html?id=' + encodeURIComponent(siguiente.id) + '"><span>Artículo siguiente</span><strong>' + siguiente.titulo.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</strong></a>');
+          }
+        }
 
         const refs = await ULE.loader.loadBiblioForArticle(articulo);
         if (refs.length) {
