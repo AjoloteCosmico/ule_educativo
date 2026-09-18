@@ -1,12 +1,11 @@
 {
-  "id": "biblio-001",
-  "titulo": "The Ball Game of the Ancient Mesoamerica",
-  "autores": ["John E. Clark", "Mary Pye"],
-  "año": 2020,
-  "editorial": "University Press of Colorado",
-  "tipo": "libro",
-  "url": "https://example.com/ball-game-ancient-mesoamerica",
-  "resumen": "Estudio arqueológico sobre los orígenes del juego de pelota en el periodo preclásico, con énfasis en los hallazgos olmecas de El Manatí.",
-  "articulos_relacionados": ["articulo-001"],
-  "visible": true
+    "id": "biblio-001",
+    "titulo": "Ball Game Handstones and Ball Game Gloves",
+    "autores": ["Borhegyi, Stephan F. de"],
+    "año": 1961,
+    "editorial": "Harvard University Press, Cambridge, MA",
+    "tipo": "capitulo_libro",
+    "url": "https://www.hup.harvard.edu/catalog.php?isbn=9780674260207",
+    "resumen": "Estudio pionero que propone que las piedras semiesféricas con asas (manoplas) eran utilizadas por jugadores de pelota mesoamericanos para golpear y proteger la mano durante el juego.",
+    "visible": true
 }

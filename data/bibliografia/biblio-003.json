@@ -1,12 +1,11 @@
-{
-  "id": "biblio-003",
-  "titulo": "Ulama: El Juego de Pelota Vivo de Sinaloa",
-  "autores": ["Manuel Aguilar-Moreno", "Erik Boot"],
-  "año": 2018,
-  "editorial": "ulama.org",
-  "tipo": "web",
-  "url": "https://example.com/ulama-sinaloa",
-  "resumen": "Documentación etnográfica de las comunidades que practican ulama de cadera en Sinaloa, con testimonios de jugadores actuales y comparación con fuentes históricas.",
-  "articulos_relacionados": ["articulo-002", "articulo-003"],
-  "visible": true
-}
+
+  {
+    "id": "biblio-003",
+    "titulo": "Borhegyi's interpretation of certain Mesoamerican objects as ballgame handstones",
+    "autores": ["Clune, Francis J."],
+    "año": 1963,
+    "editorial": "American Antiquity, vol. 29, pp. 241-242",
+    "tipo": "articulo",
+    "url": "https://www.jstor.org/stable/278334",
+    "resumen": "Crítica a la interpretación funcionalista de Borhegyi, argumentando que las manoplas podrían haber tenido un uso ritual post-juego más que una función práctica durante el juego."
+  }
