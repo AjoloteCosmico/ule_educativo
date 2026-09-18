@@ -213,7 +213,7 @@
      ========================================================================== */
   class BiblioCard extends HTMLElement {
     static get observedAttributes() {
-      return ['data-id', 'data-title', 'data-authors', 'data-year', 'data-type', 'data-editorial', 'data-url', 'data-summary'];
+      return ['data-id', 'data-title', 'data-authors', 'data-year', 'data-type', 'data-editorial', 'data-url', 'data-summary', 'data-related-articles'];
     }
 
     connectedCallback() {
@@ -236,6 +236,8 @@
       const editorial = this.getAttribute('data-editorial') || '';
       const url = this.getAttribute('data-url') || '';
       const summary = this.getAttribute('data-summary') || '';
+      let relatedArticles = [];
+      try { relatedArticles = JSON.parse(this.getAttribute('data-related-articles') || '[]'); } catch (e) { relatedArticles = []; }
       const tipoLabel = BiblioCard.TIPO_LABEL[type] || capitalize(type);
 
       if (!this.shadowRoot) this.attachShadow({ mode: 'open' });
@@ -254,6 +256,12 @@
         'a.enlace { color: var(--color-link); font-size: var(--fs-anotacion); text-decoration: underline; text-underline-offset: 0.15em; }' +
         'a.enlace:hover { color: var(--color-link-hover); }' +
         'a.enlace:focus-visible { outline: 2px solid var(--color-link-focus); outline-offset: 2px; }' +
+        '.relacionados { margin-top: var(--space-xs); padding-top: var(--space-sm); border-top: 1px solid color-mix(in srgb, var(--color-texto) 12%, transparent); }' +
+        '.relacionados__label { display:block; font-size:var(--fs-anotacion); font-style:italic; opacity:.8; margin-bottom:var(--space-xs); }' +
+        '.relacionados__lista { display:flex; flex-wrap:wrap; gap:var(--space-xs); }' +
+        '.relacionados a { color:var(--color-link); font-size:var(--fs-anotacion); text-decoration:none; }' +
+        '.relacionados a:hover { text-decoration:underline; }' +
+        '.relacionados a:focus-visible { outline:2px solid var(--color-link-focus); outline-offset:2px; border-radius:var(--radius-sm); }' +
         '.header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-sm); }' +
         '</style>' +
         '<article class="card" part="card">' +
@@ -264,6 +272,7 @@
         '<p class="meta" part="meta"></p>' +
         '<p class="summary" part="resumen"></p>' +
         (url ? '<a class="enlace" part="enlace" target="_blank" rel="noopener noreferrer">Ver fuente <span class="sr-only"></span></a>' : '') +
+        (relatedArticles.length ? '<div class="relacionados"><span class="relacionados__label">Aparece en:</span><div class="relacionados__lista"></div></div>' : '') +
         '</article>';
 
       const root = this.shadowRoot;
