@@ -731,7 +731,8 @@
       const closeBtn = document.createElement('button');
       closeBtn.type = 'button';
       closeBtn.className = 'btn';
-      closeBtn.textContent = 'Cerrar ✕';
+      closeBtn.textContent = 'Cerrar';
+      closeBtn.setAttribute('aria-label', 'Cerrar detalle');
       closeBtn.style.float = 'inline-end';
       closeBtn.addEventListener('click', () => dialog.close());
 
@@ -739,6 +740,8 @@
       img.src = item.imagen || '';
       img.alt = item.titulo || '';
       img.style.width = '100%';
+      img.style.maxHeight = '55vh';
+      img.style.objectFit = 'contain';
       img.style.marginBlockEnd = 'var(--space-md)';
 
       const h3 = document.createElement('h3');
