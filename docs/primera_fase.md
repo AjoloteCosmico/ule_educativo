@@ -361,7 +361,7 @@ La API Go será inicialmente un servicio pequeño y orientado al contenido que r
 
 ## 7.5 Estados
 
-- [ ] Unificar estados de carga.
+- [x] Unificar estados de carga.
 - [ ] Unificar estados vacíos.
 - [ ] Unificar mensajes de error.
 - [ ] Evitar pantallas visualmente “rotas” cuando falten imágenes o datos opcionales.
@@ -375,8 +375,8 @@ Antes de cerrar la Fase 1:
 - [ ] Navegación completa solo con teclado.
 - [ ] Orden lógico de foco.
 - [ ] Focus visible.
-- [ ] Diálogos accesibles.
-- [ ] Escape cierra modales.
+- [x] Diálogos accesibles.
+- [x] Escape cierra modales.
 - [ ] Imágenes con `alt` adecuado.
 - [ ] Decorativas con `alt=""`.
 - [ ] Formularios con labels.
@@ -384,8 +384,8 @@ Antes de cerrar la Fase 1:
 - [ ] Contraste WCAG AA.
 - [ ] No depender únicamente del color.
 - [ ] Revisar zoom al 200%.
-- [ ] Revisar móvil.
-- [ ] Revisar modo claro y oscuro.
+- [x] Revisar móvil.
+- [x] Revisar modo claro y oscuro.
 
 ---
 
