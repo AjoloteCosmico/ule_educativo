@@ -1,535 +1,484 @@
-# Primera Fase — Plan de Acción
+# Primera Fase — Sitio estático y contrato de contenido
 
 ## Objetivo
-Implementar una estructura escalable basada en JSON para que las secciones de **Artículos**, **Bibliografía** y **Catálogos** sean alimentadas dinámicamente sin tocar el código. Solo cargar más archivos JSON en las carpetas correspondientes.
+
+Cerrar una primera versión sólida de **ule educativo** como sitio estático, pero dejando preparada la arquitectura para que la fuente de contenido pueda cambiar de archivos locales a una **API en Go ejecutándose en Docker y respaldada por una base de datos**, sin rehacer el frontend.
+
+La prioridad para cerrar esta fase es:
+
+1. UX y navegación coherentes.
+2. Accesibilidad y responsive.
+3. Un contrato de datos estable.
+4. Eliminar la fricción actual para dar de alta contenido.
+5. Evitar que la futura migración a base de datos obligue a cambiar los componentes visuales.
+
+### Decisión arquitectónica importante
+
+Los archivos JSON dejan de considerarse el modelo definitivo de almacenamiento.
+
+En Fase 1 son únicamente el **adaptador/fuente local de desarrollo y despliegue estático**.
+
+El contrato que debemos conservar es el **objeto de contenido que recibe el frontend**, no la forma física en que se almacena.
+
+En Fase 2 la fuente podrá cambiar:
+
+```
+Frontend
+   ↓
+Servicio de datos
+   ↓
+┌─────────────────┐
+│ JSON local      │  ← Fase 1
+│ API Go + DB     │  ← Fase 2
+└─────────────────┘
+```
+
+Los Web Components no deben saber cuál de las dos fuentes está activa.
 
 ---
 
-## 1. Estructura de directorios
+# 1. Estado actual de la Fase 1
 
-Crear la siguiente estructura en el repositorio:
+## 1.1 Infraestructura
 
-```
-/
-├── index.html                    (Home principal)
-├── articulos.html               (Página de artículos)
+- [x] Sitio HTML/CSS/JS sin framework frontend.
+- [x] GitHub Pages como despliegue inicial.
+- [x] Rutas internas relativas para funcionar bajo un subpath.
+- [x] Sistema de variables visuales.
+- [x] Modo claro/oscuro.
+- [x] Responsive en los breakpoints definidos.
+- [x] Namespace global `ULE`.
+- [x] Carga de datos mediante `js/loader.js`.
+- [x] Web Components reutilizables.
+- [x] Documentación de identidad y arquitectura.
 
-├── bibliografia.html            (Página de bibliografía)
-├── catalogos.html               (Página de catálogos)
-│
-├── css/
-│   ├── variables.css            (Sistema de diseño: colores, tipografía, espaciado)
-│   ├── base.css                 (Estilos globales: reset, tipografía base)
-│   ├── components.css           (Componentes reutilizables: cards, badges, grid)
-│   └── theme.css                (Modo claro/oscuro)
-│
-├── js/
-│   ├── main.js                  (Lógica global: tema, navegación)
-│   ├── loader.js                (Carga de JSON y renderizado dinámico)
-│   ├── components.js            (Web Components: catalog-grid, card, badge)
-│   └── ads.js                   (Gestión de anuncios)
-│
-├── data/
-│   ├── articulos/               📁 Carpeta de artículos
-│   │   ├── articulo-001.json    (Ejemplo: "Historia del Juego de Pelota")
-│   │   ├── articulo-002.json
-│   │   └── ...
-│   ├── bibliografia/            📁 Carpeta de bibliografía
-│   │   ├── biblio-001.json      (Ejemplo: referencias de un artículo)
-│   │   ├── biblio-002.json
-│   │   └── ...
-│   ├── catalogos/               📁 Carpeta de catálogos
-│   │   ├── piezas-arqueologicas.json
-│   │   ├── canchas-modernas.json
-│   │   └── ...
-│   ├── anuncios.json            (Anuncios globales con vigencia)
-│   └── i18n/                    (Traducciones futuras)
-│       ├── es.json
-│       ├── en.json
-│       └── fr.json
-│
-├── components/
-│   ├── navbar.html              (Componente de navegación)
-│   └── footer.html              (Pie de página)
-│
-├── assets/
-│   ├── images/
-│   │   ├── articulos/           (Imágenes de artículos)
-│   │   ├── catalogos/           (Imágenes de catálogos)
-│   │   └── anuncios/            (Imágenes de anuncios)
-│   ├── icons/
-│   │   ├── logo.svg
-│   │   ├── cancha.svg           (Icono de cancha de pelota)
-│   │   └── greca.svg            (Unidad de greca para divisorias)
-│   └── logo/
-│       ├── logo-simple.svg
-│       └── logo-completo.svg
-├── docs/
-│       ├── primera_fase.md
-│       └── docs_fase1.md
-│       ├── arquitectura.md
-│       └── identidad.md
-```
+## 1.2 Contenido implementado
+
+- [x] Artículos.
+- [x] Detalle individual de artículo mediante `articulo.html?id=`.
+- [x] Bibliografía.
+- [x] Catálogos.
+- [x] Anuncios.
+- [x] Relación artículo ↔ bibliografía.
+- [x] Índices/manifiestos JSON necesarios para el sitio estático.
+
+## 1.3 UX implementada
+
+- [x] Navegación principal.
+- [x] Skip link.
+- [x] Estados de carga y vacío.
+- [x] Buscador y filtros de bibliografía.
+- [x] Filtrado de catálogos.
+- [x] Artículos recientes en portada.
+- [x] Navegación anterior/siguiente dentro de artículos.
+- [x] Enlace desde bibliografía hacia artículos relacionados.
+- [x] Modal para elementos de catálogo.
+- [x] Estados `:focus-visible`.
+- [x] Respeto de `prefers-reduced-motion` donde corresponde.
+- [x] Anuncios integrados sin interrumpir la lectura.
+
+## 1.4 Anuncios
+
+- [x] `data/anuncios.json`.
+- [x] `js/ads.js`.
+- [x] Selección ponderada.
+- [x] Vigencia.
+- [x] Filtro por página.
+- [x] Fallback cuando una imagen no existe o falla.
+- [x] Layout vertical/horizontal.
+- [x] Política documentada en `docs/politica_anuncios.md`.
+- [x] Separación entre estilos del componente y posicionamiento del slot.
+
+**Pendiente:** sustituir cualquier imagen externa frágil por un archivo local del repositorio cuando el material esté disponible.
+
+## 1.5 Herramienta editorial actual
+
+- [x] `herramientas/generador-json.html`.
+- [x] Generación de artículos.
+- [x] Generación de bibliografía.
+- [x] Generación de elementos de catálogo.
+- [x] Generación de anuncios.
+- [x] Copiar y descargar JSON.
+- [x] Validación básica.
+- [x] Recordatorio de actualizar manifiestos.
+
+### Limitación que NO consideramos resuelta
+
+El generador reduce errores, pero **no resuelve el problema principal**: todavía hay que crear/subir archivos, actualizar `index.json` y hacer push.
+
+Por ello no vamos a invertir más esfuerzo en perfeccionar el generador como solución permanente.
 
 ---
 
-## 2. Esquema de datos JSON
+# 2. Cambio prioritario antes de cerrar la Fase 1
 
-### 2.1 Artículos (`data/articulos/articulo-001.json`)
+## El contenido debe poder cambiar de fuente sin cambiar la interfaz
+
+El frontend debe consumir funciones conceptuales como:
+
+```text
+loadArticles()
+loadArticleById(id)
+loadBibliografia()
+loadBiblioById(id)
+loadCatalog(id)
+listCatalogs()
+loadAds()
+```
+
+Estas funciones ya existen en `ULE.loader`.
+
+La siguiente refactorización debe conservar esa API pública y cambiar únicamente la implementación interna de la fuente.
+
+### Fuente local
+
+```text
+ULE.loader
+   ↓
+adaptador local
+   ↓
+data/*.json
+```
+
+### Fuente futura
+
+```text
+ULE.loader
+   ↓
+adaptador API
+   ↓
+HTTP
+   ↓
+API Go
+   ↓
+Base de datos
+```
+
+Los componentes no deben cambiar.
+
+---
+
+# 3. Modelo de datos y base de datos futura
+
+## 3.1 El JSON no es la base de datos
+
+No se debe diseñar la futura DB pensando en almacenar literalmente los archivos JSON.
+
+La DB tendrá entidades normalizadas y relaciones apropiadas.
+
+Como punto de partida:
+
+```text
+articles
+bibliography
+article_bibliography
+catalogs
+catalog_items
+catalog_item_categories
+ads
+```
+
+Las tablas y columnas definitivas se diseñarán durante la Fase 2 según las consultas reales.
+
+## 3.2 La API es la única puerta de acceso a la DB
+
+El navegador **no** tendrá acceso directo a la base de datos.
+
+```text
+GitHub Pages
+     ↓ HTTPS
+API Go
+     ↓
+DB
+```
+
+La API será responsable de:
+
+- validación;
+- consultas;
+- relaciones;
+- paginación cuando sea necesaria;
+- filtros;
+- publicación/visibilidad;
+- escritura futura;
+- autenticación del panel administrativo.
+
+## 3.3 Contrato estable
+
+Aunque la DB cambie, la API debe devolver objetos compatibles con los que hoy consume el frontend.
+
+Ejemplo conceptual:
 
 ```json
 {
   "id": "articulo-001",
-  "titulo": "Historia del Juego de Pelota Mesoamericano",
-  "autor": "Nombre del autor",
+  "titulo": "...",
+  "autor": "...",
   "fecha": "2026-01-15",
-  "resumen": "Breve introducción al tema del artículo",
-  "contenido_html": "<p>Contenido HTML del artículo...</p>",
-  "imagen_destacada": "/assets/images/articulos/imagen-001.jpg",
+  "resumen": "...",
+  "contenido_html": "...",
+  "imagen_destacada": "assets/images/articulos/imagen.jpg",
   "categoria": "Historia",
-  "etiquetas": ["olmeca", "clásico", "rituales"],
-  "bibliografía_relacionada": ["biblio-001", "biblio-002"],
+  "etiquetas": ["olmeca", "clásico"],
+  "bibliografía_relacionada": ["biblio-001"],
   "visible": true
 }
 ```
 
-### 2.2 Bibliografía (`data/bibliografia/biblio-001.json`)
-
-```json
-{
-  "id": "biblio-001",
-  "titulo": "The Ball Game of the Ancient Mesoamerica",
-  "autores": ["Nombre Autor 1", "Nombre Autor 2"],
-  "año": 2020,
-  "editorial": "Editorial X",
-  "tipo": "libro",
-  "url": "https://ejemplo.com",
-  "resumen": "Descripción breve del contenido",
-  "articulos_relacionados": ["articulo-001", "articulo-003"],
-  "visible": true
-}
-```
-
-### 2.3 Catálogos (`data/catalogos/piezas-arqueologicas.json`)
-
-```json
-{
-  "id": "piezas-arqueologicas",
-  "titulo": "Piezas Arqueológicas",
-  "descripcion": "Colección de artefactos relacionados con el juego de pelota",
-  "imagen_portada": "/assets/images/catalogos/portada.jpg",
-  "elementos": [
-    {
-      "id": "pieza-001",
-      "titulo": "Collar de Piedra",
-      "imagen": "/assets/images/catalogos/pieza-001.jpg",
-      "descripcion": "Descripción de la pieza",
-      "categorias": {
-        "periodo": "preclasico",
-        "cultura": "olmeca",
-        "material": "piedra"
-      },
-      "año_descubrimiento": 1980,
-      "ubicacion": "Museo X"
-    },
-    {
-      "id": "pieza-002",
-      "titulo": "Marcador de Cancha",
-      "imagen": "/assets/images/catalogos/pieza-002.jpg",
-      "descripcion": "Descripción de la pieza",
-      "categorias": {
-        "periodo": "clasico",
-        "cultura": "maya",
-        "material": "piedra caliza"
-      },
-      "año_descubrimiento": 1995,
-      "ubicacion": "Museo Y"
-    }
-  ],
-  "categorias_disponibles": {
-    "periodo": ["preclasico", "clasico", "posclasico"],
-    "cultura": ["olmeca", "maya", "azteca", "golfo", "cacaxtla"],
-    "material": ["piedra", "cerámica", "obsidiana"]
-  },
-  "visible": true
-}
-```
-
-### 2.4 Anuncios (`data/anuncios.json`)
-
-```json
-{
-  "anuncios": [
-    {
-      "id": "anuncio-001",
-      "imagen": "/assets/images/anuncios/evento-001.jpg",
-      "contacto": "info@eventos.com | Tel: +123 456 7890",
-      "slogan": "Torneo de Pelota 2026",
-      "descripcion": "Competencia regional de juego de pelota. Participación abierta.",
-      "vigencia_inicio": "2026-03-01",
-      "vigencia_fin": "2026-06-30",
-      "activo": true,
-      "peso": 2,
-      "enlace": "https://eventos.com/torneo-2026"
-    },
-    {
-      "id": "anuncio-002",
-      "imagen": "/assets/images/anuncios/taller-002.jpg",
-      "contacto": "talleres@ule.org",
-      "slogan": "Taller de Técnica: Golpe de Cadera",
-      "descripcion": "Aprende las bases del tiro de cadera con maestros locales.",
-      "vigencia_inicio": "2026-02-01",
-      "vigencia_fin": "2026-12-31",
-      "activo": true,
-      "peso": 1,
-      "enlace": "https://ule.org/talleres"
-    }
-  ]
-}
-```
+El frontend no debe saber si este objeto provino de JSON o PostgreSQL/otra DB.
 
 ---
 
-## 3. Implementación de componentes y funcionalidad
+# 4. Refactorización del loader
 
-### 3.1 Estructura CSS (`css/variables.css`)
+Antes de terminar la Fase 1 se debe introducir una separación explícita:
 
-Ya existe en `identidad.md`. Implementar:
-- Variables de color (claro/oscuro)
-- Tipografía (Ubuntu, Helvetica)
-- Escala de espaciado
-- Radios de borde
-- Sombras
-- Breakpoints responsive
-
-### 3.2 Componentes Web (`js/components.js`)
-
-Crear Web Components reutilizables:
-
-#### `<article-card>`
-```html
-<article-card 
-  data-id="articulo-001"
-  data-title="Título"
-  data-summary="Resumen..."
-  data-image="/ruta/imagen.jpg"
-  data-category="Historia"
-  data-date="2026-01-15">
-</article-card>
+```text
+ULE.loader
+    ↓
+ULE.data
+    ├── local
+    └── api (preparado)
 ```
 
-#### `<catalog-grid>`
-```html
-<catalog-grid 
-  data-source="/data/catalogos/piezas-arqueologicas.json"
-  categories="periodo,cultura,material"
-  allow-filter="true">
-</catalog-grid>
-```
+O equivalente, siempre que la API pública de `ULE.loader` se mantenga estable.
 
-#### `<biblio-card>`
-```html
-<biblio-card 
-  data-id="biblio-001"
-  data-title="Título"
-  data-authors="Autor1, Autor2"
-  data-year="2020"
-  data-type="libro">
-</biblio-card>
-```
-
-#### `<ad-card>`
-Mostrar anuncio con imagen, contacto, slogan y descripción.
-
-### 3.3 Módulo de carga (`js/loader.js`)
+Debe existir una configuración sencilla:
 
 ```javascript
-// Cargar y parsear JSON
-async function loadJSON(path) {
-  const response = await fetch(path);
-  return response.json();
-}
-
-// Renderizar artículos desde JSON
-async function renderArticles() {
-  const files = await getFilesInFolder('/data/articulos/');
-  const articles = [];
-  for (const file of files) {
-    const data = await loadJSON(`/data/articulos/${file}`);
-    if (data.visible) articles.push(data);
-  }
-  return articles;
-}
-
-// Renderizar catálogos desde JSON
-async function renderCatalog(catalogId) {
-  const data = await loadJSON(`/data/catalogos/${catalogId}.json`);
-  return data;
-}
+ULE.config.dataSource = 'local';
 ```
 
----
-
-## 4. Vistas de páginas
-
-### 4.1 Página de Artículos (`articulos.html`)
-
-**Layout:**
-1. **Header** con navegación
-2. **Buscador/Filtrador** (categoría, etiqueta, fecha)
-3. **Grid de cards** (artículos)
-   - Imagen destacada
-   - Título
-   - Autor y fecha
-   - Resumen (primeras 150 caracteres)
-   - Badges de categoría/etiquetas
-   - Botón "Leer más"
-4. **Sidebar** (futuro): artículos relacionados
-5. **Footer**
-
-**Responsive:**
-- Mobile: 1 columna
-- Tablet (≥768px): 2 columnas
-- Desktop (≥1024px): 3 columnas
-
-### 4.2 Página de Bibliografía (`bibliografia.html`)
-
-**Layout:**
-1. **Header** con navegación
-2. **Filtrador** (tipo: libro, artículo, web; año; autor)
-3. **Lista/Grid de referencias**
-   - Título
-   - Autores
-   - Año
-   - Editorial/Fuente
-   - Tipo (icono)
-   - Resumen
-   - Enlace (si aplica)
-4. **Opción de exportación** (futuro: BibTeX, RIS)
-5. **Footer**
-
-**Ordenamiento:**
-- Por año (descendente, predeterminado)
-- Por autor
-- Por título
-
-### 4.3 Página de Catálogos (`catalogos.html`)
-
-**Layout:**
-1. **Header** con navegación
-2. **Selector de catálogo** (dropdown/tabs para elegir entre piezas-arqueologicas, canchas-modernas, etc.)
-3. **Descripción del catálogo** (imagen de portada, texto introductorio)
-4. **Filtrador dinámico**
-   - Por cada categoría disponible en el catálogo (período, cultura, material, etc.)
-   - Checkboxes o dropdown
-5. **Grid de piezas** (cards con imagen, título, categorías en badges)
-6. **Modal/Lightbox** al hacer clic en una pieza (imagen, descripción completa, metadata)
-7. **Footer**
-
-**Responsive grid:**
-- Mobile: 1 columna
-- Tablet (≥480px): 2 columnas
-- Desktop (≥768px): 3 columnas
-- Wide (≥1024px): 4 columnas
-
----
-
-## 5. Carga de anuncios en cards
-
-### 5.1 Componente `<ad-card>`
-
-**Ubicación:** En la home o como rotativo en distintas páginas.
-
-**Estructura visual:**
-```
-┌─────────────────────────┐
-│      IMAGEN (4:5)       │  ← Imagen destacada del anuncio
-├─────────────────────────┤
-│   SLOGAN (grande)       │  ← Frase principal (bold)
-│   contacto@email.com    │  ← Info de contacto
-├─────────────────────────┤
-│ Vigente hasta: 30/06    │  ← Texto legal pequeño
-└─────────────────────────┘
-```
-
-### 5.2 Lógica de selección
-
-**En `js/ads.js`:**
-
-1. Cargar `data/anuncios.json`
-2. Filtrar por:
-   - `activo === true`
-   - Fecha actual está en rango `[vigencia_inicio, vigencia_fin]`
-3. Seleccionar aleatoriamente con ponderación por `peso`
-4. Renderizar en el/los contenedores designados
+y posteriormente:
 
 ```javascript
-async function getRandomAd() {
-  const data = await loadJSON('/data/anuncios.json');
-  const validAds = data.anuncios.filter(ad => {
-    const today = new Date().toISOString().split('T')[0];
-    return ad.activo && ad.vigencia_inicio <= today && today <= ad.vigencia_fin;
-  });
-  
-  if (validAds.length === 0) return null;
-  
-  // Selección ponderada por peso
-  const totalWeight = validAds.reduce((sum, ad) => sum + ad.peso, 0);
-  let random = Math.random() * totalWeight;
-  
-  for (const ad of validAds) {
-    random -= ad.peso;
-    if (random <= 0) return ad;
-  }
-}
+ULE.config.dataSource = 'api';
 ```
 
----
+No se debe duplicar la lógica de renderizado.
 
-## 6. Tareas inmediatas (checklist)
+### Regla
 
-### Fase 1.1: Infraestructura CSS y JS
-
-- [x] Crear `css/variables.css` con todas las variables de la identidad
-- [x] Crear `css/base.css` con reset y estilos globales
-- [x] Crear `css/components.css` con componentes base (cards, badges, grid)
-- [x] Crear `css/theme.css` para modo claro/oscuro
-- [x] Crear `js/main.js` con lógica de tema y navegación global
-- [x] Crear `js/loader.js` con funciones de fetch y mapeo de JSON
-
-### Fase 1.2: Web Components
-
-- [x] Crear `js/components.js` con:
-  - `<article-card>`
-  - `<catalog-grid>`
-  - `<biblio-card>`
-  - `<ad-card>`
-  - `<badge>`
-
-### Fase 1.3: Páginas y datos
-
-- [x] Crear `articulos.html` (estructura base + script de carga)
-- [x] Crear `bibliografia.html` (estructura base + script de carga)
-- [x] Crear `catalogos.html` (estructura base + script de carga)
-- [x] Crear carpetas de datos:
-  - [x] `data/articulos/`
-  - [x] `data/bibliografia/`
-  - [x] `data/catalogos/`
-- [x] Crear 2-3 archivos JSON ejemplo en cada carpeta
-
-### Fase 1.4: Anuncios
-
-> **Estado actual (post 1.3):** ya existen `data/anuncios.json`, `js/ads.js`, el Web Component `<ad-card>` y 2 slots en `index.html`.  
-> Esta sub-fase se centra en **alinear con la política de anuncios** y cerrar huecos de datos/accesibilidad.
-
-- [x] Crear `data/anuncios.json` con anuncios de ejemplo
-- [x] Crear `js/ads.js` con lógica de selección ponderada + vigencia
-- [x] Integrar anuncios en `index.html` (slot `data-ad-slot`, 1 slot — política §9.3)
-- [x] Revisar y aplicar `docs/politica_anuncios.md`
-- [x] Ampliar el esquema JSON con campos opcionales recomendados (`imagen_alt`, `tipo`, `paginas`)
-- [x] Actualizar `<ad-card>` para preferir `imagen_alt` cuando exista
-- [x] Decidir y documentar número de slots y páginas permitidas (ver política §4 y §9)
-- [x] Añadir 1–2 anuncios de ejemplo que cumplan la política de contenido
-- [x] Corregir bug: `js/ads.js` generaba `data-imagen` pero `<ad-card>` leía `data-image` — la imagen nunca llegaba al componente
-- [x] Corregir `css/ads.css` (el archivo se había corrompido: saltos de línea literales `\n` en vez de reales, lo que invalidaba silenciosamente todas sus reglas)
-- [x] Fallback visual en `<ad-card>` cuando no hay imagen o la imagen falla al cargar (`onerror`), en vez de dejar un hueco
-- [x] Layout horizontal responsivo por sí mismo (container query interna), ya no depende de que el slot le imponga un ancho correcto
-- [x] Reemplazar en los datos de ejemplo la URL de imagen que violaba la política (hotlink frágil a CDN de Facebook)
-
-### Fase 1.5: Testing y documentación
-
-- [x] Verificar que JSON se carga correctamente
-- [x] Verificar responsividad en mobile, tablet, desktop
-- [x] Verificar contraste WCAG AA (incluyendo cards de anuncio en ambos temas)
-- [x] Verificar navegación por teclado y `aria-label` de anuncios con enlace
-- [x] Crear `GUIA_CONTENIDO.md` con instrucciones para agregar artículos/catálogos **y anuncios**
-
-### Fase 1.6: Experiencia de usuario y herramienta de contenido (planeación)
-
-> Solo planeación por ahora — no implementar todavía. Razonamiento completo
-> en `docs/arquitectura.md` §13. Nace de una revisión de fricción real del
-> sitio: menos clics para llegar a las cosas, y una forma más segura de
-> agregar contenido que escribir JSON a mano.
-
-**Auditoría de fricción (ver arquitectura §13.1 para el detalle):**
-1. `articulo.html` no tiene forma de seguir leyendo sin volver al listado.
-2. `articulos_relacionados` de bibliografía existe en el esquema pero ningún componente lo usa (falta el enlace de vuelta biblio → artículo).
-3. Home no muestra artículos recientes, solo accesos genéricos.
-4. Las piezas de `<catalog-grid>` no tienen URL propia (no se pueden compartir).
-
-**Tareas — "Artículo siguiente/anterior" (ver arquitectura §13.2):**
-- [x] En `articulo.html`, calcular anterior/siguiente a partir de `ULE.loader.loadArticles()` ordenado por fecha
-- [x] Bloque de navegación al final del artículo (anterior + siguiente), antes o junto a "Bibliografía relacionada"
-- [x] Decidir comportamiento en los extremos: ocultar el enlace que no aplica
-
-**Tareas — aprovechar datos ya existentes que no se muestran:**
-- [ ] `<biblio-card>` — mostrar "Aparece en: [artículo]" usando `articulos_relacionados` (dato ya existe en el JSON, falta consumirlo)
-- [x] `index.html` — sección "Artículos recientes" (2–3 cards) usando `loadArticles()` ordenado por fecha, antes o junto a la sección "Explora el sitio"
-- [ ] (Opcional, evaluar si vale la pena) URL propia por pieza de catálogo (`?pieza=id` o hash) para que el modal de `<catalog-grid>` sea enlazable
-
-**Tareas — herramienta de generación de JSON (ver arquitectura §13.3 para el detalle completo):**
-- [x] Crear `herramientas/generador-json.html` con selector de tipo de contenido (artículo / bibliografía / elemento de catálogo / anuncio)
-- [x] Un `<form>` por tipo, campos alineados 1:1 con el esquema de la sección 2 de este documento (y con `politica_anuncios.md` §2 para anuncios)
-- [x] Botón "Descargar JSON": serializa el formulario y descarga vía `Blob` + `<a download>`, con nombre de archivo sugerido según convención
-- [x] Mostrar en pantalla el recordatorio de actualizar el `index.json` de la carpeta correspondiente (no se puede automatizar sin backend)
-- [x] Conversión de campos tipo lista (`etiquetas`, `autores`) de texto separado por comas a array antes de serializar
-- [x] Página no enlazada desde el nav público (uso interno del equipo editorial); `<meta name="robots" content="noindex, nofollow">` para que tampoco la indexen buscadores
-- [x] Botón "Copiar" además de "Descargar" (portapapeles vía `navigator.clipboard`)
-- [x] Caso especial "elemento de catálogo": se genera como **fragmento** para pegar en el array `elementos` de un catálogo existente, no como archivo nuevo — no requiere tocar `index.json`
-- [x] Caso especial "anuncio": también se genera como fragmento para `data/anuncios.json` (no usa manifiesto); el formulario cubre los campos opcionales de `politica_anuncios.md` §2.2 (`imagen_alt`, `tipo`, `paginas`, `prioridad_slot`)
-- [x] Campos vacíos/opcionales no aparecen en el JSON de salida (no se generan claves con `""` o `undefined`)
+Si para pasar de JSON a API tenemos que modificar `index.html`, `articulos.html`, `bibliografia.html`, `catalogos.html` o los Web Components, la abstracción está mal hecha.
 
 ---
 
-## 7. Escalabilidad: Cómo agregar contenido
+# 5. Alta de contenido: objetivo de Fase 2
 
-1. Crear archivo `data/articulos/articulo-NNN.json` siguiendo el esquema
-2. Hacer push a GitHub
-3. ✅ El artículo aparecerá automáticamente en `articulos.html`
+El flujo actual:
 
-### Agregar una pieza al catálogo
+```text
+crear JSON
+   ↓
+subir imagen
+   ↓
+actualizar index.json
+   ↓
+hacer commit
+   ↓
+hacer push
+```
 
-1. Subir imagen a `assets/images/catalogos/`
-2. Agregar objeto a `data/catalogos/piezas-arqueologicas.json` en el array `elementos`
-3. Hacer push a GitHub
-4. ✅ La pieza aparecerá automáticamente en `catalogos.html`
+debe evolucionar a:
 
-### Agregar una referencia bibliográfica
+```text
+Panel editorial
+   ↓
+formulario
+   ↓
+API Go
+   ↓
+DB
+```
 
-1. Crear archivo `data/bibliografia/biblio-NNN.json` siguiendo el esquema
-2. Si pertenece a un artículo, agregar su ID en `articulos_relacionados`
-3. Hacer push a GitHub
-4. ✅ La referencia aparecerá automáticamente en `bibliografia.html`
+La imagen será posteriormente gestionada por el API o por almacenamiento de archivos/objetos, según se defina en Fase 2.
 
-### Agregar un anuncio
+### Importante
 
-Consultar primero `docs/politica_anuncios.md` (requisitos de contenido, campos y reglas de colocación).
+El panel administrativo **no debe escribir directamente en la DB**.
 
-1. Subir imagen a `assets/images/anuncios/` (preferible proporción 4:5)
-2. Agregar objeto a `data/anuncios.json` siguiendo el esquema (campos obligatorios + opcionales recomendados)
-3. Establecer `vigencia_inicio`, `vigencia_fin`, `activo` y `peso`
-4. (Opcional) Completar `imagen_alt`, `tipo` y `paginas`
-5. Hacer push a GitHub
-6. ✅ El anuncio será seleccionado automáticamente si está activo y dentro del rango de vigencia
+```text
+Panel → API → DB
+```
 
----
-
-## 8. Notas de implementación
-
-- **Sin backend requerido**: Todo funciona con archivos estáticos
-- **i18n desde el inicio**: Estructura lista para traducción sin cambiar componentes
-- **Shadow DOM**: Los Web Components encapsulan sus estilos pero respetan variables globales
-- **Accesibilidad**: Alt descriptivo, navegación por teclado, contraste WCAG AA
-- **Rendimiento**: `loading="lazy"` para imágenes no visibles, minimizar bundle JS
-- **Versionado**: Todos los datos en Git, historial completo de cambios
+Esto permite validar reglas, permisos, relaciones y futuras migraciones en un solo lugar.
 
 ---
 
-## 9. Siguiente fase (Fase 2)
+# 6. Qué NO hacer todavía
 
-Una vez completada la Fase 1:
-- Integración con API Go para anuncios dinámicos (sin tocar frontend)
-- Panel administrativo (futura)
-- Estadísticas de lectura (futura)
-- Sistema de comentarios (futura)
+No implementar antes de que exista una necesidad concreta:
 
+- CMS de terceros.
+- framework frontend.
+- edición directa de SQL desde el navegador.
+- conexión del navegador a la DB.
+- API genérica para cualquier cosa.
+- autenticación compleja.
+- sistema de usuarios públicos.
+- comentarios.
+- analítica propia.
+- almacenamiento de imágenes complejo.
+- microservicios.
+- GraphQL.
+
+La API Go será inicialmente un servicio pequeño y orientado al contenido que realmente necesita ser dinámico.
+
+---
+
+# 7. UX — pendientes para cerrar Fase 1
+
+## 7.1 Deep links de catálogo
+
+- [ ] Permitir URL identificable para una pieza, por ejemplo:
+  `catalogos.html?catalogo=piezas-arqueologicas&pieza=pieza-001`.
+- [ ] Abrir automáticamente la pieza cuando la URL la indique.
+- [ ] Mantener navegación razonable al cerrar el modal.
+- [ ] No romper el funcionamiento sin JavaScript adicional.
+
+## 7.2 Filtros
+
+- [ ] Añadir acción clara de “Limpiar filtros” cuando haya filtros activos.
+- [ ] Mostrar filtros activos de manera comprensible.
+- [ ] Conservar filtros al utilizar navegación atrás cuando sea razonable.
+- [ ] Revisar que los estados de cero resultados sean informativos.
+
+## 7.3 Portada
+
+- [ ] Revisar jerarquía visual de la portada.
+- [ ] Dar mayor protagonismo a los tres caminos principales:
+  **Artículos / Bibliografía / Catálogos**.
+- [ ] Revisar ritmo vertical y separación entre secciones.
+- [ ] Mantener la identidad visual sin añadir colores o efectos innecesarios.
+
+## 7.4 Catálogos
+
+- [ ] Revisar interacción de las cards.
+- [ ] Hacer evidente que una pieza es interactiva.
+- [ ] Revisar modal en móvil.
+- [ ] Revisar imágenes y proporciones.
+- [ ] Preparar el componente para recibir datos de API sin modificar su presentación.
+
+## 7.5 Estados
+
+- [ ] Unificar estados de carga.
+- [ ] Unificar estados vacíos.
+- [ ] Unificar mensajes de error.
+- [ ] Evitar pantallas visualmente “rotas” cuando falten imágenes o datos opcionales.
+
+---
+
+# 8. Auditoría final de accesibilidad
+
+Antes de cerrar la Fase 1:
+
+- [ ] Navegación completa solo con teclado.
+- [ ] Orden lógico de foco.
+- [ ] Focus visible.
+- [ ] Diálogos accesibles.
+- [ ] Escape cierra modales.
+- [ ] Imágenes con `alt` adecuado.
+- [ ] Decorativas con `alt=""`.
+- [ ] Formularios con labels.
+- [ ] Estados dinámicos anunciados cuando sea necesario.
+- [ ] Contraste WCAG AA.
+- [ ] No depender únicamente del color.
+- [ ] Revisar zoom al 200%.
+- [ ] Revisar móvil.
+- [ ] Revisar modo claro y oscuro.
+
+---
+
+# 9. Auditoría técnica final
+
+- [ ] Todas las rutas internas son relativas.
+- [ ] No quedan URLs absolutas accidentales para recursos propios.
+- [ ] No quedan hotlinks frágiles donde deba existir un asset local.
+- [ ] Todos los JSON son válidos.
+- [ ] Los IDs son únicos.
+- [ ] Los manifiestos coinciden con los archivos mientras exista la fuente local.
+- [ ] No hay errores de consola.
+- [ ] No hay imágenes rotas.
+- [ ] No hay scripts duplicados.
+- [ ] No hay CSS muerto evidente.
+- [ ] Los componentes conservan responsabilidades claras.
+- [ ] `ULE.loader` queda preparado para intercambiar fuente local/API.
+
+---
+
+# 10. Documentación
+
+- [x] `docs/identidad.md`.
+- [x] `docs/arquitectura.md`.
+- [x] `docs/politica_anuncios.md`.
+- [x] `docs/GUIA_CONTENIDO.md`.
+- [ ] Actualizar esta documentación después de la refactorización del loader.
+- [ ] Documentar el contrato de datos que deberá respetar la futura API.
+- [ ] Documentar claramente qué parte del frontend permanece inmutable durante la migración a API.
+
+---
+
+# 11. Criterio para declarar cerrada la Fase 1
+
+La Fase 1 estará cerrada cuando:
+
+1. El sitio sea visualmente coherente en móvil y escritorio.
+2. La navegación principal y secundaria sea clara.
+3. Artículos, bibliografía y catálogos funcionen sin intervención manual en el HTML.
+4. Los estados de carga, error y vacío sean consistentes.
+5. El sitio sea accesible en un nivel razonable WCAG AA.
+6. No existan dependencias de rutas absolutas incompatibles con GitHub Pages.
+7. El alta de contenido local esté documentada.
+8. El frontend tenga una frontera clara entre **presentación** y **fuente de datos**.
+9. Cambiar de JSON local a API no requiera modificar los componentes visuales.
+10. El contrato de datos para la futura API Go esté documentado.
+
+La Fase 1 **no requiere que la API esté construida**.
+
+La meta es que la API pueda construirse después sin rehacer lo que ya funciona.
+
+---
+
+# 12. Transición a Fase 2
+
+La Fase 2 comenzará con:
+
+### Backend
+
+- API Go.
+- Docker.
+- Base de datos.
+- Migraciones.
+- Endpoints de contenido.
+- Validación.
+- Autenticación para administración.
+
+### Editorial
+
+- Panel de administración.
+- Alta/edición/borrado lógico.
+- Relaciones artículo ↔ bibliografía.
+- Gestión de catálogos.
+- Gestión de anuncios.
+
+### Frontend
+
+El frontend deberá cambiar únicamente:
+
+```text
+fuente local
+    ↓
+fuente API
+```
+
+Los componentes y páginas deberán permanecer conceptualmente iguales.
+
+---
+
+# 13. Principio rector
+
+> **El contenido cambia; la interfaz no debería enterarse de dónde viene.**
+
+La Fase 1 termina construyendo una buena interfaz estática.
+
+La Fase 2 no debe reconstruir esa interfaz: debe sustituir la fuente de datos y proporcionar las herramientas para administrarla.
