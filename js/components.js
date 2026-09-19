@@ -431,7 +431,8 @@
   /* ==========================================================================
      <catalog-grid>  (Light DOM — reutiliza css/components.css)
      Atributos:
-       data-source    — URL del JSON del catálogo (obligatorio)
+       data-catalog    — id lógico del catálogo (preferido)
+       data-source    — URL del JSON del catálogo (compatibilidad local)
        categories     — lista separada por comas de categorías filtrables
                         (si se omite, se usan todas las de categorias_disponibles)
        allow-filter   — "true"/"false" (default: "true")
@@ -454,9 +455,10 @@
     }
 
     async _load() {
+      const catalogId = this.getAttribute('data-catalog');
       const source = this.getAttribute('data-source');
-      if (!source) {
-        this.innerHTML = '<div class="catalog-empty">Falta el atributo data-source en &lt;catalog-grid&gt;.</div>';
+      if (!catalogId && !source) {
+        this.innerHTML = '<div class="catalog-empty">Falta el atributo data-catalog en &lt;catalog-grid&gt;.</div>';
         return;
       }
 
@@ -464,9 +466,11 @@
 
       let data;
       try {
-        if (window.ULE && ULE.loader && typeof ULE.loader.loadJSON === 'function') {
+        if (catalogId && window.ULE && ULE.loader && typeof ULE.loader.loadCatalog === 'function') {
+          data = await ULE.loader.loadCatalog(catalogId);
+        } else if (source && window.ULE && ULE.loader && typeof ULE.loader.loadJSON === 'function') {
           data = await ULE.loader.loadJSON(source);
-        } else {
+        } else if (source) {
           const res = await fetch(source);
           data = res.ok ? await res.json() : null;
         }
@@ -530,6 +534,7 @@
     _buildFilters(categoryKeys) {
       const wrap = document.createElement('div');
       wrap.className = 'cluster';
+      wrap.dataset.catalogFilters = 'true';
       wrap.setAttribute('role', 'group');
       wrap.setAttribute('aria-label', 'Filtros del catálogo');
       wrap.style.marginBlockEnd = 'var(--space-lg)';
@@ -582,6 +587,19 @@
         wrap.appendChild(fieldset);
       });
 
+      const clear = document.createElement('button');
+      clear.type = 'button';
+      clear.className = 'btn';
+      clear.textContent = 'Limpiar filtros';
+      clear.hidden = true;
+      clear.addEventListener('click', () => {
+        this._activeFilters = {};
+        wrap.querySelectorAll('input[type="checkbox"]').forEach((input) => { input.checked = false; });
+        clear.hidden = true;
+        this._renderGrid();
+      });
+      wrap.appendChild(clear);
+      this._clearFiltersButton = clear;
       return wrap;
     }
 
@@ -595,6 +613,9 @@
     }
 
     _renderGrid() {
+      if (this._clearFiltersButton) {
+        this._clearFiltersButton.hidden = !Object.values(this._activeFilters).some((values) => values.length);
+      }
       const elementos = (this._catalog.elementos || []).filter((item) => this._matchesFilters(item));
       this._gridEl.innerHTML = '';
 
@@ -647,6 +668,7 @@
       card.appendChild(body);
 
       const open = () => this._openDialog(item);
+      card.dataset.catalogItem = item.id || '';
       card.addEventListener('click', open);
       card.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -669,6 +691,14 @@
       dialog.style.color = 'var(--color-texto)';
       dialog.style.backgroundColor = 'var(--color-fondo)';
 
+      dialog.addEventListener('close', () => {
+        const url = new URL(window.location.href);
+        if (url.searchParams.has('pieza')) {
+          url.searchParams.delete('pieza');
+          window.history.replaceState({}, '', url);
+        }
+      });
+
       dialog.addEventListener('click', (e) => {
         // Cierra al hacer clic fuera del contenido (en el ::backdrop no aplica,
         // así que detectamos clic directo sobre el <dialog>)
@@ -680,6 +710,11 @@
 
     _openDialog(item) {
       const dialog = this._dialog;
+      const catalogId = this.getAttribute('data-catalog') || this._catalog.id || '';
+      const url = new URL(window.location.href);
+      if (catalogId) url.searchParams.set('catalogo', catalogId);
+      if (item.id) url.searchParams.set('pieza', item.id);
+      window.history.replaceState({}, '', url);
       dialog.innerHTML = '';
 
       const content = document.createElement('div');
