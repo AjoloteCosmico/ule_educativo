@@ -28,6 +28,11 @@
 
 window.ULE = window.ULE || {};
 
+// Fuente de datos intercambiable. En Fase 1 usamos JSON local;
+// en Fase 2 podrá cambiarse a un adaptador HTTP sin modificar los consumidores.
+ULE.config = ULE.config || {};
+ULE.config.dataSource = ULE.config.dataSource || 'local';
+
 ULE.loader = (function () {
   const cache = new Map();
   const PROBE_MAX = 200; // límite duro de sondeo para no colgar el navegador
@@ -151,21 +156,44 @@ ULE.loader = (function () {
     });
   }
 
+  /* ---------- Adaptador de fuente ---------- */
+
+  async function fromSource(localFn, apiFn) {
+    if (ULE.config.dataSource === 'api') {
+      if (typeof apiFn !== 'function') {
+        throw new Error('[ULE.loader] La fuente API aún no está implementada.');
+      }
+      return apiFn();
+    }
+    return localFn();
+  }
+
   /* ---------- Artículos ---------- */
 
   function loadArticles() {
-    return loadCollection('data/articulos/', { prefix: 'articulo' });
+    return fromSource(
+      function () { return loadCollection('data/articulos/', { prefix: 'articulo' }); },
+      null
+    );
   }
 
   async function loadArticleById(id) {
-    const articles = await loadArticles();
-    return articles.find(function (a) { return a.id === id; }) || null;
+    return fromSource(
+      async function () {
+        const articles = await loadArticles();
+        return articles.find(function (a) { return a.id === id; }) || null;
+      },
+      null
+    );
   }
 
   /* ---------- Bibliografía ---------- */
 
   function loadBibliografia() {
-    return loadCollection('data/bibliografia/', { prefix: 'biblio' });
+    return fromSource(
+      function () { return loadCollection('data/bibliografia/', { prefix: 'biblio' }); },
+      null
+    );
   }
 
   async function loadBiblioById(id) {
@@ -197,7 +225,10 @@ ULE.loader = (function () {
    * @returns {Promise<object|null>}
    */
   function loadCatalog(catalogId) {
-    return loadJSON('data/catalogos/' + catalogId + '.json');
+    return fromSource(
+      function () { return loadJSON('data/catalogos/' + catalogId + '.json'); },
+      null
+    );
   }
 
   /**
