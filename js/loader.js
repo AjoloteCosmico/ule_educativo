@@ -32,6 +32,7 @@ window.ULE = window.ULE || {};
 // en Fase 2 podrá cambiarse a un adaptador HTTP sin modificar los consumidores.
 ULE.config = ULE.config || {};
 ULE.config.dataSource = ULE.config.dataSource || 'local';
+ULE.config.apiBaseUrl = ULE.config.apiBaseUrl || '';
 
 ULE.loader = (function () {
   const cache = new Map();
@@ -158,6 +159,14 @@ ULE.loader = (function () {
 
   /* ---------- Adaptador de fuente ---------- */
 
+  async function apiJSON(path) {
+    const base = String(ULE.config.apiBaseUrl || '').replace(/\\/$/, '');
+    if (!base) throw new Error('[ULE.loader] ULE.config.apiBaseUrl no está configurada.');
+    const response = await fetch(base + path, { headers: { 'Accept': 'application/json' }, cache: 'no-cache' });
+    if (!response.ok) throw new Error('[ULE.loader] API respondió HTTP ' + response.status + ' para ' + path);
+    return response.json();
+  }
+
   async function fromSource(localFn, apiFn) {
     if (ULE.config.dataSource === 'api') {
       if (typeof apiFn !== 'function') {
@@ -173,7 +182,7 @@ ULE.loader = (function () {
   function loadArticles() {
     return fromSource(
       function () { return loadCollection('data/articulos/', { prefix: 'articulo' }); },
-      null
+      function () { return apiJSON('/articulos').then(normalizeCollection); }
     );
   }
 
@@ -183,7 +192,7 @@ ULE.loader = (function () {
         const articles = await loadArticles();
         return articles.find(function (a) { return a.id === id; }) || null;
       },
-      null
+      function () { return apiJSON('/articulos/' + encodeURIComponent(id)); }
     );
   }
 
@@ -192,7 +201,7 @@ ULE.loader = (function () {
   function loadBibliografia() {
     return fromSource(
       function () { return loadCollection('data/bibliografia/', { prefix: 'biblio' }); },
-      null
+      function () { return apiJSON('/bibliografia').then(normalizeCollection); }
     );
   }
 
@@ -227,7 +236,7 @@ ULE.loader = (function () {
   function loadCatalog(catalogId) {
     return fromSource(
       function () { return loadJSON('data/catalogos/' + catalogId + '.json'); },
-      null
+      function () { return apiJSON('/catalogos/' + encodeURIComponent(catalogId)); }
     );
   }
 
@@ -239,9 +248,21 @@ ULE.loader = (function () {
    * @returns {Promise<string[]>}
    */
   async function listCatalogIds() {
-    const manifest = await loadManifest('data/catalogos/');
-    if (!manifest) return [];
-    return manifest.map(function (name) { return name.replace(/\.json$/, ''); });
+    return fromSource(
+      async function () {
+        const manifest = await loadManifest('data/catalogos/');
+        if (!manifest) return [];
+        return manifest.map(function (name) { return name.replace(/\.json$/, ''); });
+      },
+      function () { return apiJSON('/catalogos').then(normalizeCollection).then(function (items) { return items.map(function (c) { return c.id; }); }); }
+    );
+  }
+
+  function normalizeCollection(data) {
+    if (Array.isArray(data)) return data;
+    if (data && Array.isArray(data.items)) return data.items;
+    if (data && Array.isArray(data.data)) return data.data;
+    return [];
   }
 
   async function loadAllCatalogs() {
@@ -271,10 +292,22 @@ ULE.loader = (function () {
     });
   }
 
+  async function loadAds() {
+    return fromSource(
+      async function () {
+        const data = await loadJSON('data/anuncios.json');
+        return data && Array.isArray(data.anuncios) ? data.anuncios : [];
+      },
+      function () { return apiJSON('/anuncios').then(normalizeCollection); }
+    );
+  }
+
   /* ---------- API pública ---------- */
 
   return {
     loadJSON: loadJSON,
+    loadAds: loadAds,
+    apiJSON: apiJSON,
     loadCollection: loadCollection,
     listCollectionFiles: listCollectionFiles,
 
