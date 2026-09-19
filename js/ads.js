@@ -7,6 +7,9 @@ ULE.ads = (function () {
   let cache = null;
 
   async function loadAds() {
+    if (window.ULE && ULE.config && ULE.config.dataSource === 'api') {
+      return ULE.loader.loadAds();
+    }
     if (cache) return cache;
     try {
       const response = await fetch(DATA_PATH, { cache: 'no-cache' });
