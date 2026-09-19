@@ -357,7 +357,7 @@ La API Go será inicialmente un servicio pequeño y orientado al contenido que r
 - [ ] Hacer evidente que una pieza es interactiva.
 - [ ] Revisar modal en móvil.
 - [ ] Revisar imágenes y proporciones.
-- [ ] Preparar el componente para recibir datos de API sin modificar su presentación.
+- [x] Preparar el componente para recibir datos de API sin modificar su presentación.
 
 ## 7.5 Estados
 
@@ -402,7 +402,7 @@ Antes de cerrar la Fase 1:
 - [ ] No hay scripts duplicados.
 - [ ] No hay CSS muerto evidente.
 - [ ] Los componentes conservan responsabilidades claras.
-- [ ] `ULE.loader` queda preparado para intercambiar fuente local/API.
+- [x] `ULE.loader` queda preparado para intercambiar fuente local/API.
 
 ---
 
@@ -414,7 +414,7 @@ Antes de cerrar la Fase 1:
 - [x] `docs/GUIA_CONTENIDO.md`.
 - [ ] Actualizar esta documentación después de la refactorización del loader.
 - [ ] Documentar el contrato de datos que deberá respetar la futura API.
-- [ ] Documentar claramente qué parte del frontend permanece inmutable durante la migración a API.
+- [x] Documentar claramente qué parte del frontend permanece inmutable durante la migración a API.
 
 ---
 
