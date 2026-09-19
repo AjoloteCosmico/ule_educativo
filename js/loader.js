@@ -160,7 +160,7 @@ ULE.loader = (function () {
   /* ---------- Adaptador de fuente ---------- */
 
   async function apiJSON(path) {
-    const base = String(ULE.config.apiBaseUrl || '').replace(/\\/$/, '');
+    const base = String(ULE.config.apiBaseUrl || '').replace(/\/+$/, '');
     if (!base) throw new Error('[ULE.loader] ULE.config.apiBaseUrl no está configurada.');
     const response = await fetch(base + path, { headers: { 'Accept': 'application/json' }, cache: 'no-cache' });
     if (!response.ok) throw new Error('[ULE.loader] API respondió HTTP ' + response.status + ' para ' + path);
