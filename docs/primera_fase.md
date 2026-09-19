@@ -330,15 +330,15 @@ La API Go será inicialmente un servicio pequeño y orientado al contenido que r
 
 ## 7.1 Deep links de catálogo
 
-- [ ] Permitir URL identificable para una pieza, por ejemplo:
+- [x] Permitir URL identificable para una pieza, por ejemplo:
   `catalogos.html?catalogo=piezas-arqueologicas&pieza=pieza-001`.
-- [ ] Abrir automáticamente la pieza cuando la URL la indique.
-- [ ] Mantener navegación razonable al cerrar el modal.
+- [x] Abrir automáticamente la pieza cuando la URL la indique.
+- [x] Mantener navegación razonable al cerrar el modal.
 - [ ] No romper el funcionamiento sin JavaScript adicional.
 
 ## 7.2 Filtros
 
-- [ ] Añadir acción clara de “Limpiar filtros” cuando haya filtros activos.
+- [x] Añadir acción clara de “Limpiar filtros” cuando haya filtros activos.
 - [ ] Mostrar filtros activos de manera comprensible.
 - [ ] Conservar filtros al utilizar navegación atrás cuando sea razonable.
 - [ ] Revisar que los estados de cero resultados sean informativos.
@@ -412,8 +412,8 @@ Antes de cerrar la Fase 1:
 - [x] `docs/arquitectura.md`.
 - [x] `docs/politica_anuncios.md`.
 - [x] `docs/GUIA_CONTENIDO.md`.
-- [ ] Actualizar esta documentación después de la refactorización del loader.
-- [ ] Documentar el contrato de datos que deberá respetar la futura API.
+- [x] Actualizar esta documentación después de la refactorización del loader.
+- [x] Documentar el contrato de datos que deberá respetar la futura API.
 - [x] Documentar claramente qué parte del frontend permanece inmutable durante la migración a API.
 
 ---
