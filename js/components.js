@@ -531,6 +531,14 @@
       this._renderGrid();
     }
 
+    openItemById(id) {
+      if (!id || !this._catalog || !Array.isArray(this._catalog.elementos)) return false;
+      const item = this._catalog.elementos.find((elemento) => elemento.id === id);
+      if (!item) return false;
+      this._openDialog(item);
+      return true;
+    }
+
     _buildFilters(categoryKeys) {
       const wrap = document.createElement('div');
       wrap.className = 'cluster';
