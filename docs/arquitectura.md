@@ -493,108 +493,195 @@ API genérica.
 
 Cada uno podrá incorporarse posteriormente si una necesidad real lo justifica.
 
+
 ---
 
-13. Próximos ajustes de experiencia (planeación, pre-Fase 2)
+## 14. Modelo de transición de contenido: JSON → API Go + DB
 
-Esta sección es solo planeación. El detalle operativo y el checklist de
-ejecución viven en `docs/primera_fase.md` (Fase 1.6); aquí se documenta el
-razonamiento arquitectónico de cada decisión para que no se pierda.
+La primera fase utiliza JSON porque GitHub Pages no dispone de backend. Sin embargo, el almacenamiento en archivos no debe convertirse en una dependencia del frontend.
 
-13.1 Auditoría de clics / fricción actual
+### 14.1 Fuente de datos intercambiable
 
-Revisando el flujo real del sitio (no solo el plan) se identificaron estos
-puntos de fricción, de mayor a menor impacto:
+La frontera correcta es:
 
-1. **Terminar un artículo es un callejón sin salida.** `articulo.html` no
-   ofrece ninguna forma de continuar leyendo: hay que volver a
-   `articulos.html` (1 clic) y elegir otro de la grilla (2º clic) para leer
-   el siguiente. Un enlace "Artículo siguiente" lo reduce a 1 clic. Ver §13.2.
-2. **La bibliografía no enlaza de vuelta a los artículos que la citan.**
-   El esquema de `biblio-XXX.json` ya tiene `articulos_relacionados`, pero
-   ningún componente lo consume — hoy es un campo muerto. Añadir "Aparece
-   en: [artículo]" en `<biblio-card>` es una mejora de navegación barata
-   (el dato ya existe, falta consumirlo) que además funciona en ambas
-   direcciones junto con `bibliografía_relacionada` en el artículo.
-3. **Home no expone contenido reciente.** Hoy `index.html` solo tiene 3
-   accesos genéricos (Artículos / Bibliografía / Colecciones) más una
-   sección "Acerca de". Alguien que solo quiere "ver lo último" tiene que
-   entrar a `articulos.html` igual. Mostrar 2–3 artículos recientes
-   directamente en home ahorra un clic para el caso de uso más común.
-4. **Las piezas de catálogo no tienen URL propia.** El modal de
-   `<catalog-grid>` es puramente de estado JS (no hay deep link); no se
-   puede compartir ni recargar la página en una pieza específica. Es un
-   tema de riqueza de experiencia más que de clics, pero vale resolverlo
-   junto con lo anterior si se toca el componente.
+```text
+Página / Web Component
+        ↓
+      ULE.loader
+        ↓
+   adaptador de datos
+      ↙       ↘
+ JSON local   API HTTP
+                ↓
+              Go
+                ↓
+               DB
+```
 
-Fuera de estos puntos, el resto del sitio ya cumple el principio de "todo a
-un clic desde el nav": los filtros de artículos/bibliografía/catálogos son
-visibles sin interacción previa (no hay que "abrir" un panel de filtros), y
-el selector de catálogo ya preselecciona el primero automáticamente.
+`ULE.loader` conserva su API pública:
 
-13.2 "Artículo siguiente" — especificación
+- `loadArticles()`
+- `loadArticleById(id)`
+- `loadBibliografia()`
+- `loadBiblioById(id)`
+- `loadBiblioForArticle(article)`
+- `loadCatalog(id)`
+- `listCatalogIds()`
+- `loadAds()`
 
-- Vive en `articulo.html`, debajo del cuerpo del artículo (antes o junto a
-  la sección de bibliografía relacionada).
-- Criterio de "siguiente": el artículo con `fecha` inmediatamente posterior
-  dentro de la lista completa cargada por `ULE.loader.loadArticles()`
-  (mismo orden que usa `articulos.html` por defecto). Si el artículo actual
-  es el más reciente, no mostrar "siguiente" (o hacer wrap-around al más
-  antiguo — decidir en implementación, no bloqueante).
-- Se aprovecha para agregar también "Artículo anterior" en el mismo bloque,
-  ya que el costo de calcularlo es el mismo (misma lista ordenada).
-- No requiere cambios de esquema de datos ni de `loader.js`: se resuelve
-  enteramente en el script de `articulo.html` con los artículos ya
-  cargados. Es la mejora de más impacto por menos esfuerzo de esta lista.
+La implementación interna podrá seleccionar la fuente.
 
-13.3 Herramienta de generación de JSON — especificación
+Ejemplo conceptual:
 
-**Problema que resuelve:** hoy, agregar un artículo/referencia/pieza de
-catálogo implica escribir el JSON a mano siguiendo el esquema de memoria (o
-copiando un archivo existente y editándolo), con riesgo de errores de
-sintaxis o de campos faltantes/mal nombrados — exactamente el tipo de bug
-que ya causó problemas en la integración de anuncios (ver
-`docs/politica_anuncios.md` y el historial de correcciones de Fase 1.4).
+```javascript
+ULE.config.dataSource = 'local';
+// posteriormente:
+ULE.config.dataSource = 'api';
+```
 
-**Qué es y qué no es:**
-- Una página **interna** (no enlazada desde el nav público) con un
-  formulario HTML por tipo de contenido: artículo, referencia bibliográfica,
-  elemento de catálogo, anuncio.
-- Al enviarlo, genera el JSON correspondiente en memoria (siguiendo
-  exactamente el esquema de `docs/primera_fase.md` §2 / `politica_anuncios.md`
-  §2) y dispara una descarga (`Blob` + `<a download>`), con el nombre de
-  archivo sugerido según la convención (`articulo-00N.json`, etc.).
-- **No escribe al repositorio ni hace commit.** Quien la usa descarga el
-  archivo, lo coloca a mano en la carpeta correcta y hace push, igual que
-  hoy — coherente con el principio de "sin backend" de la sección 1. No es
-  un CMS ni un panel administrativo (evitar ambos está explícitamente en la
-  "Regla general" de esta arquitectura); es un generador de texto con forma
-  de formulario, nada más.
-- Debe recordar explícitamente el paso del manifiesto (§ "Localización de
-  archivos en un sitio 100% estático" arriba): junto con el JSON, mostrar
-  en pantalla el nombre exacto que hay que añadir a `index.json` de esa
-  carpeta, ya que ese paso es fácil de olvidar y no puede automatizarse sin
-  backend.
+Las páginas no deben preguntar si la fuente es JSON o API.
 
-**Ubicación propuesta:** `herramientas/generador-json.html` (ver árbol en
-§2). Reutiliza todo el sistema de diseño (`variables.css`, `base.css`,
-`components.css`, `theme.css`) y `js/main.js` para el toggle de tema — es
-una página interna, pero no hay razón para que no sea cómoda de usar de
-noche. No necesita `js/loader.js`, `js/components.js` ni `js/ads.js`: no
-consume datos existentes ni Web Components de contenido, solo genera texto.
+### 14.2 JSON como adaptador temporal
 
-**Validación:** validación de formulario nativa de HTML (`required`,
-`pattern`, `type="date"`, etc.) más una capa mínima de JS para campos
-compuestos (arrays como `etiquetas` o `autores`, que se escriben como texto
-separado por comas y se convierten a array antes de serializar). Sin
-librerías de validación — coherente con "evitar dependencias innecesarias".
+Mientras el sitio siga en GitHub Pages:
 
-**Fuera de alcance de esta herramienta (no implementar ahora):** edición de
-JSON existentes (solo creación), subida de imágenes (se sigue haciendo por
-fuera, a mano, a `assets/images/...`), y cualquier automatización de
-Git/GitHub — todo eso requeriría backend y no es necesario para el problema
-que se está resolviendo (reducir errores al escribir el JSON a mano).
+```text
+data/articulos/*.json
+data/bibliografia/*.json
+data/catalogos/*.json
+data/anuncios.json
+```
 
-Cada uno podrá incorporarse posteriormente si una necesidad real lo justifica.
+siguen siendo válidos.
 
-La arquitectura debe permitir crecer, pero no debe cargar desde el inicio con infraestructura para problemas que todavía no existen.
+Los `index.json` son una limitación del almacenamiento estático, no una parte del contrato futuro de la aplicación.
+
+Cuando exista API, el frontend dejará de necesitar manifiestos para descubrir contenido.
+
+### 14.3 Contrato de API
+
+La API Go deberá devolver objetos de contenido equivalentes al modelo que actualmente consume el frontend.
+
+Ejemplo:
+
+```text
+GET /api/articulos
+GET /api/articulos/{id}
+GET /api/bibliografia
+GET /api/bibliografia/{id}
+GET /api/catalogos
+GET /api/catalogos/{id}
+GET /api/anuncios
+```
+
+Los nombres definitivos de endpoints pueden cambiar durante Fase 2, pero el principio no:
+
+> La API adapta la base de datos al contrato que necesita la interfaz.
+
+No se debe exponer el esquema interno de la DB como si fuera automáticamente el contrato público.
+
+### 14.4 Modelo inicial de persistencia
+
+La DB deberá modelar relaciones, no archivos JSON completos.
+
+Modelo conceptual mínimo:
+
+```text
+articles
+    │
+    ├──< article_bibliography >── bibliography
+    │
+    └──< article_tags >── tags
+
+catalogs
+    │
+    └──< catalog_items
+              │
+              └──< catalog_item_categories
+
+ads
+```
+
+La estructura exacta de tablas, claves, índices y motor se decidirá al comenzar Fase 2, después de revisar consultas reales y necesidades editoriales.
+
+### 14.5 Alta de contenido
+
+El flujo objetivo será:
+
+```text
+Panel editorial
+      ↓
+   API Go
+      ↓
+ validación
+      ↓
+      DB
+```
+
+Nunca:
+
+```text
+Panel → DB
+```
+
+Esto permitirá que las reglas de publicación, relaciones, validación y permisos estén centralizadas.
+
+### 14.6 Imágenes
+
+Las imágenes no deben almacenarse como blobs dentro de las tablas salvo que exista una razón concreta.
+
+La Fase 2 deberá decidir entre:
+
+- almacenamiento en el servidor/API;
+- almacenamiento de objetos;
+- repositorio para assets públicos.
+
+La DB conservará normalmente la referencia necesaria para que la API construya la URL pública.
+
+La decisión se tomará cuando exista el panel editorial; no se introduce ahora.
+
+### 14.7 Compatibilidad durante la migración
+
+La migración ideal es:
+
+```text
+Fase 1:
+Frontend → ULE.loader → JSON
+
+Fase 2:
+Frontend → ULE.loader → API → DB
+```
+
+No debe ser:
+
+```text
+Fase 2:
+Frontend → API
+Frontend → nuevos componentes
+Frontend → nuevas páginas
+```
+
+Si la migración obliga a modificar componentes visuales, se considerará una señal de que el contrato de datos o el adaptador están mal definidos.
+
+### 14.8 Generador JSON
+
+`herramientas/generador-json.html` es una herramienta transitoria.
+
+Puede conservarse mientras los datos locales sean necesarios, pero no debe convertirse en un CMS.
+
+Una vez que el panel editorial de Fase 2 permita alta de contenido mediante API, el generador podrá quedar obsoleto.
+
+### 14.9 Primera responsabilidad de la API
+
+La API no debe comenzar como una plataforma genérica.
+
+El primer objetivo será resolver el contenido que necesita administración:
+
+1. artículos;
+2. bibliografía;
+3. relaciones entre ambos;
+4. catálogos y elementos;
+5. anuncios.
+
+Autenticación y panel administrativo serán parte de la misma evolución, pero los endpoints deberán mantenerse pequeños y explícitos.
+
