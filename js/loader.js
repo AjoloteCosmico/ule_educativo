@@ -193,7 +193,7 @@ ULE.loader = (function () {
   function loadArticles() {
     return fromSource(
       function () { return loadCollection('data/articulos/', { prefix: 'articulo' }); },
-      function () { return apiJSON('/articulos').then(normalizeCollection); }
+      function () { return apiJSON('/articulos').then(normalizeVisible); }
     );
   }
 
@@ -212,7 +212,7 @@ ULE.loader = (function () {
   function loadBibliografia() {
     return fromSource(
       function () { return loadCollection('data/bibliografia/', { prefix: 'biblio' }); },
-      function () { return apiJSON('/bibliografia').then(normalizeCollection); }
+      function () { return apiJSON('/bibliografia').then(normalizeVisible); }
     );
   }
 
@@ -313,6 +313,12 @@ ULE.loader = (function () {
     if (data && Array.isArray(data.items)) return data.items;
     if (data && Array.isArray(data.data)) return data.data;
     return [];
+  }
+
+  // Misma regla que la fuente local (loadCollection): los elementos con visible:false no se muestran.
+  // Así la interfaz se comporta igual aunque la API llegara a devolver borradores.
+  function normalizeVisible(data) {
+    return normalizeCollection(data).filter(function (item) { return item && item.visible !== false; });
   }
 
   async function loadAllCatalogs() {

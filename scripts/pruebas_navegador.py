@@ -180,7 +180,7 @@ def mock(mode):
         def j(o,st=200): r.fulfill(status=st,headers=CORS,content_type='application/json',body=json.dumps(o))
         if mode=='down': return r.abort()
         if mode=='500': return j({'error':'boom'},500)
-        if path=='/articulos': return j({'items':arts})           # envoltorio {items:[]}
+        if path=='/articulos': return j({'items':arts+[dict(arts[0],id='articulo-999',titulo='BORRADOR',visible=False)]})  # envoltorio {items:[]} + un borrador
         if path.startswith('/articulos/'):
             a=[x for x in arts if x['id']==path.split('/')[-1]]; return j(a[0]) if a else j({},404)
         if path=='/bibliografia': return j({'data':refs})         # envoltorio {data:[]}
@@ -209,7 +209,7 @@ with sync_playwright() as p:
         pg.route('**/*',route); pg.goto(BASE+url,wait_until='networkidle'); pg.wait_for_timeout(600); return ctx,pg
     # --- API OK
     ctx,pg=page('ok','index.html'); check('API ok · home: 3 recientes + anuncio',pg.evaluate("document.querySelectorAll('#articulos-recientes article-card').length")==3 and pg.evaluate("document.querySelectorAll('[data-ad-slot] ad-card').length")==1,pg.errs); ctx.close()
-    ctx,pg=page('ok','articulos.html'); check('API ok · articulos (envoltorio {items})',pg.evaluate("document.querySelectorAll('article-card').length")==4,pg.errs); ctx.close()
+    ctx,pg=page('ok','articulos.html'); check('API ok · articulos (envoltorio {items}) y borradores (visible:false) ocultos',pg.evaluate("document.querySelectorAll('article-card').length")==4,pg.errs); ctx.close()
     ctx,pg=page('ok','bibliografia.html'); check('API ok · bibliografía (envoltorio {data}) + relaciones',pg.evaluate("document.querySelectorAll('biblio-card').length")==13 and pg.evaluate("[...document.querySelectorAll('biblio-card')].some(c=>c.shadowRoot.querySelectorAll('.relacionados a').length>0)"),pg.errs); ctx.close()
     ctx,pg=page('ok','catalogos.html?catalogo=canchas-modernas&pieza=cancha-002'); check('API ok · catálogo + deep link a pieza (sin carrera)',pg.evaluate("document.querySelector('dialog')&&document.querySelector('dialog').open")==True and pg.evaluate("document.getElementById('selector-catalogo').value")=='canchas-modernas',pg.errs); ctx.close()
     ctx,pg=page('ok','articulo.html?id=articulo-001'); check('API ok · artículo + bibliografía + prev/next',pg.evaluate("document.querySelector('h1').textContent")!='' and pg.evaluate("document.querySelectorAll('biblio-card').length")==2,pg.errs); ctx.close()
