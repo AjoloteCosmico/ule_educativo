@@ -334,14 +334,14 @@ La API Go será inicialmente un servicio pequeño y orientado al contenido que r
   `catalogos.html?catalogo=piezas-arqueologicas&pieza=pieza-001`.
 - [x] Abrir automáticamente la pieza cuando la URL la indique.
 - [x] Mantener navegación razonable al cerrar el modal.
-- [ ] No romper el funcionamiento sin JavaScript adicional.
+- [ ] No romper el funcionamiento sin JavaScript adicional. *(No aplica al deep-link del modal: requiere JavaScript por definición.)*
 
 ## 7.2 Filtros
 
 - [x] Añadir acción clara de “Limpiar filtros” cuando haya filtros activos.
-- [ ] Mostrar filtros activos de manera comprensible.
+- [x] Mostrar filtros activos de manera comprensible.
 - [ ] Conservar filtros al utilizar navegación atrás cuando sea razonable.
-- [ ] Revisar que los estados de cero resultados sean informativos.
+- [x] Revisar que los estados de cero resultados sean informativos.
 
 ## 7.3 Portada
 
@@ -362,9 +362,9 @@ La API Go será inicialmente un servicio pequeño y orientado al contenido que r
 ## 7.5 Estados
 
 - [x] Unificar estados de carga.
-- [ ] Unificar estados vacíos.
-- [ ] Unificar mensajes de error.
-- [ ] Evitar pantallas visualmente “rotas” cuando falten imágenes o datos opcionales.
+- [x] Unificar estados vacíos.
+- [x] Unificar mensajes de error.
+- [x] Evitar pantallas visualmente “rotas” cuando falten imágenes o datos opcionales.
 
 ---
 
