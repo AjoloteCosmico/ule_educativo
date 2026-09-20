@@ -243,3 +243,5 @@ Espacio de protección
 
 Mínimo de 0.25× el ancho del icono alrededor de todos los lados cuando se usa como logo.
 Nunca colocar texto ni otros elementos dentro de esa zona de respiro.
+
+pronando edicar desde utopia dev github account
