@@ -138,7 +138,7 @@ Los anuncios serán inicialmente datos estáticos almacenados en:
 
 data/anuncios.json
 
-El frontend consumirá estos datos mediante fetch().
+El frontend no accede directamente a los archivos de anuncios. Los consume mediante `ULE.loader`, que encapsula la fuente local y queda preparado para sustituirla por la API Go.
 
 El contrato de datos será el mismo que utilizará posteriormente la API remota. Esto permitirá cambiar la fuente de datos sin modificar los componentes visuales ni la lógica de presentación.
 
