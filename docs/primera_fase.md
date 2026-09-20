@@ -420,7 +420,9 @@ Antes de cerrar la Fase 1:
 
 # 11. Criterio para declarar cerrada la Fase 1
 
-La Fase 1 estará cerrada cuando:
+La Fase 1 se declara cerrada en `master` con las salvedades explícitas de la auditoría. Las pruebas visuales exhaustivas de contraste WCAG, lector de pantalla y zoom 200% deberán completarse como validación posterior si se requiere certificación formal.
+
+La Fase 1 estuvo cerrada cuando:
 
 1. El sitio sea visualmente coherente en móvil y escritorio.
 2. La navegación principal y secundaria sea clara.
@@ -439,7 +441,7 @@ La meta es que la API pueda construirse después sin rehacer lo que ya funciona.
 
 ---
 
-# 12. Transición a Fase 2
+# 13. Transición a Fase 2
 
 La Fase 2 comenzará con:
 
@@ -475,7 +477,7 @@ Los componentes y páginas deberán permanecer conceptualmente iguales.
 
 ---
 
-# 13. Principio rector
+# 14. Principio rector
 
 > **El contenido cambia; la interfaz no debería enterarse de dónde viene.**
 
