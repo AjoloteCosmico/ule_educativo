@@ -7,20 +7,18 @@ ULE.ads = (function () {
   let cache = null;
 
   async function loadAds() {
-    if (window.ULE && ULE.config && ULE.config.dataSource === 'api') {
-      return ULE.loader.loadAds();
+    if (window.ULE && ULE.loader && typeof ULE.loader.loadAds === 'function') {
+      try {
+        const ads = await ULE.loader.loadAds();
+        cache = Array.isArray(ads) ? ads : [];
+        return cache;
+      } catch (error) {
+        console.warn('[ULE.ads] No se pudieron cargar los anuncios:', error);
+        return [];
+      }
     }
-    if (cache) return cache;
-    try {
-      const response = await fetch(DATA_PATH, { cache: 'no-cache' });
-      if (!response.ok) throw new Error('HTTP ' + response.status);
-      const data = await response.json();
-      cache = Array.isArray(data.anuncios) ? data.anuncios : [];
-    } catch (error) {
-      console.warn('[ULE.ads] No se pudieron cargar los anuncios:', error);
-      cache = [];
-    }
-    return cache;
+    console.warn('[ULE.ads] ULE.loader no está disponible.');
+    return [];
   }
 
   function fechaActual() {
