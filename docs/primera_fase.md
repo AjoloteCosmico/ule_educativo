@@ -450,9 +450,9 @@ claro, oscuro y 320 px, con 0 violaciones. Esto no está en el script para no ex
 
 # 11. Criterio para declarar cerrada la Fase 1
 
-La Fase 1 se declara cerrada en `master` con las salvedades explícitas de la auditoría. Las pruebas visuales exhaustivas de contraste WCAG, lector de pantalla y zoom 200% deberán completarse como validación posterior si se requiere certificación formal.
+**Estado:** la Fase 1 se declaró cerrada antes de comprobarse en un navegador y, en ese momento, el sitio publicado no cargaba nada (`js/loader.js` tenía un `SyntaxError` desde `9c77d93`; todas las páginas se quedaban en "Cargando…"). Se da por cerrada cuando `scripts/pruebas_navegador.py` y `scripts/validar_datos.py` terminan en verde sobre `master` **y** los pendientes de §10 bis están resueltos o aceptados por escrito. La revisión con lector de pantalla puede quedar como validación posterior.
 
-La Fase 1 estuvo cerrada cuando:
+La Fase 1 se da por cerrada cuando:
 
 1. El sitio sea visualmente coherente en móvil y escritorio.
 2. La navegación principal y secundaria sea clara.
