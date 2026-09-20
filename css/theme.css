@@ -34,6 +34,9 @@
     --color-cuerpo-card: var(--color-cuerpo-card-oscuro);
     --shadow-card: var(--shadow-card-oscuro);
     --color-icono: var(--color-texto-oscuro);
+    --color-principal-texto: #4CC57F;
+    --color-link-hover: #8BE5B3;
+    --color-link-visitado: #8FB8A3;
   }
 }
 

@@ -101,7 +101,9 @@ a:hover {
   color: var(--color-link-hover);
 }
 
-a:visited {
+/* Sólo en texto de lectura. Un `a:visited` global tiene más especificidad que
+   .nav__link, .card o .skip-link y les cambiaba el color tras la primera visita. */
+.articulo__cuerpo a:visited {
   color: var(--color-link-visitado);
 }
 
@@ -169,7 +171,7 @@ li {
 
 /* ---------- Focus visible genérico (accesibilidad) ---------- */
 :focus-visible {
-  outline: 2px solid var(--color-principal);
+  outline: 2px solid var(--color-principal-texto);
   outline-offset: 3px;
 }
 
@@ -184,14 +186,14 @@ button,
   border: none;
   border-radius: var(--radius-sm);
   padding: var(--space-sm) var(--space-md);
-  background-color: var(--color-principal);
+  background-color: var(--color-principal-accion);
   color: #fff;
   transition: background-color 0.15s ease, transform 0.1s ease;
 }
 
 button:hover,
 .btn:hover {
-  background-color: var(--color-link-hover);
+  background-color: var(--color-principal-accion-hover);
 }
 
 button:focus-visible,
@@ -206,6 +208,19 @@ button:disabled,
   cursor: not-allowed;
 }
 
+/* ---------- Sólo lectores de pantalla ---------- */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* ---------- Skip link (accesibilidad) ---------- */
 .skip-link {
   position: absolute;
@@ -213,7 +228,7 @@ button:disabled,
   left: var(--space-md);
   z-index: 1000;
   padding: var(--space-sm) var(--space-md);
-  background-color: var(--color-principal);
+  background-color: var(--color-principal-accion);
   color: #fff;
   border-radius: var(--radius-sm);
   text-decoration: none;
@@ -227,6 +242,12 @@ button:disabled,
 ::selection {
   background-color: color-mix(in srgb, var(--color-principal) 30%, transparent);
   color: var(--color-texto);
+}
+
+/* El atributo hidden debe ganar siempre: reglas como `section { display: block }`
+   o `.articulo-navegacion { display: grid }` lo anulaban. */
+[hidden] {
+  display: none !important;
 }
 
 /* ---------- Elementos semánticos básicos ---------- */

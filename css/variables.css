@@ -17,19 +17,28 @@
   --color-card-oscuro: #162A25;         /* gris muy oscuro, ligeramente más profundo que el fondo */
 
   /* Texto sobre cards */
-  --color-titulo-card: var(--color-principal);
+  --color-titulo-card: var(--color-principal-texto);
   --color-cuerpo-card-claro: #2C2C2C;   /* contraste AA sobre #F7F3EB */
   --color-cuerpo-card-oscuro: #D0DDD9;  /* contraste AA sobre #162A25 */
 
+  /* Verde para TEXTO y para rellenos con texto blanco.
+     --color-principal (#058A41) queda para elementos decorativos/rellenos
+     sin texto: sólo alcanza 4.38:1 sobre el fondo claro y 4.02:1 sobre la
+     card clara (AA exige 4.5:1), y 2.9:1 sobre el fondo oscuro. Estos tokens
+     conservan el mismo tono pero cumplen AA en ambos temas. */
+  --color-principal-texto: #047538;     /* claro: 5.7:1 sobre fondo, 5.3:1 sobre card */
+  --color-principal-accion: #047538;    /* fondo de botones con texto blanco: 5.9:1 */
+  --color-principal-accion-hover: #046B32; /* hover de botones (6.7:1 con texto blanco, en ambos temas) */
+
   /* Estados de link */
-  --color-link: var(--color-principal);
-  --color-link-hover: #046B32;
+  --color-link: var(--color-principal-texto);
+  --color-link-hover: #046B32;          /* 6.5:1 sobre fondo claro */
   --color-link-visitado: #4A6B5A;
-  --color-link-focus: #058A41;
+  --color-link-focus: var(--color-principal-texto);
 
   /* Paleta fija de badges — Periodo */
   --badge-periodo-preclasico: #8B5E3C;
-  --badge-periodo-clasico: #C17A3A;
+  --badge-periodo-clasico: #A0601F;    /* antes #C17A3A (3.4:1 con texto blanco); ahora 5.0:1 */
   --badge-periodo-posclasico: #5C3A21;
 
   /* Paleta fija de badges — Cultura */
@@ -92,6 +101,11 @@
   --color-cuerpo-card: var(--color-cuerpo-card-oscuro);
   --shadow-card: var(--shadow-card-oscuro);
   --color-icono: var(--color-texto-oscuro);
+
+  /* Verde legible sobre fondo/card oscuros (≥ 6:1) */
+  --color-principal-texto: #4CC57F;
+  --color-link-hover: #8BE5B3;
+  --color-link-visitado: #8FB8A3;       /* el verde apagado claro daba 2.2:1 sobre oscuro */
 }
 
 /* ---------- Desktop typography (≥ 768px) ---------- */

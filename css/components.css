@@ -67,7 +67,7 @@
 /* ---------- Catálogo: grid de cards ---------- */
 .catalog-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-md);
   width: 100%;
 }
@@ -75,7 +75,7 @@
 /* ≥ 480px — 2 columnas */
 @media (min-width: 480px) {
   .catalog-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--space-md);
   }
 }
@@ -83,7 +83,7 @@
 /* ≥ 768px — 3 columnas */
 @media (min-width: 768px) {
   .catalog-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--space-lg);
   }
 }
@@ -91,7 +91,7 @@
 /* ≥ 1024px — 4 columnas */
 @media (min-width: 1024px) {
   .catalog-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--space-lg);
   }
 }
@@ -99,23 +99,71 @@
 /* ≥ 1280px — se mantiene en 4 columnas (máximo) */
 @media (min-width: 1280px) {
   .catalog-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
 /* Card individual del catálogo */
 .catalog-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   background-color: var(--color-card);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-card);
   overflow: hidden;
+  cursor: pointer;
   transition: box-shadow 0.2s ease, transform 0.15s ease;
 }
 
 .catalog-card:hover {
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+/* El título es un <button> real: se anuncia como botón, entra en el orden de
+   foco y su ::after cubre toda la card para que cualquier clic abra el detalle. */
+.catalog-card__abrir {
+  all: unset;
+  box-sizing: border-box;
+  cursor: pointer;
+  color: inherit;
+}
+
+.catalog-card__abrir::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.catalog-card:has(.catalog-card__abrir:focus-visible) {
+  outline: 2px solid var(--color-principal-texto);
+  outline-offset: 3px;
+}
+
+.catalog-card__abrir:focus-visible {
+  outline: none; /* el aro lo dibuja la card completa (regla :has de arriba) */
+}
+
+/* Modal de detalle. El reset global `* { margin: 0 }` anulaba el margin:auto con el que
+   el navegador centra un <dialog>, dejándolo pegado a la esquina superior izquierda. */
+.catalog-modal {
+  margin: auto;
+  max-height: calc(100dvh - 2 * var(--space-md));
+  overflow-y: auto;
+}
+
+.catalog-modal::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+/* Imagen que no cargó: conserva la proporción y no muestra el icono de imagen rota */
+.catalog-card__imagen.is-broken {
+  visibility: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .catalog-card:hover { transform: none; }
 }
 
 :root[data-theme="dark"] .catalog-card:hover {
@@ -150,6 +198,18 @@
   flex-wrap: wrap;
   gap: var(--space-xs);
   margin-top: auto;
+}
+
+/* Resumen de resultados y filtros activos (región role="status") */
+.catalog-status {
+  margin-block: 0 var(--space-md);
+  font-size: var(--fs-anotacion);
+  color: var(--color-texto);
+  opacity: 0.85;
+}
+
+.catalog-empty__accion {
+  margin-block-start: var(--space-md);
 }
 
 /* Encabezado de colección (catálogo) */
@@ -240,7 +300,9 @@
 }
 
 /* ---------- Header sticky con hide/show ---------- */
-header {
+/* Sólo el header principal del sitio (hijo directo de <body>): otros <header>
+   internos, como el de <catalog-grid>, no deben ser sticky. */
+body > header {
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -250,11 +312,11 @@ header {
   transition: transform 0.3s ease;
 }
 
-header.header--hidden {
+body > header.header--hidden {
   transform: translateY(-100%);
 }
 
-header.header--visible {
+body > header.header--visible {
   transform: translateY(0);
 }
 
@@ -286,17 +348,17 @@ header.header--visible {
 }
 
 .nav__link:hover {
-  color: var(--color-principal);
+  color: var(--color-principal-texto);
   background-color: color-mix(in srgb, var(--color-principal) 10%, transparent);
 }
 
 .nav__link[aria-current="page"] {
-  color: var(--color-principal);
+  color: var(--color-principal-texto);
   font-weight: 700;
 }
 
 .nav__link:focus-visible {
-  outline: 2px solid var(--color-principal);
+  outline: 2px solid var(--color-principal-texto);
   outline-offset: 2px;
 }
 
@@ -419,16 +481,51 @@ header.header--visible {
   transform: translateX(3px);
 }
 
+/* CTA visual dentro de una card-enlace (el enlace es la card; esto es sólo apariencia) */
+.button {
+  display: inline-block;
+  margin-block-start: var(--space-sm);
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-principal-accion);
+  color: #fff;
+  font-weight: 500;
+}
+
+.card-link:hover .button {
+  background-color: var(--color-principal-accion-hover);
+}
+
+.card-link .card__cuerpo {
+  margin-block-end: var(--space-sm);
+}
+
+/* Accesos de la portada: el botón queda alineado al pie aunque el texto varíe de largo */
+.accesos-grid .card-link {
+  display: flex;
+  flex-direction: column;
+}
+
+.accesos-grid .card-link .button {
+  align-self: flex-start;
+  margin-block-start: auto;
+}
+
+/* Título de una card de texto seguido de párrafo */
+.card > h2 {
+  margin-block-end: var(--space-sm);
+}
+
 /* ---------- Grid de accesos (home) ---------- */
 .accesos-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-lg);
   width: 100%;
 }
 
 @media (min-width: 640px) {
-  .accesos-grid { grid-template-columns: repeat(3, 1fr); }
+  .accesos-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 /* ---------- Estados de carga / vacío (catálogo) ---------- */
@@ -445,31 +542,31 @@ header.header--visible {
    Mobile: 1 columna · Tablet (≥768px): 2 · Desktop (≥1024px): 3 */
 .articles-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-lg);
   width: 100%;
   align-items: stretch;
 }
 
 @media (min-width: 768px) {
-  .articles-grid { grid-template-columns: repeat(2, 1fr); }
+  .articles-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (min-width: 1024px) {
-  .articles-grid { grid-template-columns: repeat(3, 1fr); }
+  .articles-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 /* ---------- Lista de bibliografía ----------
    Lista de una columna; en pantallas amplias aprovecha el ancho en 2. */
 .biblio-list {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-md);
   width: 100%;
 }
 
 @media (min-width: 900px) {
-  .biblio-list { grid-template-columns: repeat(2, 1fr); }
+  .biblio-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 /* ---------- Barra de filtros (artículos / bibliografía / catálogos) ---------- */
@@ -550,7 +647,7 @@ header.header--visible {
 }
 
 .catalog-selector__tab[aria-selected="true"] {
-  background-color: var(--color-principal);
+  background-color: var(--color-principal-accion);
   color: #fff;
   font-weight: 700;
 }
@@ -581,8 +678,8 @@ header.header--visible {
   text-decoration: none;
   transition: transform .15s ease, box-shadow .2s ease, border-color .2s ease;
 }
-.articulo-navegacion__link:hover { transform: translateY(-2px); box-shadow: var(--shadow-card); border-color: var(--color-principal); }
-.articulo-navegacion__link:focus-visible { outline: 2px solid var(--color-principal); outline-offset: 3px; }
+.articulo-navegacion__link:hover { transform: translateY(-2px); box-shadow: var(--shadow-card); border-color: var(--color-principal-texto); }
+.articulo-navegacion__link:focus-visible { outline: 2px solid var(--color-principal-texto); outline-offset: 3px; }
 .articulo-navegacion__link span { font-size: var(--fs-anotacion); opacity: .75; }
 .articulo-navegacion__link strong { color: var(--color-titulo-card); font-size: var(--fs-cuerpo); line-height: var(--lh-titulo); }
 .articulo-navegacion__link--siguiente { text-align: end; }
