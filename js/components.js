@@ -34,7 +34,33 @@
 (function () {
   'use strict';
 
+  window.ULE = window.ULE || {};
+
+  /* Etiquetas de interfaz que comparten componentes y páginas.
+     Una sola fuente de verdad: si aparece un tipo nuevo en los datos se agrega aquí. */
+  ULE.labels = ULE.labels || {};
+  ULE.labels.tipoBiblio = {
+    libro: 'Libro',
+    capitulo_libro: 'Capítulo de libro',
+    articulo: 'Artículo',
+    articulo_web: 'Artículo web',
+    web: 'Sitio web'
+  };
+  ULE.labels.tipoBiblioLabel = function (tipo) {
+    if (!tipo) return '';
+    const known = ULE.labels.tipoBiblio[tipo];
+    if (known) return known;
+    // Tipo no registrado: legible en vez de mostrar el identificador crudo
+    const plain = String(tipo).replace(/_/g, ' ');
+    return plain.charAt(0).toUpperCase() + plain.slice(1);
+  };
+
   /* ---------- Utilidades compartidas ---------- */
+
+  function headingLevel(value, fallback) {
+    const n = parseInt(value, 10);
+    return n >= 2 && n <= 6 ? n : fallback;
+  }
 
   function truncate(text, max) {
     if (!text) return '';
@@ -118,7 +144,7 @@
      ========================================================================== */
   class ArticleCard extends HTMLElement {
     static get observedAttributes() {
-      return ['data-id', 'data-title', 'data-summary', 'data-image', 'data-category', 'data-date', 'data-author', 'data-href'];
+      return ['data-id', 'data-title', 'data-summary', 'data-image', 'data-category', 'data-date', 'data-author', 'data-href', 'data-heading-level'];
     }
 
     connectedCallback() {
@@ -138,6 +164,8 @@
       const date = this.getAttribute('data-date') || '';
       const author = this.getAttribute('data-author') || '';
       const href = this.getAttribute('data-href') || ('articulo.html?id=' + encodeURIComponent(id));
+      // Nivel del título según el contexto de la página (h2 bajo un h1, h3 bajo un h2).
+      const level = headingLevel(this.getAttribute('data-heading-level'), 3);
 
       if (!this.shadowRoot) this.attachShadow({ mode: 'open' });
 
@@ -154,7 +182,8 @@
         'img { aspect-ratio: 16/10; width: 100%; object-fit: cover; display: block; border-radius: 0; }' +
         '.body { display: flex; flex-direction: column; gap: var(--space-sm); padding: var(--space-md); flex-grow: 1; }' +
         '.meta { font-family: var(--font-anotaciones); font-style: italic; font-size: var(--fs-anotacion); color: var(--color-cuerpo-card); opacity: 0.8; }' +
-        'h3 { font-size: var(--fs-h3); font-weight: 500; color: var(--color-titulo-card); margin: 0; line-height: var(--lh-titulo); }' +
+        '.titulo { font-size: var(--fs-h3); font-weight: 500; color: var(--color-titulo-card); margin: 0; line-height: var(--lh-titulo); overflow-wrap: anywhere; }' +
+        'img.is-broken { visibility: hidden; }' +
         'p.summary { font-size: var(--fs-cuerpo); color: var(--color-cuerpo-card); line-height: var(--lh-cuerpo); margin: 0; }' +
         '.footer { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: var(--space-sm); }' +
         'a.leer-mas {' +
@@ -168,7 +197,7 @@
         (image ? '<img part="imagen" loading="lazy" alt="">' : '') +
         '<div class="body">' +
         '<ule-badge type="' + this._escapeAttr(category) + '"></ule-badge>' +
-        '<h3 part="titulo"></h3>' +
+        '<h' + level + ' class="titulo" part="titulo"></h' + level + '>' +
         '<p class="meta" part="meta"></p>' +
         '<p class="summary" part="resumen"></p>' +
         '<div class="footer">' +
@@ -180,10 +209,12 @@
       const root = this.shadowRoot;
       const imgEl = root.querySelector('img');
       if (imgEl) {
+        // Decorativa: el título de la card ya nombra el contenido (evita leerlo dos veces).
+        imgEl.alt = '';
+        imgEl.addEventListener('error', function () { imgEl.classList.add('is-broken'); });
         imgEl.src = image;
-        imgEl.alt = title ? 'Imagen destacada: ' + title : '';
       }
-      root.querySelector('h3').textContent = title;
+      root.querySelector('.titulo').textContent = title;
       const metaParts = [author, formatFecha(date)].filter(Boolean);
       root.querySelector('.meta').textContent = metaParts.join(' · ');
       root.querySelector('.summary').textContent = summary;
@@ -213,7 +244,7 @@
      ========================================================================== */
   class BiblioCard extends HTMLElement {
     static get observedAttributes() {
-      return ['data-id', 'data-title', 'data-authors', 'data-year', 'data-type', 'data-editorial', 'data-url', 'data-summary', 'data-related-articles'];
+      return ['data-id', 'data-title', 'data-authors', 'data-year', 'data-type', 'data-editorial', 'data-url', 'data-summary', 'data-related-articles', 'data-heading-level'];
     }
 
     connectedCallback() {
@@ -224,10 +255,6 @@
       if (this.shadowRoot) this._render();
     }
 
-    static get TIPO_LABEL() {
-      return { libro: 'Libro', articulo: 'Artículo', web: 'Sitio web' };
-    }
-
     _render() {
       const title = this.getAttribute('data-title') || '';
       const authors = this.getAttribute('data-authors') || '';
@@ -236,9 +263,16 @@
       const editorial = this.getAttribute('data-editorial') || '';
       const url = this.getAttribute('data-url') || '';
       const summary = this.getAttribute('data-summary') || '';
+      // data-related-articles: JSON con [{ id, titulo }] (o, por compatibilidad, sólo ids).
       let relatedArticles = [];
-      try { relatedArticles = JSON.parse(this.getAttribute('data-related-articles') || '[]'); } catch (e) { relatedArticles = []; }
-      const tipoLabel = BiblioCard.TIPO_LABEL[type] || capitalize(type);
+      try {
+        const parsed = JSON.parse(this.getAttribute('data-related-articles') || '[]');
+        relatedArticles = (Array.isArray(parsed) ? parsed : []).map(function (a) {
+          return typeof a === 'string' ? { id: a, titulo: a } : { id: a && a.id, titulo: (a && (a.titulo || a.id)) || '' };
+        }).filter(function (a) { return a.id; });
+      } catch (e) { relatedArticles = []; }
+      const tipoLabel = ULE.labels.tipoBiblioLabel(type);
+      const level = headingLevel(this.getAttribute('data-heading-level'), 3);
 
       if (!this.shadowRoot) this.attachShadow({ mode: 'open' });
 
@@ -250,7 +284,7 @@
         '  border-radius: var(--radius-md); box-shadow: var(--shadow-card);' +
         '  padding: var(--space-lg); display: flex; flex-direction: column; gap: var(--space-sm);' +
         '}' +
-        'h3 { color: var(--color-titulo-card); font-weight: 500; font-size: var(--fs-h3); margin: 0; }' +
+        '.titulo { color: var(--color-titulo-card); font-weight: 500; font-size: var(--fs-h3); margin: 0; min-width: 0; overflow-wrap: anywhere; }' +
         '.meta { font-size: var(--fs-anotacion); color: var(--color-cuerpo-card); opacity: 0.85; }' +
         'p.summary { font-size: var(--fs-cuerpo); line-height: var(--lh-cuerpo); margin: 0; }' +
         'a.enlace { color: var(--color-link); font-size: var(--fs-anotacion); text-decoration: underline; text-underline-offset: 0.15em; }' +
@@ -258,25 +292,28 @@
         'a.enlace:focus-visible { outline: 2px solid var(--color-link-focus); outline-offset: 2px; }' +
         '.relacionados { margin-top: var(--space-xs); padding-top: var(--space-sm); border-top: 1px solid color-mix(in srgb, var(--color-texto) 12%, transparent); }' +
         '.relacionados__label { display:block; font-size:var(--fs-anotacion); font-style:italic; opacity:.8; margin-bottom:var(--space-xs); }' +
-        '.relacionados__lista { display:flex; flex-wrap:wrap; gap:var(--space-xs); }' +
-        '.relacionados a { color:var(--color-link); font-size:var(--fs-anotacion); text-decoration:none; }' +
-        '.relacionados a:hover { text-decoration:underline; }' +
+        '.relacionados__lista { display:flex; flex-wrap:wrap; gap:var(--space-xs) var(--space-md); list-style:none; margin:0; padding:0; }' +
+        '.relacionados__lista li { margin:0; }' +
+        '.relacionados a { color:var(--color-link); font-size:var(--fs-anotacion); text-decoration:underline; text-underline-offset:0.15em; }' +
+        '.relacionados a:hover { color:var(--color-link-hover); }' +
         '.relacionados a:focus-visible { outline:2px solid var(--color-link-focus); outline-offset:2px; border-radius:var(--radius-sm); }' +
-        '.header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-sm); }' +
+        '.header-row { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--space-sm); }' +
+        '.header-row ule-badge { flex-shrink: 0; }' +
+        'a.enlace { overflow-wrap: anywhere; }' +
         '</style>' +
         '<article class="card" part="card">' +
         '<div class="header-row">' +
-        '<h3 part="titulo"></h3>' +
+        '<h' + level + ' class="titulo" part="titulo"></h' + level + '>' +
         '<ule-badge type="biblio-' + slugify(type) + '" label="' + this._escapeAttr(tipoLabel) + '"></ule-badge>' +
         '</div>' +
         '<p class="meta" part="meta"></p>' +
         '<p class="summary" part="resumen"></p>' +
-        (url ? '<a class="enlace" part="enlace" target="_blank" rel="noopener noreferrer">Ver fuente <span class="sr-only"></span></a>' : '') +
-        (relatedArticles.length ? '<div class="relacionados"><span class="relacionados__label">Aparece en:</span><div class="relacionados__lista"></div></div>' : '') +
+        (url ? '<a class="enlace" part="enlace" target="_blank" rel="noopener noreferrer">Ver fuente</a>' : '') +
+        (relatedArticles.length ? '<div class="relacionados"><span class="relacionados__label">Aparece en:</span><ul class="relacionados__lista"></ul></div>' : '') +
         '</article>';
 
       const root = this.shadowRoot;
-      root.querySelector('h3').textContent = title;
+      root.querySelector('.titulo').textContent = title;
       const metaParts = [authors, year, editorial].filter(Boolean);
       root.querySelector('.meta').textContent = metaParts.join(' · ');
       root.querySelector('.summary').textContent = summary;
@@ -285,6 +322,18 @@
       if (link) {
         link.href = url;
         link.setAttribute('aria-label', 'Ver fuente de "' + title + '" (abre en pestaña nueva)');
+      }
+
+      const relList = root.querySelector('.relacionados__lista');
+      if (relList) {
+        relatedArticles.forEach(function (article) {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.href = 'articulo.html?id=' + encodeURIComponent(article.id);
+          a.textContent = article.titulo || article.id;
+          li.appendChild(a);
+          relList.appendChild(li);
+        });
       }
     }
 
@@ -420,7 +469,7 @@
       root.querySelector('.legal').textContent = legal;
 
       const link = root.querySelector('a.wrap');
-      if (link && slogan) link.setAttribute('aria-label', slogan + (contacto ? ' — ' + contacto : ''));
+      if (link && slogan) link.setAttribute('aria-label', slogan + (contacto ? ' — ' + contacto : '') + ' (abre en pestaña nueva)');
     }
 
     _escapeAttr(value) {
@@ -437,13 +486,27 @@
                         (si se omite, se usan todas las de categorias_disponibles)
        allow-filter   — "true"/"false" (default: "true")
        hide-header    — si está presente, no renderiza título/descripción
+
+     API pública:
+       whenReady()          — Promise<boolean>: resuelve cuando el catálogo terminó de
+                              cargar y renderizar (true) o falló (false).
+       openItemById(id)     — abre el detalle de un elemento; devuelve true si existe.
+
+     Accesibilidad:
+       - Cada card contiene un <button> real (el título) que abre un <dialog> modal.
+         Su ::after cubre la card completa, así que cualquier clic abre el detalle.
+       - El <dialog> tiene nombre accesible (aria-labelledby → su título).
+       - Una región role="status" anuncia resultados y filtros activos.
      ========================================================================== */
+  let catalogInstanceCounter = 0;
+
   class CatalogGrid extends HTMLElement {
     static get observedAttributes() {
-      return ['data-source', 'categories', 'allow-filter'];
+      return ['data-catalog', 'data-source', 'categories', 'allow-filter'];
     }
 
     connectedCallback() {
+      this._instanceId = this._instanceId || ++catalogInstanceCounter;
       this._activeFilters = this._activeFilters || {};
       this._load();
     }
@@ -454,11 +517,19 @@
       this._load();
     }
 
+    whenReady() {
+      return this._ready || Promise.resolve(false);
+    }
+
     async _load() {
+      let resolveReady;
+      this._ready = new Promise((resolve) => { resolveReady = resolve; });
+
       const catalogId = this.getAttribute('data-catalog');
       const source = this.getAttribute('data-source');
       if (!catalogId && !source) {
         this.innerHTML = '<div class="catalog-empty">Falta el atributo data-catalog en &lt;catalog-grid&gt;.</div>';
+        resolveReady(false);
         return;
       }
 
@@ -479,12 +550,14 @@
       }
 
       if (!data) {
-        this.innerHTML = '<div class="catalog-empty">No se pudo cargar el catálogo.</div>';
+        this.innerHTML = '<div class="catalog-empty" role="alert">No se pudo cargar el catálogo.</div>';
+        resolveReady(false);
         return;
       }
 
       this._catalog = data;
       this._renderShell();
+      resolveReady(true);
     }
 
     _renderShell() {
@@ -498,6 +571,7 @@
         : Object.keys(catalog.categorias_disponibles || {});
 
       this.innerHTML = '';
+      this._clearFiltersButton = null;
 
       if (!hideHeader && (catalog.titulo || catalog.descripcion)) {
         const header = document.createElement('header');
@@ -521,6 +595,11 @@
         this.appendChild(this._buildFilters(categoryKeys));
       }
 
+      this._statusEl = document.createElement('p');
+      this._statusEl.className = 'catalog-status';
+      this._statusEl.setAttribute('role', 'status');
+      this.appendChild(this._statusEl);
+
       this._gridEl = document.createElement('div');
       this._gridEl.className = 'catalog-grid';
       this.appendChild(this._gridEl);
@@ -537,6 +616,16 @@
       if (!item) return false;
       this._openDialog(item);
       return true;
+    }
+
+    _hasActiveFilters() {
+      return Object.values(this._activeFilters).some((values) => values.length);
+    }
+
+    _clearFilters() {
+      this._activeFilters = {};
+      this.querySelectorAll('[data-catalog-filters] input[type="checkbox"]').forEach((input) => { input.checked = false; });
+      this._renderGrid();
     }
 
     _buildFilters(categoryKeys) {
@@ -567,11 +656,12 @@
         cluster.className = 'cluster';
 
         values.forEach((value) => {
-          const id = 'filtro-' + key + '-' + slugify(value) + '-' + Math.random().toString(36).slice(2, 7);
+          const id = 'filtro-' + this._instanceId + '-' + key + '-' + slugify(value);
           const label = document.createElement('label');
           label.style.display = 'inline-flex';
           label.style.alignItems = 'center';
           label.style.gap = 'var(--space-xs)';
+          label.setAttribute('for', id);
 
           const input = document.createElement('input');
           input.type = 'checkbox';
@@ -585,7 +675,6 @@
             this._renderGrid();
           });
 
-          label.setAttribute('for', id);
           label.appendChild(input);
           label.appendChild(document.createTextNode(' ' + capitalize(value)));
           cluster.appendChild(label);
@@ -601,10 +690,10 @@
       clear.textContent = 'Limpiar filtros';
       clear.hidden = true;
       clear.addEventListener('click', () => {
-        this._activeFilters = {};
-        wrap.querySelectorAll('input[type="checkbox"]').forEach((input) => { input.checked = false; });
-        clear.hidden = true;
-        this._renderGrid();
+        this._clearFilters();
+        // El botón desaparece al limpiar: el foco pasa al primer filtro para no perderlo.
+        const first = wrap.querySelector('input[type="checkbox"]');
+        if (first) first.focus();
       });
       wrap.appendChild(clear);
       this._clearFiltersButton = clear;
@@ -620,17 +709,45 @@
       });
     }
 
+    _statusText(shown, total) {
+      const noun = total === 1 ? 'elemento' : 'elementos';
+      if (!this._hasActiveFilters()) return total + ' ' + noun;
+      const parts = Object.keys(this._activeFilters)
+        .filter((key) => this._activeFilters[key].length)
+        .map((key) => capitalize(key) + ': ' + this._activeFilters[key].map(capitalize).join(', '));
+      return 'Mostrando ' + shown + ' de ' + total + ' ' + noun + ' · Filtros activos — ' + parts.join(' · ');
+    }
+
     _renderGrid() {
-      if (this._clearFiltersButton) {
-        this._clearFiltersButton.hidden = !Object.values(this._activeFilters).some((values) => values.length);
-      }
-      const elementos = (this._catalog.elementos || []).filter((item) => this._matchesFilters(item));
+      const hasFilters = this._hasActiveFilters();
+      if (this._clearFiltersButton) this._clearFiltersButton.hidden = !hasFilters;
+
+      const todos = this._catalog.elementos || [];
+      const elementos = todos.filter((item) => this._matchesFilters(item));
       this._gridEl.innerHTML = '';
+      if (this._statusEl) this._statusEl.textContent = this._statusText(elementos.length, todos.length);
 
       if (!elementos.length) {
         const empty = document.createElement('div');
         empty.className = 'catalog-empty';
-        empty.textContent = 'No hay piezas que coincidan con los filtros seleccionados.';
+        empty.style.gridColumn = '1 / -1';
+        const msg = document.createElement('p');
+        msg.textContent = hasFilters
+          ? 'Ningún elemento coincide con todos los filtros seleccionados. Prueba quitar alguno o limpiar los filtros.'
+          : 'Esta colección todavía no tiene elementos.';
+        empty.appendChild(msg);
+        if (hasFilters) {
+          const again = document.createElement('button');
+          again.type = 'button';
+          again.className = 'btn catalog-empty__accion';
+          again.textContent = 'Limpiar filtros';
+          again.addEventListener('click', () => {
+            this._clearFilters();
+            const first = this.querySelector('[data-catalog-filters] input[type="checkbox"]');
+            if (first) first.focus();
+          });
+          empty.appendChild(again);
+        }
         this._gridEl.appendChild(empty);
         return;
       }
@@ -643,22 +760,29 @@
     _buildCard(item) {
       const card = document.createElement('article');
       card.className = 'catalog-card';
-      card.tabIndex = 0;
-      card.setAttribute('role', 'button');
-      card.setAttribute('aria-label', 'Ver detalle: ' + (item.titulo || ''));
+      card.dataset.catalogItem = item.id || '';
 
       const img = document.createElement('img');
       img.className = 'catalog-card__imagen';
       img.loading = 'lazy';
+      // Decorativa: el botón-título de la card ya nombra el elemento.
+      img.alt = '';
+      img.addEventListener('error', () => { img.classList.add('is-broken'); });
       img.src = item.imagen || '';
-      img.alt = item.titulo || '';
 
       const body = document.createElement('div');
       body.className = 'catalog-card__body';
 
       const h3 = document.createElement('h3');
       h3.className = 'catalog-card__titulo';
-      h3.textContent = item.titulo || '';
+
+      const opener = document.createElement('button');
+      opener.type = 'button';
+      opener.className = 'catalog-card__abrir';
+      opener.setAttribute('aria-haspopup', 'dialog');
+      opener.textContent = item.titulo || '';
+      opener.addEventListener('click', () => this._openDialog(item));
+      h3.appendChild(opener);
 
       const badges = document.createElement('div');
       badges.className = 'catalog-card__badges';
@@ -674,17 +798,6 @@
       body.appendChild(badges);
       card.appendChild(img);
       card.appendChild(body);
-
-      const open = () => this._openDialog(item);
-      card.dataset.catalogItem = item.id || '';
-      card.addEventListener('click', open);
-      card.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          open();
-        }
-      });
-
       return card;
     }
 
@@ -725,6 +838,9 @@
       window.history.replaceState({}, '', url);
       dialog.innerHTML = '';
 
+      const titleId = 'catalog-modal-titulo-' + this._instanceId;
+      dialog.setAttribute('aria-labelledby', titleId);
+
       const content = document.createElement('div');
       content.style.padding = 'var(--space-lg)';
 
@@ -737,14 +853,16 @@
       closeBtn.addEventListener('click', () => dialog.close());
 
       const img = document.createElement('img');
+      img.alt = item.imagen_alt || item.titulo || '';
+      img.addEventListener('error', () => { img.style.visibility = 'hidden'; });
       img.src = item.imagen || '';
-      img.alt = item.titulo || '';
       img.style.width = '100%';
       img.style.maxHeight = '55vh';
       img.style.objectFit = 'contain';
       img.style.marginBlockEnd = 'var(--space-md)';
 
       const h3 = document.createElement('h3');
+      h3.id = titleId;
       h3.textContent = item.titulo || '';
 
       const desc = document.createElement('p');

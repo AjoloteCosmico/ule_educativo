@@ -3,22 +3,21 @@ window.ULE = window.ULE || {};
 ULE.ads = (function () {
   'use strict';
 
-  const DATA_PATH = 'data/anuncios.json';
+  // Los anuncios se obtienen SIEMPRE a través de ULE.loader.loadAds(): este
+  // módulo no sabe si vienen de data/anuncios.json o de la API (docs/arquitectura.md §4).
   let cache = null;
 
   async function loadAds() {
-    if (window.ULE && ULE.loader && typeof ULE.loader.loadAds === 'function') {
-      try {
-        const ads = await ULE.loader.loadAds();
-        cache = Array.isArray(ads) ? ads : [];
-        return cache;
-      } catch (error) {
-        console.warn('[ULE.ads] No se pudieron cargar los anuncios:', error);
-        return [];
-      }
+    if (cache) return cache;
+    try {
+      const ads = await ULE.loader.loadAds();
+      cache = Array.isArray(ads) ? ads : [];
+    } catch (error) {
+      // Los anuncios son complementarios: si fallan, el slot simplemente se oculta.
+      console.warn('[ULE.ads] No se pudieron cargar los anuncios:', error);
+      cache = [];
     }
-    console.warn('[ULE.ads] ULE.loader no está disponible.');
-    return [];
+    return cache;
   }
 
   function fechaActual() {
@@ -63,14 +62,23 @@ ULE.ads = (function () {
     return weightedRandom(getValidAds(ads, fechaActual(), pagina));
   }
 
+  // Si no hay anuncio, se oculta también la sección contenedora (encabezado
+  // "Comunidad" incluido) para no dejar un título sin contenido.
+  function toggleSection(slot, visible) {
+    const section = slot.closest('.ad-section');
+    if (section) section.hidden = !visible;
+  }
+
   function renderSlot(slot, ad) {
     if (!ad) {
       slot.hidden = true;
       slot.replaceChildren();
+      toggleSection(slot, false);
       return;
     }
 
     slot.hidden = false;
+    toggleSection(slot, true);
     slot.replaceChildren();
 
     const card = document.createElement('ad-card');

@@ -194,7 +194,7 @@ ULE.nav = (function () {
     // Oculta el header sticky al hacer scroll hacia abajo y lo vuelve a
     // mostrar al subir, al llegar arriba del todo, o al acercar el mouse
     // al borde superior de la ventana.
-    const header = document.querySelector('header');
+    const header = document.querySelector('body > header');
     if (!header) return;
 
     let lastScrollY = window.scrollY;

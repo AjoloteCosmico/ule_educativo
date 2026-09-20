@@ -28,6 +28,11 @@
 
 window.ULE = window.ULE || {};
 
+/* CONTRATO DE ERRORES (igual en fuente local y API)
+   - Recurso inexistente  -> null (byId) / [] (listas). No lanza.
+   - Fallo de red o de servidor (sólo API) -> lanza Error.
+   Las páginas deben envolver las llamadas en try/catch y mostrar un mensaje de error. */
+
 // Fuente de datos intercambiable. En Fase 1 usamos JSON local;
 // en Fase 2 podrá cambiarse a un adaptador HTTP sin modificar los consumidores.
 ULE.config = ULE.config || {};
@@ -159,10 +164,16 @@ ULE.loader = (function () {
 
   /* ---------- Adaptador de fuente ---------- */
 
+  /**
+   * GET a la API. Contrato de errores (igual que la fuente local):
+   *  - 404 -> null  (el recurso no existe; las páginas muestran "no encontrado")
+   *  - otro error / red caída -> lanza Error (las páginas muestran "no fue posible cargar")
+   */
   async function apiJSON(path) {
     const base = String(ULE.config.apiBaseUrl || '').replace(/\/+$/, '');
     if (!base) throw new Error('[ULE.loader] ULE.config.apiBaseUrl no está configurada.');
     const response = await fetch(base + path, { headers: { 'Accept': 'application/json' }, cache: 'no-cache' });
+    if (response.status === 404) return null;
     if (!response.ok) throw new Error('[ULE.loader] API respondió HTTP ' + response.status + ' para ' + path);
     return response.json();
   }
@@ -225,6 +236,42 @@ ULE.loader = (function () {
     return ids.map(function (id) { return byId.get(id); }).filter(Boolean);
   }
 
+  /**
+   * Mapa id de referencia -> artículos que la citan: { [biblioId]: [{ id, titulo, fecha }] }.
+   *
+   * La fuente de verdad es articulo.bibliografía_relacionada (así lo modelará
+   * la tabla article_bibliography en Fase 2). Si una referencia declara además
+   * `articulos_relacionados`, se une sin duplicar. Ordena por fecha descendente.
+   * Sólo considera artículos visibles.
+   * @returns {Promise<Object<string, Array<{id:string,titulo:string,fecha:string}>>>}
+   */
+  async function loadRelatedArticlesMap() {
+    const results = await Promise.all([loadArticles(), loadBibliografia()]);
+    const articles = results[0];
+    const refs = results[1];
+    const byId = new Map(articles.map(function (a) { return [a.id, a]; }));
+    const map = {};
+
+    function add(biblioId, article) {
+      if (!article || article.visible === false) return;
+      const list = map[biblioId] || (map[biblioId] = []);
+      if (!list.some(function (x) { return x.id === article.id; })) {
+        list.push({ id: article.id, titulo: article.titulo || article.id, fecha: article.fecha || '' });
+      }
+    }
+
+    articles.forEach(function (article) {
+      (article['bibliografía_relacionada'] || []).forEach(function (biblioId) { add(biblioId, article); });
+    });
+    refs.forEach(function (ref) {
+      (ref.articulos_relacionados || []).forEach(function (articleId) { add(ref.id, byId.get(articleId)); });
+    });
+    Object.keys(map).forEach(function (key) {
+      map[key].sort(function (a, b) { return b.fecha.localeCompare(a.fecha); });
+    });
+    return map;
+  }
+
   /* ---------- Catálogos ---------- */
 
   /**
@@ -234,6 +281,9 @@ ULE.loader = (function () {
    * @returns {Promise<object|null>}
    */
   function loadCatalog(catalogId) {
+    // El id puede venir de la URL (?catalogo=...): sólo se aceptan ids lógicos,
+    // nunca rutas ("../anuncios", "a/b").
+    if (!/^[a-z0-9][a-z0-9_-]*$/i.test(String(catalogId || ''))) return Promise.resolve(null);
     return fromSource(
       function () { return loadJSON('data/catalogos/' + catalogId + '.json'); },
       function () { return apiJSON('/catalogos/' + encodeURIComponent(catalogId)); }
@@ -317,6 +367,7 @@ ULE.loader = (function () {
     loadBibliografia: loadBibliografia,
     loadBiblioById: loadBiblioById,
     loadBiblioForArticle: loadBiblioForArticle,
+    loadRelatedArticlesMap: loadRelatedArticlesMap,
 
     loadCatalog: loadCatalog,
     listCatalogIds: listCatalogIds,
