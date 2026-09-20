@@ -13,10 +13,11 @@
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/ads.css">
 
   <link rel="icon" href="assets/logo/logo.png" type="image/x-icon">
 </head>
-<body>
+<body data-ad-page="articulo">
 
   <a class="skip-link" href="#contenido-principal">Saltar al contenido</a>
 
@@ -26,7 +27,7 @@
         <li><a class="nav__link" href="index.html">Inicio</a></li>
         <li><a class="nav__link" href="articulos.html">Artículos</a></li>
         <li><a class="nav__link" href="bibliografia.html">Bibliografía</a></li>
-        <li><a class="nav__link" href="catalogos.html">Catálogos</a></li>
+        <li><a class="nav__link" href="catalogos.html">Colecciones</a></li>
       </ul>
 
       <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Cambiar tema">
@@ -46,12 +47,17 @@
         <p class="catalog-loading" role="status">Cargando artículo…</p>
       </div>
 
-      <div id="navegacion-articulos" class="articulo-navegacion" hidden aria-label="Navegación entre artículos"></div>
+      <nav id="navegacion-articulos" class="articulo-navegacion" hidden aria-label="Más artículos"></nav>
 
       <div id="biblio-relacionada-contenedor" hidden>
         <h2>Bibliografía relacionada</h2>
         <div class="biblio-list" id="biblio-relacionada-lista"></div>
       </div>
+    </section>
+
+    <section class="container section ad-section" aria-labelledby="anuncios-articulo">
+      <h2 class="ad-section__title" id="anuncios-articulo">Comunidad</h2>
+      <div data-ad-slot></div>
     </section>
   </main>
 
@@ -62,6 +68,7 @@
   <script src="js/main.js"></script>
   <script src="js/loader.js"></script>
   <script src="js/components.js"></script>
+  <script src="js/ads.js"></script>
   <script>
     (function () {
       const contenedor = document.getElementById('articulo-contenedor');
@@ -76,79 +83,144 @@
         return d.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
       }
 
+      function slug(value) {
+        return String(value || '').toLowerCase().replace(/\s+/g, '-');
+      }
+
+      // Estados sin artículo (sin id, no encontrado, error): siempre con <h1> para que la página tenga encabezado principal.
+      function mostrarMensaje(titulo, texto, esError) {
+        const wrap = document.createElement('div');
+        wrap.className = 'catalog-empty';
+        if (esError) wrap.setAttribute('role', 'alert');
+        const h1 = document.createElement('h1');
+        h1.textContent = titulo;
+        const p = document.createElement('p');
+        p.textContent = texto;
+        wrap.appendChild(h1);
+        wrap.appendChild(p);
+        contenedor.replaceChildren(wrap);
+      }
+
+      function badge(type, label) {
+        const el = document.createElement('ule-badge');
+        el.setAttribute('type', type);
+        el.setAttribute('label', label);
+        return el;
+      }
+
+      function renderArticulo(articulo) {
+        const article = document.createElement('article');
+        article.className = 'articulo';
+
+        const chips = document.createElement('div');
+        chips.className = 'cluster';
+        chips.style.marginBlockEnd = 'var(--space-sm)';
+        if (articulo.categoria) chips.appendChild(badge('categoria-' + slug(articulo.categoria), articulo.categoria));
+        (articulo.etiquetas || []).forEach(function (tag) { chips.appendChild(badge('etiqueta-' + slug(tag), tag)); });
+        article.appendChild(chips);
+
+        const h1 = document.createElement('h1');
+        h1.textContent = articulo.titulo || '';
+        article.appendChild(h1);
+
+        const meta = document.createElement('p');
+        meta.className = 'anotacion';
+        meta.textContent = [articulo.autor, formatFecha(articulo.fecha)].filter(Boolean).join(' · ');
+        article.appendChild(meta);
+
+        if (articulo.imagen_destacada) {
+          const img = document.createElement('img');
+          img.className = 'foto-arqueologica';
+          img.style.width = '100%';
+          img.style.borderRadius = 'var(--radius-md)';
+          // Sin descripción editorial (imagen_alt) la imagen se trata como decorativa.
+          img.alt = articulo.imagen_alt || '';
+          img.addEventListener('error', function () { img.style.display = 'none'; });
+          img.src = articulo.imagen_destacada;
+          article.appendChild(img);
+        }
+
+        const cuerpo = document.createElement('div');
+        cuerpo.className = 'articulo__cuerpo';
+        // contenido_html proviene del equipo editorial (repositorio o API con acceso restringido),
+        // no de entrada de usuarios anónimos. Si la API acepta HTML de otras fuentes, debe sanearlo en el servidor.
+        cuerpo.innerHTML = articulo.contenido_html || '';
+        article.appendChild(cuerpo);
+
+        contenedor.replaceChildren(article);
+      }
+
+      function linkNavegacion(articulo, clase, etiqueta) {
+        const a = document.createElement('a');
+        a.className = 'articulo-navegacion__link ' + clase;
+        a.href = 'articulo.html?id=' + encodeURIComponent(articulo.id);
+        const span = document.createElement('span');
+        span.textContent = etiqueta;
+        const strong = document.createElement('strong');
+        strong.textContent = articulo.titulo || articulo.id;
+        a.appendChild(span);
+        a.appendChild(strong);
+        return a;
+      }
+
+      function renderNavegacion(articulo, todos) {
+        const orden = todos
+          .filter(function (a) { return a.visible !== false; })
+          .sort(function (a, b) { return (a.fecha || '').localeCompare(b.fecha || ''); });
+        const posicion = orden.findIndex(function (a) { return a.id === articulo.id; });
+        if (posicion === -1) return;
+        const anterior = orden[posicion - 1];
+        const siguiente = orden[posicion + 1];
+        if (!anterior && !siguiente) return;
+        navArticulos.replaceChildren();
+        if (anterior) navArticulos.appendChild(linkNavegacion(anterior, 'articulo-navegacion__link--anterior', 'Artículo anterior'));
+        if (siguiente) navArticulos.appendChild(linkNavegacion(siguiente, 'articulo-navegacion__link--siguiente', 'Artículo siguiente'));
+        navArticulos.hidden = false;
+      }
+
+      function renderBiblio(refs) {
+        if (!refs.length) return;
+        refs.forEach(function (ref) {
+          const card = document.createElement('biblio-card');
+          card.setAttribute('data-id', ref.id);
+          card.setAttribute('data-title', ref.titulo || '');
+          card.setAttribute('data-authors', Array.isArray(ref.autores) ? ref.autores.join(', ') : (ref.autores || ''));
+          card.setAttribute('data-year', ref['año'] || '');
+          card.setAttribute('data-type', ref.tipo || '');
+          card.setAttribute('data-editorial', ref.editorial || '');
+          card.setAttribute('data-url', ref.url || '');
+          card.setAttribute('data-summary', ref.resumen || '');
+          biblioLista.appendChild(card);
+        });
+        biblioWrap.hidden = false;
+      }
+
       async function init() {
-        const params = new URLSearchParams(window.location.search);
-        const id = params.get('id');
-
+        const id = new URLSearchParams(window.location.search).get('id');
         if (!id) {
-          contenedor.innerHTML = '<div class="catalog-empty">No se especificó ningún artículo.</div>';
+          mostrarMensaje('Artículo no especificado', 'No se indicó qué artículo abrir. Vuelve al listado para elegir uno.');
           return;
         }
 
-        const articulo = await ULE.loader.loadArticleById(id);
-
-        if (!articulo) {
-          contenedor.innerHTML = '<div class="catalog-empty">No se encontró el artículo solicitado.</div>';
-          return;
-        }
-
-        document.title = articulo.titulo + ' — ule educativo';
-
-        const etiquetasHtml = (articulo.etiquetas || [])
-          .map((tag) => '<ule-badge type="etiqueta-' + tag + '" label="' + tag + '"></ule-badge>')
-          .join('');
-
-        contenedor.innerHTML =
-          '<article class="articulo">' +
-          '<div class="cluster" style="margin-block-end:var(--space-sm);">' +
-          '<ule-badge type="categoria-' + (articulo.categoria || '').toLowerCase().replace(/\s+/g, '-') + '" label="' + (articulo.categoria || '') + '"></ule-badge>' +
-          etiquetasHtml +
-          '</div>' +
-          '<h1></h1>' +
-          '<p class="anotacion"></p>' +
-          (articulo.imagen_destacada
-            ? '<img class="foto-arqueologica" style="width:100%;border-radius:var(--radius-md);" src="' + articulo.imagen_destacada + '" alt="">'
-            : '') +
-          '<div class="articulo__cuerpo"></div>' +
-          '</article>';
-
-        contenedor.querySelector('h1').textContent = articulo.titulo || '';
-        const metaParts = [articulo.autor, formatFecha(articulo.fecha)].filter(Boolean);
-        contenedor.querySelector('.anotacion').textContent = metaParts.join(' · ');
-        const img = contenedor.querySelector('img');
-        if (img) img.alt = 'Imagen destacada: ' + (articulo.titulo || '');
-        // contenido_html viene del propio equipo editorial (dato estático en el repo,
-        // no entrada de usuarios), por eso se inserta como HTML de confianza.
-        contenedor.querySelector('.articulo__cuerpo').innerHTML = articulo.contenido_html || '';
-
-        const todos = (await ULE.loader.loadArticles()).filter((a) => a.visible !== false).sort((a, b) => (a.fecha || '').localeCompare(b.fecha || ''));
-        const posicion = todos.findIndex((a) => a.id === articulo.id);
-        if (posicion !== -1) {
-          const anterior = todos[posicion - 1];
-          const siguiente = todos[posicion + 1];
-          if (anterior || siguiente) {
-            navArticulos.hidden = false;
-            navArticulos.innerHTML = '';
-            if (anterior) navArticulos.insertAdjacentHTML('beforeend', '<a class="articulo-navegacion__link articulo-navegacion__link--anterior" href="articulo.html?id=' + encodeURIComponent(anterior.id) + '"><span>Artículo anterior</span><strong>' + anterior.titulo.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</strong></a>');
-            if (siguiente) navArticulos.insertAdjacentHTML('beforeend', '<a class="articulo-navegacion__link articulo-navegacion__link--siguiente" href="articulo.html?id=' + encodeURIComponent(siguiente.id) + '"><span>Artículo siguiente</span><strong>' + siguiente.titulo.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</strong></a>');
+        try {
+          const articulo = await ULE.loader.loadArticleById(id);
+          if (!articulo || articulo.visible === false) {
+            document.title = 'Artículo no encontrado — ule educativo';
+            mostrarMensaje('Artículo no encontrado', 'No existe un artículo con ese identificador o ya no está disponible.');
+            return;
           }
-        }
 
-        const refs = await ULE.loader.loadBiblioForArticle(articulo);
-        if (refs.length) {
-          biblioWrap.hidden = false;
-          refs.forEach((ref) => {
-            const card = document.createElement('biblio-card');
-            card.setAttribute('data-id', ref.id);
-            card.setAttribute('data-title', ref.titulo || '');
-            card.setAttribute('data-authors', (ref.autores || []).join(', '));
-            card.setAttribute('data-year', ref['año'] || '');
-            card.setAttribute('data-type', ref.tipo || '');
-            card.setAttribute('data-editorial', ref.editorial || '');
-            card.setAttribute('data-url', ref.url || '');
-            card.setAttribute('data-summary', ref.resumen || '');
-            biblioLista.appendChild(card);
-          });
+          document.title = articulo.titulo + ' — ule educativo';
+          renderArticulo(articulo);
+
+          // Lo secundario (navegación, bibliografía) no debe impedir leer el artículo si falla.
+          try { renderNavegacion(articulo, await ULE.loader.loadArticles()); }
+          catch (e) { console.warn('[ULE] No se pudo cargar la navegación entre artículos:', e); }
+          try { renderBiblio(await ULE.loader.loadBiblioForArticle(articulo)); }
+          catch (e) { console.warn('[ULE] No se pudo cargar la bibliografía relacionada:', e); }
+        } catch (e) {
+          console.error('[ULE] Error cargando el artículo:', e);
+          mostrarMensaje('No fue posible cargar el artículo', 'Ocurrió un problema al obtener el contenido. Inténtalo de nuevo en unos minutos.', true);
         }
       }
 

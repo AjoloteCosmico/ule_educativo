@@ -13,7 +13,7 @@
       "peso": 1,
       "enlace": "",
       "tipo": "comunidad",
-      "paginas": ["home", "articulos", "catalogos", "bibliografia"],
+      "paginas": ["home", "articulos", "articulo", "catalogos", "bibliografia"],
       "prioridad_slot": "normal"
     },
     {
@@ -29,7 +29,7 @@
       "peso": 2,
       "enlace": "https://wa.me/5571966835",
       "tipo": "comunidad",
-      "paginas": ["home", "articulos", "catalogos", "bibliografia"],
+      "paginas": ["home", "articulos", "articulo", "catalogos", "bibliografia"],
       "prioridad_slot": "normal"
     }
   ]
