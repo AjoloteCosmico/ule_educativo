@@ -122,7 +122,7 @@ loadArticleById(id)
 loadBibliografia()
 loadBiblioById(id)
 loadCatalog(id)
-listCatalogs()
+listCatalogIds()
 loadAds()
 ```
 
@@ -334,37 +334,37 @@ La API Go será inicialmente un servicio pequeño y orientado al contenido que r
   `catalogos.html?catalogo=piezas-arqueologicas&pieza=pieza-001`.
 - [x] Abrir automáticamente la pieza cuando la URL la indique.
 - [x] Mantener navegación razonable al cerrar el modal.
-- [ ] No romper el funcionamiento sin JavaScript adicional. *(No aplica al deep-link del modal: requiere JavaScript por definición.)*
+- [ ] No romper el funcionamiento sin JavaScript adicional. *(El deep-link del modal requiere JavaScript por definición, así que no aplica a él. En el resto, el contenido es dinámico: sin JS las páginas se quedan en "Cargando…"; pendiente decidir si se añade `<noscript>`.)*
 
 ## 7.2 Filtros
 
 - [x] Añadir acción clara de “Limpiar filtros” cuando haya filtros activos.
-- [x] Mostrar filtros activos de manera comprensible.
+- [x] Mostrar filtros activos de manera comprensible. *(Región `role="status"`: "Mostrando N de M elementos · Filtros activos — …".)*
 - [ ] Conservar filtros al utilizar navegación atrás cuando sea razonable.
-- [x] Revisar que los estados de cero resultados sean informativos.
+- [x] Revisar que los estados de cero resultados sean informativos. *(Catálogo: explica el motivo y ofrece "Limpiar filtros".)*
 
 ## 7.3 Portada
 
-- [ ] Revisar jerarquía visual de la portada.
-- [ ] Dar mayor protagonismo a los tres caminos principales:
-  **Artículos / Bibliografía / Catálogos**.
-- [ ] Revisar ritmo vertical y separación entre secciones.
-- [ ] Mantener la identidad visual sin añadir colores o efectos innecesarios.
+- [x] Revisar jerarquía visual de la portada.
+- [x] Dar mayor protagonismo a los tres caminos principales:
+  **Artículos / Bibliografía / Colecciones** *(cards con título, texto y botón; nombre público unificado como "Colecciones")*.
+- [x] Revisar ritmo vertical y separación entre secciones.
+- [x] Mantener la identidad visual sin añadir colores o efectos innecesarios. *(Única variación: tonos de verde de texto y badge "clásico" ajustados por contraste; ver `docs/identidad.md` §4.1.)*
 
 ## 7.4 Catálogos
 
-- [ ] Revisar interacción de las cards.
-- [ ] Hacer evidente que una pieza es interactiva.
-- [ ] Revisar modal en móvil.
-- [ ] Revisar imágenes y proporciones.
+- [x] Revisar interacción de las cards. *(Botón real en el título; toda la card es clicable.)*
+- [x] Hacer evidente que una pieza es interactiva. *(Cursor, elevación al pasar el mouse y aro de foco.)*
+- [x] Revisar modal en móvil. *(Centrado, con scroll interno y botón "Cerrar" visible a 375×667.)*
+- [ ] Revisar imágenes y proporciones. *(Sólo hay imágenes de ejemplo remotas; se revisa cuando existan las reales.)*
 - [x] Preparar el componente para recibir datos de API sin modificar su presentación.
 
 ## 7.5 Estados
 
 - [x] Unificar estados de carga.
-- [x] Unificar estados vacíos.
-- [x] Unificar mensajes de error.
-- [x] Evitar pantallas visualmente “rotas” cuando falten imágenes o datos opcionales.
+- [x] Unificar estados vacíos. *(`.catalog-empty`.)*
+- [x] Unificar mensajes de error. *("No fue posible cargar …" con `role="alert"`; probado con API caída y con 500.)*
+- [x] Evitar pantallas visualmente “rotas” cuando falten imágenes o datos opcionales. *(Imagen con 404 queda oculta en cards, catálogo y artículo.)*
 
 ---
 
@@ -372,18 +372,18 @@ La API Go será inicialmente un servicio pequeño y orientado al contenido que r
 
 Antes de cerrar la Fase 1:
 
-- [ ] Navegación completa solo con teclado.
-- [ ] Orden lógico de foco.
-- [ ] Focus visible.
+- [ ] Navegación completa solo con teclado. *(Probado: skip link, cards, diálogo con Enter/Escape, filtros. Falta un recorrido humano completo, incluido el generador JSON.)*
+- [ ] Orden lógico de foco. *(Recorrido de 65 elementos por tema sin `tabindex` positivo; falta revisión humana del orden visual.)*
+- [x] Focus visible. *(Los 65 elementos enfocables recorridos por tema —claro y oscuro— muestran indicador.)*
 - [x] Diálogos accesibles.
 - [x] Escape cierra modales.
-- [ ] Imágenes con `alt` adecuado.
-- [ ] Decorativas con `alt=""`.
-- [ ] Formularios con labels.
-- [ ] Estados dinámicos anunciados cuando sea necesario.
-- [ ] Contraste WCAG AA.
-- [ ] No depender únicamente del color.
-- [ ] Revisar zoom al 200%.
+- [ ] Imágenes con `alt` adecuado. *(Falta el campo editorial `imagen_alt` en artículos y catálogos: hoy las imágenes de artículo se tratan como decorativas.)*
+- [x] Decorativas con `alt=""`. *(Grecas con `aria-hidden`, miniaturas de cards con `alt=""`.)*
+- [x] Formularios con labels. *(Páginas públicas; axe sin violaciones. El generador JSON no se ha auditado.)*
+- [x] Estados dinámicos anunciados cuando sea necesario. *(Verificado a nivel de marcado: `role="status"` en conteos y `role="alert"` en errores. Falta probar con lector de pantalla.)*
+- [x] Contraste WCAG AA. *(axe-core: 0 violaciones en 5 páginas × claro/oscuro; tokens calculados. No cubre `:hover` ni texto sobre imágenes reales.)*
+- [x] No depender únicamente del color. *(Página actual en negrita además de color; enlaces de lectura subrayados; badges con texto.)*
+- [x] Revisar zoom al 200%. *(Sin desbordes horizontales a 640 px y a 320 px, equivalentes a 200 % y 400 % de zoom en escritorio.)*
 - [x] Revisar móvil.
 - [x] Revisar modo claro y oscuro.
 
@@ -391,18 +391,18 @@ Antes de cerrar la Fase 1:
 
 # 9. Auditoría técnica final
 
-- [ ] Todas las rutas internas son relativas.
-- [ ] No quedan URLs absolutas accidentales para recursos propios.
-- [ ] No quedan hotlinks frágiles donde deba existir un asset local.
-- [ ] Todos los JSON son válidos.
-- [ ] Los IDs son únicos.
-- [ ] Los manifiestos coinciden con los archivos mientras exista la fuente local.
-- [ ] No hay errores de consola.
-- [ ] No hay imágenes rotas.
-- [ ] No hay scripts duplicados.
-- [ ] No hay CSS muerto evidente.
-- [ ] Los componentes conservan responsabilidades claras.
-- [x] `ULE.loader` queda preparado para intercambiar fuente local/API.
+- [x] Todas las rutas internas son relativas. *(Sin rutas `/…`; las pruebas corren bajo el subpath `/ule_educativo/`.)*
+- [x] No quedan URLs absolutas accidentales para recursos propios.
+- [ ] No quedan hotlinks frágiles donde deba existir un asset local. *(20 advertencias de `validar_datos.py`: imágenes remotas de ejemplo; la del anuncio 002 es una URL de Facebook con expiración ya vencida.)*
+- [x] Todos los JSON son válidos. *(`scripts/validar_datos.py`.)*
+- [x] Los IDs son únicos. *(Se eliminó `biblio-0.json`, duplicado de `biblio-021.json`.)*
+- [x] Los manifiestos coinciden con los archivos mientras exista la fuente local.
+- [x] No hay errores de consola. *(0 en 8 páginas × claro/oscuro/320 px. Excluye los recursos externos —Google Fonts, imágenes remotas—, que no se pudieron medir en el entorno de prueba.)*
+- [ ] No hay imágenes rotas. *(Ninguna local; las imágenes remotas de ejemplo no se pudieron verificar.)*
+- [x] No hay scripts duplicados.
+- [ ] No hay CSS muerto evidente. *(Quedan bloques `.ad-card*`, `.badge*` y utilidades que sólo usan los prototipos de la raíz; se limpian al mover o retirar esos prototipos.)*
+- [ ] Los componentes conservan responsabilidades claras. *(Los componentes sí; pero `articulos.html` y `bibliografia.html` llevan su lógica de filtros en scripts minificados en una línea. Conviene extraerla a `js/paginas/`.)*
+- [x] `ULE.loader` queda preparado para intercambiar fuente local/API. *(Probado: `scripts/pruebas_navegador.py` ejecuta todas las páginas con `dataSource='api'` contra un API simulado —respuestas normales, 404, 500 y caída— sin modificar páginas ni componentes.)*
 
 ---
 
@@ -413,8 +413,38 @@ Antes de cerrar la Fase 1:
 - [x] `docs/politica_anuncios.md`.
 - [x] `docs/GUIA_CONTENIDO.md`.
 - [x] Actualizar esta documentación después de la refactorización del loader.
-- [x] Documentar el contrato de datos que deberá respetar la futura API.
+- [x] Documentar el contrato de datos que deberá respetar la futura API. *(`docs/contrato_datos.md`.)*
 - [x] Documentar claramente qué parte del frontend permanece inmutable durante la migración a API.
+
+---
+
+# 10 bis. Cómo se verifica y qué sigue abierto
+
+**Verificación automática (repetible):**
+
+```text
+python3 scripts/validar_datos.py         # JSON, IDs, manifiestos, relaciones, rutas (sin dependencias)
+python3 scripts/pruebas_navegador.py     # comportamiento + modo API (Playwright/Chromium)
+```
+
+Además se pasó **axe-core** (WCAG 2.0/2.1/2.2 A-AA y buenas prácticas) sobre 8 páginas/estados en
+claro, oscuro y 320 px, con 0 violaciones. Esto no está en el script para no exigir `npm`.
+
+> Historial de lección aprendida: `js/loader.js` estuvo roto (regex inválida → `SyntaxError`)
+> desde `9c77d93` hasta `399c810` sin que el checklist lo detectara, porque nada se ejecutaba en
+> un navegador. Ningún ítem de UX/accesibilidad/técnica debe marcarse `[x]` sin haberse
+> ejecutado en un navegador.
+
+**Pendiente real antes de cerrar la Fase 1:**
+
+1. Sustituir las imágenes remotas por assets locales (`assets/images/…`) y añadir `imagen_alt`.
+2. Autoalojar la tipografía (Google Fonts es la única dependencia externa; ver `arquitectura.md` §2).
+3. Revisión humana: teclado completo, orden de foco y lector de pantalla (NVDA/VoiceOver).
+4. Decidir qué hacer con los prototipos de la raíz (`simulador.html`, `claude02.html`,
+   `presnetacion tiro.html`, `test_identidad.html`, `prueba_identidad.html`, `sierra.png` de 5 MB).
+5. Extraer los scripts de página a `js/paginas/` y retirar CSS muerto.
+6. Logo en modo oscuro (trazo negro sobre `#1E352F` casi no se distingue): definir variante clara.
+7. Decidir `<noscript>` y conservación de filtros al volver atrás (§7.1, §7.2).
 
 ---
 

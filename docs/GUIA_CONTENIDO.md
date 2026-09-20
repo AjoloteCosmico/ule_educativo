@@ -5,17 +5,18 @@ Esta guía explica cómo agregar contenido al sitio estático sin modificar el c
 ## 1. Artículos
 
 1. Crear `data/articulos/articulo-NNN.json`.
-2. Seguir el esquema de `docs/primera_fase.md`.
+2. Seguir el esquema de `docs/contrato_datos.md` §1.
 3. Añadir el nombre exacto del archivo a `data/articulos/index.json`.
-4. Si el artículo tiene bibliografía, colocar sus IDs en `bibliografía_relacionada`.
-5. Subir las imágenes a `assets/images/articulos/` y usar rutas relativas.
+4. Si el artículo tiene bibliografía, colocar sus IDs en `bibliografía_relacionada`. Con eso basta: la referencia mostrará "Aparece en: …" automáticamente.
+5. Subir las imágenes a `assets/images/articulos/` (crear la carpeta con la primera imagen) y usar rutas relativas. Añadir `imagen_alt` si la imagen aporta información; sin él se trata como decorativa.
+6. En `contenido_html` empezar las secciones con `<h2>` (la página ya tiene el `<h1>`); no usar `<h1>`.
 
 ## 2. Bibliografía
 
 1. Crear `data/bibliografia/biblio-NNN.json`.
-2. Seguir el esquema de `docs/primera_fase.md`.
+2. Seguir el esquema de `docs/contrato_datos.md` §2. Tipos válidos: `libro`, `capitulo_libro`, `articulo`, `articulo_web`, `web`.
 3. Añadir el archivo a `data/bibliografia/index.json`.
-4. Para indicar qué artículos utilizan la fuente, completar `articulos_relacionados`.
+4. No hace falta completar `articulos_relacionados`: la relación se deriva de `bibliografía_relacionada` en el artículo.
 
 ## 3. Catálogos
 
@@ -61,13 +62,14 @@ El navegador no puede listar carpetas de GitHub Pages. Por eso cada carpeta de c
 Comprobar:
 
 - JSON válido y correctamente indentado.
-- IDs únicos.
+- IDs únicos y iguales al nombre del archivo.
 - Nombre del archivo incluido en el manifiesto.
 - Rutas relativas.
 - `visible: true` cuando el contenido deba aparecer.
 - Imágenes disponibles y con texto alternativo cuando sean relevantes.
 - En anuncios, vigencia y campos de la política correctos.
+- **Ejecutar `python3 scripts/validar_datos.py`**: detecta JSON inválido, manifiestos desalineados, IDs duplicados, relaciones rotas y rutas de imagen inexistentes o absolutas. Debe terminar sin errores.
 
 ## 8. Herramienta interna
 
-La futura herramienta `herramientas/generador-json.html` facilitará la creación de estos archivos. No sustituirá el paso de colocar el archivo en su carpeta, actualizar el manifiesto y hacer push.
+La herramienta `herramientas/generador-json.html` facilita la creación de estos archivos. No sustituirá el paso de colocar el archivo en su carpeta, actualizar el manifiesto y hacer push.

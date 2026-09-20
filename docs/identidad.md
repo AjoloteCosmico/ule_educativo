@@ -56,20 +56,28 @@ Modos: **claro** y **oscuro** únicamente. Todo declarado como variables CSS en 
   --color-card-oscuro: #162A25;         /* gris muy oscuro, ligeramente más profundo que el fondo */
 
   /* Texto sobre cards */
-  --color-titulo-card: var(--color-principal);   /* títulos y resaltados usan el verde principal */
+  --color-titulo-card: var(--color-principal-texto);   /* títulos y resaltados: verde de texto (AA) */
   --color-cuerpo-card-claro: #2C2C2C;            /* contraste AA garantizado sobre #F7F3EB */
   --color-cuerpo-card-oscuro: #D0DDD9;           /* contraste AA garantizado sobre #162A25 */
 
+  /* Verde para TEXTO y para rellenos con texto blanco (mismo tono que el principal, pero AA).
+     --color-principal (#058A41) queda para elementos decorativos sin texto: como texto da
+     4.38:1 sobre el fondo claro y 4.02:1 sobre la card (AA pide 4.5:1) y ~3:1 en oscuro. */
+  --color-principal-texto: #047538;              /* claro: 5.7:1 fondo · 5.3:1 card */
+  --color-principal-accion: #047538;             /* fondo de botones con texto blanco: 5.9:1 */
+  --color-principal-accion-hover: #046B32;       /* hover de botones: 6.7:1 con texto blanco */
+
   /* Estados de link */
-  --color-link: var(--color-principal);
-  --color-link-hover: #046B32;                   /* verde un poco más oscuro */
-  --color-link-visitado: #4A6B5A;                /* verde apagado */
-  --color-link-focus: #058A41;                   /* mismo principal + outline visible */
+  --color-link: var(--color-principal-texto);
+  --color-link-hover: #046B32;                   /* oscuro: #8BE5B3 */
+  --color-link-visitado: #4A6B5A;                /* oscuro: #8FB8A3 (el original daba 2.2:1) */
+  --color-link-focus: var(--color-principal-texto);   /* aro de foco: ≥ 3:1 en ambos temas */
+  /* Tema oscuro: --color-principal-texto pasa a #4CC57F (≥ 6:1 sobre fondo y card oscuros) */
 
   /* Paleta fija de badges por tipo de categoría */
   /* Periodo */
   --badge-periodo-preclasico: #8B5E3C;
-  --badge-periodo-clasico: #C17A3A;
+  --badge-periodo-clasico: #A0601F;              /* antes #C17A3A: 3.4:1 con texto blanco; ahora 5.0:1 */
   --badge-periodo-posclasico: #5C3A21;
 
   /* Cultura (ejemplos base; se pueden ampliar manteniendo la misma lógica) */
@@ -80,7 +88,7 @@ Modos: **claro** y **oscuro** únicamente. Todo declarado como variables CSS en 
   --badge-cultura-azteca: #5A3A2A;
 }
 
-Regla de contraste: todo texto de cuerpo sobre cards debe cumplir mínimo WCAG AA (4.5:1). Los títulos pueden usar el color principal porque su tamaño y peso lo permiten.
+Regla de contraste: **todo texto** (cuerpo, títulos de card, enlaces, badges con texto blanco) debe cumplir WCAG AA (4.5:1) en ambos temas. Los títulos de card (20 px, peso 500) no cuentan como "texto grande" de WCAG (≥ 24 px, o ≥ 18.66 px en negrita), así que no pueden usar `--color-principal` como texto: usan `--color-principal-texto`. El verde principal se conserva para fondos, bordes y elementos sin texto. `python3 scripts/pruebas_navegador.py` no mide contraste; se verificó con axe-core y con el cálculo de los tokens (ver `docs/primera_fase.md` §8).
 4.2 Tipografía
 Familia principal (títulos y cuerpo): Ubuntu.
 Familia para anotaciones: Helvetica, siempre en cursiva.

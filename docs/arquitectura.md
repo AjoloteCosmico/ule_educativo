@@ -23,6 +23,8 @@ Se utilizará GitHub Pages como hosting inicial.
 
 No se incorporará un servidor, CDN externo ni backend mientras las necesidades del sitio puedan resolverse mediante archivos estáticos.
 
+**Excepción vigente y decisión pendiente:** las páginas cargan la tipografía Ubuntu desde Google Fonts (`fonts.googleapis.com` / `fonts.gstatic.com`), un recurso externo. Es la única dependencia externa del sitio público. La alternativa coherente con este principio (y mejor para la privacidad de quien visita) es autoalojar los archivos `woff2` en `assets/fonts/` con `@font-face`; queda como tarea de cierre de Fase 1.
+
 El despliegue consistirá simplemente en publicar la rama principal del repositorio mediante GitHub Pages.
 
 Tecnologías
@@ -61,19 +63,22 @@ La estructura debe separar contenido, componentes, estilos y datos:
 ├── articulo.html                 (detalle de un artículo, vía ?id=)
 ├── bibliografia.html
 ├── catalogos.html
-├── herramientas/                 (planeado — ver §13; formularios internos
-│   └── generador-json.html        que generan JSON descargable, no público)
+├── herramientas/                 (interna, transitoria — ver §14.8)
+│   └── generador-json.html        genera JSON descargable; no es un CMS
+├── scripts/                      validación (no forma parte del despliegue)
+│   ├── validar_datos.py           JSON, IDs, manifiestos, relaciones, rutas
+│   └── pruebas_navegador.py       comportamiento y modo API (Playwright)
 ├── docs/
 ├── data/
 │   ├── articulos/
 │   ├── bibliografia/
 │   ├── catalogos/
-│   ├── anuncios.json
-│   └── ...
+│   └── anuncios.json
 ├── assets/
-│   ├── images/
-│   ├── icons/
-│   └── logo/
+│   ├── img/                      recursos de identidad (greca)
+│   ├── logo/
+│   └── images/                   imágenes de contenido: articulos/, catalogos/, anuncios/
+│                                 (aún sin crear: hoy las imágenes de ejemplo son remotas)
 ├── css/
 │   ├── variables.css
 │   ├── base.css
@@ -91,9 +96,11 @@ La estructura debe separar contenido, componentes, estilos y datos:
 **Nota (corrección respecto al boceto original):** las páginas de contenido
 (`articulos.html`, `catalogos.html`, etc.) son archivos HTML sueltos en la
 raíz, no carpetas (`articulos/`, `catalogos/`) como se esbozó al inicio. No
-existe una carpeta `components/` con HTML de navbar/footer — la navegación
-vive en `js/main.js` y los componentes reutilizables son los Web Components
-de `js/components.js`. `recursos/` sigue sin implementarse (era un boceto
+existe una carpeta `components/` con HTML de navbar/footer: el **marcado** de la
+navegación y del pie está repetido en cada página, y `js/main.js` sólo lo activa
+(`aria-current`, tema, menú móvil). Al añadir una sección hay que actualizar la nav en
+todas las páginas. Los componentes reutilizables son los Web Components de
+`js/components.js`. `recursos/` sigue sin implementarse (era un boceto
 para un simulador futuro, no confundir con `herramientas/`, que es interno).
 
 La estructura podrá crecer, pero se evitará crear abstracciones o directorios que no correspondan a una necesidad real.
@@ -121,6 +128,8 @@ La estructura deberá permitir versiones futuras en español, inglés y francés
 
 Los textos propios de la interfaz no deben estar escritos directamente dentro de la lógica de los componentes.
 
+> **Estado:** todavía **no implementado**. Los textos de interfaz ("Limpiar filtros", "Cerrar", mensajes de error…) están en español dentro de `js/components.js` y de las páginas. Sólo `ULE.labels` (etiquetas de tipos) está centralizado. Se difiere a la fase en que se decida agregar un segundo idioma.
+
 La estrategia inicial será mantener los textos de interfaz en archivos de traducción simples, por ejemplo:
 
 data/i18n/
@@ -138,7 +147,7 @@ Los anuncios serán inicialmente datos estáticos almacenados en:
 
 data/anuncios.json
 
-El frontend no accede directamente a los archivos de anuncios. Los consume mediante `ULE.loader`, que encapsula la fuente local y queda preparado para sustituirla por la API Go.
+El frontend no accede directamente a los archivos de anuncios. Los consume mediante `ULE.loader`, que encapsula la fuente local y queda preparado para sustituirla por la API Go. Hoy `ULE.loader.loadAds()` lee `data/anuncios.json`; `js/ads.js` no accede a `data/` directamente.
 
 El contrato de datos será el mismo que utilizará posteriormente la API remota. Esto permitirá cambiar la fuente de datos sin modificar los componentes visuales ni la lógica de presentación.
 
@@ -193,6 +202,8 @@ Ambas fuentes deberán entregar el mismo formato lógico.
 La función encargada de obtener anuncios será la única parte del frontend que deberá cambiar cuando se sustituya la fuente local por una API.
 
 5. Fase futura: API
+
+> **Superado en parte por §14 y por `docs/primera_fase.md`:** la API ya no se plantea sólo para anuncios; en Fase 2 cubrirá artículos, bibliografía, catálogos y anuncios. Lo que sigue se conserva como contexto histórico.
 
 Cuando el sitio necesite datos dinámicos, se incorporará un servidor independiente.
 
@@ -259,9 +270,13 @@ Componente principal
 Se utilizará un componente reutilizable equivalente a:
 
 <catalog-grid
-    data-source="data/catalogos/piezas.json"
+    data-catalog="piezas-arqueologicas"
     categories="periodo,cultura">
 </catalog-grid>
+
+`data-catalog` es el id lógico y es lo que usan las páginas (el componente lo resuelve con
+`ULE.loader.loadCatalog`, así que no sabe si viene de JSON o de API). `data-source` (URL de un
+JSON) sigue aceptándose sólo por compatibilidad y **no** debe usarse en páginas nuevas.
 
 **Convención de rutas (importante):** todas las rutas internas (`data/...`,
 `assets/...`) son **relativas, sin `/` inicial**. El sitio se publica como
@@ -479,6 +494,8 @@ La incorporación de la API no deberá obligar a migrar el sitio a un framework 
 
 Regla general
 
+> Con la decisión de §14 y de `docs/primera_fase.md`, la API, la base de datos, la autenticación y el panel administrativo pasan a ser el objetivo explícito de la **Fase 2**. La lista siguiente sigue vigente para todo lo demás y para la Fase 1.
+
 No se implementará anticipadamente:
 
 base de datos;
@@ -528,7 +545,9 @@ Página / Web Component
 - `loadCatalog(id)`
 - `listCatalogIds()`
 - `loadAds()`
+- `loadRelatedArticlesMap()` (artículos que citan cada referencia; relación derivada)
 
+Contrato de errores (igual en ambas fuentes): recurso inexistente → `null`/`[]`; fallo de red o 5xx → lanza `Error`; `visible:false` → se descarta. Detalle y forma de las respuestas en `docs/contrato_datos.md`. `loadJSON`, `loadCollection` y `apiJSON` se exponen sólo por compatibilidad interna: las páginas y componentes deben usar las funciones de arriba.
 La implementación interna podrá seleccionar la fuente.
 
 Ejemplo conceptual:

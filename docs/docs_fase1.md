@@ -2,19 +2,20 @@
 
 Guía de referencia rápida de lo construido en la Fase 1: sistema de diseño, lógica JS global, Web Components, páginas de contenido y gestor de anuncios.
 
-> **Estado:** Fase 1.3 concluida. Fase 1.4 concluida a nivel de infraestructura: `data/anuncios.json` y `js/ads.js` están listos. La publicación de anuncios concretos queda como contenido administrable.
+> **Estado:** ver `docs/primera_fase.md` (checklist vigente). Este documento es una referencia rápida de lo construido; el contrato de datos está en `docs/contrato_datos.md`.
 
 ---
 
 ## 1. Sistema de diseño (CSS)
 
-Cuatro archivos, en este orden de carga siempre:
+Los archivos base, en este orden de carga siempre (`ads.css` sólo en páginas con anuncios):
 
 ```html
 <link rel="stylesheet" href="css/variables.css">
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/components.css">
 <link rel="stylesheet" href="css/theme.css">
+<link rel="stylesheet" href="css/ads.css"> <!-- sólo si la página tiene data-ad-slot -->
 ```
 
 - **`variables.css`** — colores, tipografía, espaciado, radios y sombras.
@@ -46,7 +47,7 @@ Incluye:
 - `<article-card>` — tarjetas de artículos.
 - `<biblio-card>` — referencias bibliográficas.
 - `<ad-card>` — tarjeta de anuncio vertical u horizontal.
-- `<catalog-grid>` — filtros, grid y modal de piezas de catálogo.
+- `<catalog-grid>` — filtros, grid y modal de piezas de catálogo. API: `whenReady()` y `openItemById(id)`; atributo `data-catalog` (id lógico).
 
 `<ad-card>` recibe `data-image`, `data-slogan`, `data-contacto`, `data-vigencia-fin` y `data-enlace`. Si existe `data-enlace`, la tarjeta funciona como enlace externo.
 
@@ -89,7 +90,7 @@ El archivo contiene un objeto con una propiedad `anuncios`, formada por elemento
 
 El módulo `window.ULE.ads`:
 
-1. Carga `data/anuncios.json` una sola vez por sesión mediante caché.
+1. Obtiene los anuncios con `ULE.loader.loadAds()` (una vez por página, con caché); no lee `data/` directamente.
 2. Considera únicamente anuncios con `activo: true`.
 3. Comprueba `vigencia_inicio` y `vigencia_fin` contra la fecha local del navegador.
 4. Selecciona anuncios mediante **ponderación por `peso`**.

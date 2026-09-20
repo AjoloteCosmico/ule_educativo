@@ -121,7 +121,7 @@ En horizontal la imagen ocupa ~40 % (máx. 220 px) y mantiene 4:5.
 | Aspecto                        | Estado actual                          | Recomendación |
 |--------------------------------|----------------------------------------|---------------|
 | Alt de imagen                  | Se genera desde slogan                 | Preferir `imagen_alt` del JSON; fallback a slogan |
-| Placeholder cuando no hay imagen | La card se renderiza sin `<img>`     | Añadir un fondo sutil o icono de cancha como fallback visual (opcional) |
+| Placeholder cuando no hay imagen | Implementado: icono + degradado si falta `imagen` o si falla la carga | — |
 | Estado vacío del slot          | `slot.hidden = true`                   | Correcto. Mantener |
 | Contraste en modo oscuro       | Usa variables de tema                  | Verificar WCAG AA con los textos reales de ejemplo |
 | Tamaño máximo de la card       | No limitado explícitamente             | En home conviene un `max-width` razonable (ej. 320–360 px en vertical) para no dominar la sección |
@@ -147,7 +147,7 @@ En horizontal la imagen ocupa ~40 % (máx. 220 px) y mantiene 4:5.
 
 - Los slots se marcan con `data-ad-slot` (y opcionalmente `data-ad-horizontal="true"`).
 - `ads.js` selecciona **por slot** de forma independiente entre los anuncios vigentes (ponderación por `peso`).
-- Si en el futuro se usa el campo `paginas`, filtrar antes de la selección ponderada.
+- El campo `paginas` ya se aplica: `ads.js` filtra por `data-ad-page` del `<body>` antes de la selección ponderada. Si una página no tiene anuncios vigentes, su sección (`.ad-section`, con su encabezado) se oculta.
 - Nunca más de 2 anuncios visibles simultáneos en una misma vista en la fase actual.
 - El contenedor padre decide el layout (flex/grid); la card solo se adapta.
 
@@ -155,9 +155,9 @@ En horizontal la imagen ocupa ~40 % (máx. 220 px) y mantiene 4:5.
 
 ## 5. Lógica de selección (recordatorio)
 
-1. Cargar `data/anuncios.json`.
+1. Cargar los anuncios con `ULE.loader.loadAds()` (hoy `data/anuncios.json`; `ads.js` no accede a `data/` directamente).
 2. Filtrar: `activo === true` **y** fecha actual ∈ `[vigencia_inicio, vigencia_fin]`.
-3. (Futuro) Filtrar por `paginas` si el campo existe.
+3. Filtrar por `paginas` si el campo existe (`todas` = cualquier página).
 4. Selección aleatoria ponderada por `peso`.
 5. Renderizar en cada `data-ad-slot` un `<ad-card>` independiente.
 
@@ -169,7 +169,7 @@ No se guarda historial de impresiones ni clics en fase 1 (coherente con arquitec
 
 - Toda imagen debe tener `alt` significativo (`imagen_alt` o fallback a slogan).
 - Si la card es un enlace, `aria-label` descriptivo (ya implementado a partir de slogan + contacto).
-- Contraste mínimo WCAG AA (ya asegurado por las variables de tema).
+- Contraste mínimo WCAG AA (verificado con axe-core en claro y oscuro tras introducir `--color-principal-texto`; ver `docs/identidad.md` §4.1).
 - `loading="lazy"` en imágenes.
 - Respetar `prefers-reduced-motion` si en el futuro se añaden transiciones decorativas.
 - No depender de JavaScript para el contenido editorial; los anuncios son complementarios.
@@ -196,8 +196,7 @@ No se guarda historial de impresiones ni clics en fase 1 (coherente con arquitec
 
 ## 8. Evolución futura (sin implementar ahora)
 
-- API Go que entregue el mismo JSON.
-- Campo `paginas` y filtrado por vista.
+- API Go que entregue el mismo JSON (contrato en `docs/contrato_datos.md`).
 - Panel mínimo de moderación (fase 2+).
 - Posible contador de impresiones solo en backend (nunca en el frontend estático).
 - Badge de `tipo` si la comunidad lo solicita.
