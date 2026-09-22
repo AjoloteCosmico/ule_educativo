@@ -73,7 +73,7 @@ biblio = cargar_coleccion("bibliografia", "biblio")
 catalogos = cargar_coleccion("catalogos", "")
 
 for i, a in articulos.items():
-    for campo in ("titulo", "fecha", "resumen", "contenido_html"):
+    for campo in ("titulo", "autor", "fecha", "resumen", "contenido_html"):
         if not a.get(campo):
             errores.append(f"{i}: falta '{campo}'")
     if a.get("fecha") and not re.match(r"^\d{4}-\d{2}-\d{2}$", a["fecha"]):
@@ -97,7 +97,7 @@ for i, a in articulos.items():
         avisos.append(f"{i}: contenido_html empieza en <h{niveles[0]}> (debería ser <h2>)")
 
 for i, r in biblio.items():
-    for campo in ("titulo", "tipo"):
+    for campo in ("titulo", "autor", "tipo"):
         if not r.get(campo):
             errores.append(f"{i}: falta '{campo}'")
     if r.get("tipo") and r["tipo"] not in TIPOS_BIBLIO:
