@@ -36,8 +36,8 @@ window.ULE = window.ULE || {};
 // Fuente de datos intercambiable. En Fase 1 usamos JSON local;
 // en Fase 2 podrá cambiarse a un adaptador HTTP sin modificar los consumidores.
 ULE.config = ULE.config || {};
-ULE.config.dataSource = ULE.config.dataSource || 'local';
-ULE.config.apiBaseUrl = ULE.config.apiBaseUrl || '';
+ULE.config.dataSource = ULE.config.dataSource || 'api';
+ULE.config.apiBaseUrl = ULE.config.apiBaseUrl || 'http://localhost:8080/api/v1';
 
 ULE.loader = (function () {
   const cache = new Map();
