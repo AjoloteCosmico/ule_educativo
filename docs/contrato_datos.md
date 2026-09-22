@@ -9,6 +9,14 @@ no debe enterarse del cambio (ver `docs/arquitectura.md` §14 y el principio rec
 > `scripts/validar_datos.py`. Si un campo cambia, se actualiza aquí, en el validador y en el
 > generador editorial.
 
+> **Contrato vinculante con `tonalmaster_backend` (Fase 7 — contenido Ule).** Esta versión fija
+> las rutas de la API (§5) como acordado entre ambos equipos: nomenclatura de URL en inglés,
+> igual que ya usa el backend en `calendars`/`auth`/`events`/`interpretations`; los **nombres de
+> campo en el JSON siguen en español**, tal cual están definidos en este documento, sin
+> excepción. Este archivo debe mantenerse idéntico en ambos repositorios
+> (`ule_educativo/docs/contrato_datos.md` y `tonalmaster_backend/docs/contrato_datos.md`); ver el
+> plan de implementación en `tonalmaster_backend/docs/plan_fase7_contenido_ule.md`.
+
 Convenciones: `*` = obligatorio · fechas `AAAA-MM-DD` · los nombres con acento
 (`bibliografía_relacionada`, `año`, `año_descubrimiento`) **son parte del contrato**: la API
 debe devolverlos exactamente así · `visible` por defecto es `true`.
@@ -19,7 +27,7 @@ debe devolverlos exactamente así · `visible` por defecto es `true`.
 |---|---|---|
 | `id`* | string | Único; en fuente local coincide con el nombre del archivo (`articulo-001`). |
 | `titulo`* | string | |
-| `autor` | string | |
+| `autor`* | string | |
 | `fecha`* | fecha | Ordena listados y la navegación anterior/siguiente. |
 | `resumen`* | string | Se trunca a ~150 caracteres en las cards. |
 | `contenido_html`* | string (HTML) | Secciones desde `<h2>` (la página ya tiene el `<h1>`). Sin `<script>`. Rutas relativas. **Se inserta como HTML**: si la API acepta HTML de más fuentes que el equipo editorial, debe sanearlo en el servidor. |
@@ -44,6 +52,13 @@ debe devolverlos exactamente así · `visible` por defecto es `true`.
 | `url` | URL `http(s)` | Se abre en pestaña nueva. |
 | `articulos_relacionados` | string[] | **Opcional y derivable.** El frontend calcula la relación inversa desde `bibliografía_relacionada` (`ULE.loader.loadRelatedArticlesMap()`); si además se declara aquí, se une sin duplicar. En la DB es la misma tabla `article_bibliography` leída en ambos sentidos. |
 | `visible` | boolean | |
+
+> **Nota para el backend:** el borrador de tabla `bibliography` en `docs/arquitectura.md` usa
+> columnas `autor` (singular), `anio`, `referencia`, `enlace` y no tiene `visible`. El DTO de
+> `GET /bibliography` debe mapear `autor → autores` (como arreglo de un elemento si la columna
+> sigue siendo singular), `anio → año`, `referencia → resumen`/`editorial` (o separar la columna
+> si se prefiere), `enlace → url`, y la tabla real necesita una columna `visible BOOLEAN DEFAULT
+> TRUE` para que el filtrado público (§5) se pueda hacer a nivel de query.
 
 ## 3. Catálogo (colección)
 
@@ -70,6 +85,13 @@ debe devolverlos exactamente así · `visible` por defecto es `true`.
 | `año_descubrimiento` | número | Opcional. Se muestra como "Descubierto en …". Es una etiqueta pensada para piezas arqueológicas; para otros catálogos conviene renombrarla (decisión pendiente para Fase 2). |
 | `ubicacion` | string | Opcional. |
 
+> **Nota para el backend:** el borrador de `catalog_items` en `docs/arquitectura.md` guarda
+> `categoria` (singular) como columna aparte y el resto en `detalles JSONB`. El DTO de
+> `GET /catalogs/{id}` debe **reconstruir** `categorias_disponibles` (a nivel de catálogo) y
+> `elementos[].categorias` (objeto `{clave: valor}`) a partir de ese JSONB — el frontend nunca
+> debe ver las claves crudas de `detalles`. La tabla `catalogs` también necesita una columna
+> `visible BOOLEAN DEFAULT TRUE`.
+
 ## 4. Anuncio
 
 Esquema completo y reglas de contenido: `docs/politica_anuncios.md`. Resumen:
@@ -78,24 +100,50 @@ Esquema completo y reglas de contenido: `docs/politica_anuncios.md`. Resumen:
 `enlace`, `tipo` (`evento|taller|exhibicion|sponsor|comunidad|otro`),
 `paginas` (`home|articulos|articulo|catalogos|bibliografia|todas`), `prioridad_slot`.
 
+> **Nota para el backend — este es el ajuste más grande de los cuatro recursos:** el borrador de
+> tabla `ads` en `docs/arquitectura.md` (`titulo, imagen, enlace, paginas, fecha_inicio,
+> fecha_fin, activo`) **no cubre este contrato**. Faltan las columnas `imagen_alt`, `contacto`,
+> `slogan`, `descripcion`, `peso`, `tipo`, `prioridad_slot`, y `fecha_inicio`/`fecha_fin` deben
+> exponerse como `vigencia_inicio`/`vigencia_fin` (`vigencia_fin` nulo = sin fin). No basta con
+> un DTO: se necesita ampliar el esquema real (ver plan de desarrollo).
+
 ## 5. Endpoints y forma de las respuestas
 
-Con `ULE.config.dataSource = 'api'` y `ULE.config.apiBaseUrl` (p. ej. `https://api.ejemplo.org/api`):
+Con `ULE.config.dataSource = 'api'` y `ULE.config.apiBaseUrl = 'https://<host-backend>/api/v1'`
+(el prefijo `/api/v1` va dentro de `apiBaseUrl`, igual que en el resto de la API de
+`tonalmaster_backend`):
 
 | Llamada del loader | Petición | Respuesta |
 |---|---|---|
-| `loadArticles()` | `GET /articulos` | Lista |
-| `loadArticleById(id)` | `GET /articulos/{id}` | Objeto, o **404** |
-| `loadBibliografia()` | `GET /bibliografia` | Lista |
-| `listCatalogIds()` | `GET /catalogos` | Lista de objetos con al menos `id` |
-| `loadCatalog(id)` | `GET /catalogos/{id}` | Catálogo completo con `elementos`, o **404** |
-| `loadAds()` | `GET /anuncios` | Lista |
+| `loadArticles()` | `GET /articles` | Lista |
+| `loadArticleById(id)` | `GET /articles/{id}` | Objeto, o **404** |
+| `loadBibliografia()` | `GET /bibliography` | Lista |
+| `listCatalogIds()` | `GET /catalogs` | Lista de objetos con al menos `id` |
+| `loadCatalog(id)` | `GET /catalogs/{id}` | Catálogo completo con `elementos`, o **404** |
+| `loadAds()` | `GET /ads` | Lista |
 
+* **Las rutas van en inglés** (`articles`, `bibliography`, `catalogs`, `ads`); es la nomenclatura
+  que ya usa el resto de la API (`calendars`, `auth`, `events`, `interpretations`) y queda fijada
+  como definitiva — no requiere traducción a español ni decisión adicional. **Los nombres de
+  función del loader (`loadArticles`, `loadBibliografia`, …) y todas las claves del JSON
+  permanecen en español**, sin cambio; el único ajuste en el frontend es la ruta que arma
+  `apiJSON(...)` dentro de `js/loader.js` (ver §6).
+* **Rutas públicas, sin sesión.** `articles`, `bibliography`, `catalogs` y `ads` (todas en
+  método `GET`) deben quedar fuera del middleware `RequireAuth`: el sitio ule_educativo es de
+  solo lectura y no envía cookie ni Bearer token en estas peticiones. La sesión
+  `tonalmaster_session` sigue reservada para lo ya existente (`events`, `interpretations`) y para
+  futura escritura (p. ej. comentarios).
+* **Filtrado de visibilidad en servidor.** Cada endpoint de lista/detalle debe filtrar
+  `WHERE visible = TRUE` (o `activo = TRUE` y vigencia vigente para `ads`) en la propia consulta
+  SQL, no solo confiar en que el frontend descarte `visible:false` — el loader lo hace además,
+  como segunda capa (ver contrato de errores).
+* **Imágenes como URL absoluta.** Cuando el contenido venga de la API (no de `data/*.json`
+  local), `imagen`, `imagen_destacada` e `imagen_portada` deben ser una URL `https://` que el
+  navegador pueda resolver directamente (CDN o `/assets/...` de la propia API); nunca una ruta de
+  filesystem del servidor.
 * **Lista** = un arreglo, o `{ "items": [...] }`, o `{ "data": [...] }` (el loader acepta las tres).
-* Los nombres definitivos de rutas pueden cambiar en Fase 2 (§14.3 de la arquitectura); lo que
-  no cambia es el **objeto** que llega a la interfaz.
-* Fase 1 no pagina: el frontend pide la lista completa. Si Fase 2 introduce paginación,
-  debe resolverse dentro del loader.
+* Fase 1 no pagina: el frontend pide la lista completa. Si una fase futura introduce paginación,
+  debe resolverse dentro del loader, como parámetro opcional que no rompa a quien no lo use.
 
 ### Contrato de errores (idéntico en ambas fuentes)
 
@@ -113,8 +161,12 @@ Sin cambios: `index.html`, `articulos.html`, `articulo.html`, `bibliografia.html
 `catalogos.html`, todos los Web Components (`js/components.js`), `js/ads.js`, `js/main.js`, el
 CSS y la API pública de `ULE.loader`.
 
-Cambia: la configuración (`ULE.config`) y el interior de `js/loader.js` (adaptador). Los
-`index.json` dejan de necesitarse; el generador JSON queda obsoleto.
+Cambia: la configuración (`ULE.config`) y el interior de `js/loader.js` (adaptador) — en
+concreto, las cinco llamadas `apiJSON('/articulos'|'/bibliografia'|'/catalogos'|'/anuncios'|...)`
+pasan a `apiJSON('/articles'|'/bibliography'|'/catalogs'|'/ads'|...)` una vez el backend tenga
+esas rutas disponibles (§5). Ningún componente, página ni `ULE.ads` cambia: siguen recibiendo el
+mismo objeto en español descrito en §1–§4. Los `index.json` dejan de necesitarse; el generador
+JSON queda obsoleto.
 
 Comprobación automática: `python3 scripts/pruebas_navegador.py` ejecuta todas las páginas con
 `dataSource='api'` contra un API simulado (respuestas normales, 404, 500 y caída de red).
