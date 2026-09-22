@@ -1,10 +1,10 @@
- {
-    "id": "biblio-009",
-    "titulo": "Cinco tesis discutibles relativas al juego de pelota",
-    "autores": ["Taladoire, Éric"],
-    "año": 2015,
-    "editorial": "Arqueología, núm. 53, INAH, México",
-    "tipo": "articulo",
-    "url": "https://mediateca.inah.gob.mx/repositorio/islandora/object/articulo:16104",
-    "resumen": "Discusión crítica de cinco hipótesis comunes sobre el juego de pelota, incluyendo el uso de manoplas, palmas y yugos, con revisión de evidencia arqueológica e iconográfica."
-  }
+{
+  "id": "biblio-009",
+  "titulo": "Cinco tesis discutibles relativas al juego de pelota",
+  "autor": "Taladoire, Éric",
+  "año": 2015,
+  "editorial": "Arqueología, núm. 53, INAH, México",
+  "tipo": "articulo",
+  "url": "https://mediateca.inah.gob.mx/repositorio/islandora/object/articulo:16104",
+  "resumen": "Discusión crítica de cinco hipótesis comunes sobre el juego de pelota, incluyendo el uso de manoplas, palmas y yugos, con revisión de evidencia arqueológica e iconográfica."
+}
