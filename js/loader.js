@@ -193,7 +193,7 @@ ULE.loader = (function () {
   function loadArticles() {
     return fromSource(
       function () { return loadCollection('data/articulos/', { prefix: 'articulo' }); },
-      function () { return apiJSON('/articulos').then(normalizeVisible); }
+      function () { return apiJSON('/articles').then(normalizeVisible); }
     );
   }
 
@@ -203,7 +203,7 @@ ULE.loader = (function () {
         const articles = await loadArticles();
         return articles.find(function (a) { return a.id === id; }) || null;
       },
-      function () { return apiJSON('/articulos/' + encodeURIComponent(id)); }
+      function () { return apiJSON('/articles/' + encodeURIComponent(id)); }
     );
   }
 
@@ -212,7 +212,7 @@ ULE.loader = (function () {
   function loadBibliografia() {
     return fromSource(
       function () { return loadCollection('data/bibliografia/', { prefix: 'biblio' }); },
-      function () { return apiJSON('/bibliografia').then(normalizeVisible); }
+      function () { return apiJSON('/bibliography').then(normalizeVisible); }
     );
   }
 
@@ -286,7 +286,7 @@ ULE.loader = (function () {
     if (!/^[a-z0-9][a-z0-9_-]*$/i.test(String(catalogId || ''))) return Promise.resolve(null);
     return fromSource(
       function () { return loadJSON('data/catalogos/' + catalogId + '.json'); },
-      function () { return apiJSON('/catalogos/' + encodeURIComponent(catalogId)); }
+      function () { return apiJSON('/catalogs/' + encodeURIComponent(catalogId)); }
     );
   }
 
@@ -304,7 +304,7 @@ ULE.loader = (function () {
         if (!manifest) return [];
         return manifest.map(function (name) { return name.replace(/\.json$/, ''); });
       },
-      function () { return apiJSON('/catalogos').then(normalizeCollection).then(function (items) { return items.map(function (c) { return c.id; }); }); }
+      function () { return apiJSON('/catalogs').then(normalizeCollection).then(function (items) { return items.map(function (c) { return c.id; }); }); }
     );
   }
 
@@ -354,7 +354,7 @@ ULE.loader = (function () {
         const data = await loadJSON('data/anuncios.json');
         return data && Array.isArray(data.anuncios) ? data.anuncios : [];
       },
-      function () { return apiJSON('/anuncios').then(normalizeCollection); }
+      function () { return apiJSON('/ads').then(normalizeCollection); }
     );
   }
 
