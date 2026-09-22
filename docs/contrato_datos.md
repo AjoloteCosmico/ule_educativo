@@ -44,7 +44,7 @@ debe devolverlos exactamente así · `visible` por defecto es `true`.
 |---|---|---|
 | `id`* | string | `biblio-NNN`. |
 | `titulo`* | string | |
-| `autores` | string[] | Se tolera un string. |
+| `autor`* | string | Autor o autores de la referencia, en un único campo. |
 | `año` | número/string | Ordena el listado. |
 | `tipo`* | enum | `libro` · `capitulo_libro` · `articulo` · `articulo_web` · `web`. Un tipo nuevo requiere agregarlo a `ULE.labels.tipoBiblio` (components.js), al validador y al generador. |
 | `editorial` | string | |
