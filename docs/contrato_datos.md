@@ -44,7 +44,7 @@ debe devolverlos exactamente así · `visible` por defecto es `true`.
 |---|---|---|
 | `id`* | string | `biblio-NNN`. |
 | `titulo`* | string | |
-| `autores` | string[] | Se tolera un string. |
+| `autor`* | string | Autor o autores de la referencia, en un único campo. |
 | `año` | número/string | Ordena el listado. |
 | `tipo`* | enum | `libro` · `capitulo_libro` · `articulo` · `articulo_web` · `web`. Un tipo nuevo requiere agregarlo a `ULE.labels.tipoBiblio` (components.js), al validador y al generador. |
 | `editorial` | string | |
@@ -55,10 +55,10 @@ debe devolverlos exactamente así · `visible` por defecto es `true`.
 
 > **Nota para el backend:** el borrador de tabla `bibliography` en `docs/arquitectura.md` usa
 > columnas `autor` (singular), `anio`, `referencia`, `enlace` y no tiene `visible`. El DTO de
-> `GET /bibliography` debe mapear `autor → autores` (como arreglo de un elemento si la columna
-> sigue siendo singular), `anio → año`, `referencia → resumen`/`editorial` (o separar la columna
-> si se prefiere), `enlace → url`, y la tabla real necesita una columna `visible BOOLEAN DEFAULT
-> TRUE` para que el filtrado público (§5) se pueda hacer a nivel de query.
+> `GET /bibliography` debe exponer `autor` como string obligatorio, además de mapear `anio → año`,
+> `referencia → resumen`/`editorial` (o separar la columna si se prefiere), `enlace → url`, y la
+> tabla real necesita una columna `visible BOOLEAN DEFAULT TRUE` para que el filtrado público (§5)
+> se pueda hacer a nivel de query.
 
 ## 3. Catálogo (colección)
 

@@ -1,10 +1,10 @@
 {
-    "id": "biblio-010",
-    "titulo": "Complejo yugo-hacha-palma",
-    "autores": ["Wikipedia"],
-    "año": 2025,
-    "editorial": "Wikipedia, la enciclopedia libre",
-    "tipo": "articulo_web",
-    "url": "https://es.wikipedia.org/wiki/Complejo_yugo-hacha-palma",
-    "resumen": "Entrada enciclopédica sobre el complejo de objetos de piedra asociados al juego de pelota en Veracruz, con descripciones de yugos, palmas y hachas."
-  }
+  "id": "biblio-010",
+  "titulo": "Complejo yugo-hacha-palma",
+  "autor": "Wikipedia",
+  "año": 2025,
+  "editorial": "Wikipedia, la enciclopedia libre",
+  "tipo": "articulo_web",
+  "url": "https://es.wikipedia.org/wiki/Complejo_yugo-hacha-palma",
+  "resumen": "Entrada enciclopédica sobre el complejo de objetos de piedra asociados al juego de pelota en Veracruz, con descripciones de yugos, palmas y hachas."
+}

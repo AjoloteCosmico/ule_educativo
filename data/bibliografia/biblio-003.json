@@ -1,11 +1,10 @@
-
-  {
-    "id": "biblio-003",
-    "titulo": "Borhegyi's interpretation of certain Mesoamerican objects as ballgame handstones",
-    "autores": ["Clune, Francis J."],
-    "año": 1963,
-    "editorial": "American Antiquity, vol. 29, pp. 241-242",
-    "tipo": "articulo",
-    "url": "https://www.jstor.org/stable/278334",
-    "resumen": "Crítica a la interpretación funcionalista de Borhegyi, argumentando que las manoplas podrían haber tenido un uso ritual post-juego más que una función práctica durante el juego."
-  }
+{
+  "id": "biblio-003",
+  "titulo": "Borhegyi's interpretation of certain Mesoamerican objects as ballgame handstones",
+  "autor": "Clune, Francis J.",
+  "año": 1963,
+  "editorial": "American Antiquity, vol. 29, pp. 241-242",
+  "tipo": "articulo",
+  "url": "https://www.jstor.org/stable/278334",
+  "resumen": "Crítica a la interpretación funcionalista de Borhegyi, argumentando que las manoplas podrían haber tenido un uso ritual post-juego más que una función práctica durante el juego."
+}
