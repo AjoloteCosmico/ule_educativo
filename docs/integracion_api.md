@@ -22,7 +22,7 @@ contrato de lectura, que ya vive en `docs/contrato_datos.md`.
 
 ## Pasos
 
-### 1. Apuntar el loader a la API (config, no código)
+### 1. Apuntar el loader a la API (config, no código) — **HECHO**
 
 En cada página (o en un `js/config.js` nuevo cargado antes de `loader.js`, ya que el sitio no
 tiene build step ni `import.meta.env`):
@@ -44,7 +44,7 @@ implementan el contrato de errores (404 → `null`/`[]`, 5xx/red → `Error`).
 lectura deben quedar fuera de `RequireAuth` (públicos, sin cookie) y filtrar `visible=TRUE` en la
 propia consulta. Si eso ya está así, este paso es puramente de configuración.
 
-### 2. Cliente HTTP central (`js/api/client.js`)
+### 2. Cliente HTTP central (`js/api/client.js`) — **HECHO**
 
 Una sola función, siguiendo la guía del backend, análoga a `apiJSON()` pero para las llamadas
 autenticadas (session-aware, sin bundler así que sin `import`/`export` de módulos ES — mismo
@@ -82,7 +82,7 @@ sesión; nunca `Authorization: Bearer` (la sesión es por cookie `tonalmaster_se
 — no se lee `document.cookie`); nunca `mode: 'no-cors'`; `response.ok` siempre se revisa antes de
 tratar la operación como éxito.
 
-### 3. Módulo de autenticación (`js/api/auth.js`)
+### 3. Módulo de autenticación (`js/api/auth.js`) — **HECHO**
 
 Tres funciones sobre `ULE.api.request`, tal como las define la guía (§20):
 
@@ -122,7 +122,7 @@ ULE.auth.me = async function () {
 El campo `registration_code` solo se muestra en la UI cuando corresponde al flujo autorizado
 (guía §3): el formulario de registro no se enlaza desde la navegación pública del sitio.
 
-### 4. Estado de sesión mínimo (sin framework)
+### 4. Estado de sesión mínimo (sin framework) — **HECHO**
 
 Como el sitio es Web Components + JS plano, el "AuthProvider" de la guía se resuelve como un
 objeto de estado simple en `window.ULE.auth`, con un patrón `checking → sesión válida | 401`
@@ -152,7 +152,7 @@ panel      a login
   a validar siempre (guía §12, §24) — esto ya está alineado con `arquitectura.md` §14.5
   (`Panel editorial → API → validación → DB`, nunca `Panel → DB`).
 
-### 5. Migrar la captura editorial: de "generar JSON" a "escribir contra la API"
+### 5. Migrar la captura editorial: de "generar JSON" a "escribir contra la API" — **SIGUIENTE**
 
 `herramientas/generador-json.html` hoy termina en "descarga el JSON y haz push a mano"
 (`docs/primera_fase.md` §1.5, ya marcado como limitación no resuelta). El cambio mínimo:
@@ -189,7 +189,7 @@ queda obsoleto como "hay que subir el archivo a mano", sin construir un CMS nuev
 ### 6. Checklist de salida
 
 - [ ] `ULE.config.dataSource='api'` funciona contra el backend real para los 4 recursos de
-      lectura (ya cubierto por `scripts/pruebas_navegador.py`, sin cambios).
+      lectura (loader preparado; falta validar contra backend desplegado).
 - [ ] Login / registro (con `registration_code`) / logout funcionan con `credentials: 'include'`.
 - [ ] La sesión sobrevive a un reload del panel editorial (`ULE.auth.me()` al iniciar).
 - [ ] `401` limpia estado y redirige a login; `403` muestra "sin permisos" (no se confunden).
