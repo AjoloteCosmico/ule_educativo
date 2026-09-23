@@ -1,7 +1,9 @@
 {
   "id": "biblio-001",
   "titulo": "Ball Game Handstones and Ball Game Gloves",
-  "autor": "Borhegyi, Stephan F. de",
+  "autores": [
+    "Borhegyi, Stephan F. de"
+  ],
   "año": 1961,
   "editorial": "Harvard University Press, Cambridge, MA",
   "tipo": "capitulo_libro",
