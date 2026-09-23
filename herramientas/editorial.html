@@ -10,20 +10,12 @@
 <link rel="stylesheet" href="../css/components.css">
 <link rel="stylesheet" href="../css/theme.css">
 <link rel="stylesheet" href="../css/herramientas.css">
+<link rel="stylesheet" href="../css/nav.css">
 <link rel="icon" href="../assets/logo/logo.png" type="image/png">
 </head>
 <body>
 <a class="skip-link" href="#contenido-principal">Saltar al contenido</a>
-<header class="container"><nav class="nav" aria-label="Navegación editorial">
-<ul class="nav__lista">
-<li><a class="nav__link" href="../index.html">Inicio</a></li>
-<li><a class="nav__link" href="../articulos.html">Artículos</a></li>
-<li><a class="nav__link" href="../bibliografia.html">Bibliografía</a></li>
-<li><a class="nav__link" href="../catalogos.html">Colecciones</a></li>
-</ul>
-<button class="nav__link" type="button" id="auth-toggle">Sign-in</button>
-<button class="theme-toggle" type="button" id="theme-toggle" aria-label="Cambiar tema"><span class="theme-toggle__icon"><svg class="icon-sol" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"></circle></svg><svg class="icon-luna" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"></path></svg></span><span id="theme-label">Oscuro</span></button>
-</nav></header>
+<ule-nav></ule-nav>
 <auth-modal id="auth-modal"></auth-modal>
 <main id="contenido-principal"><section class="container section">
 <h1>Panel editorial</h1>
@@ -47,11 +39,13 @@
 </form></div>
 </div></section></main>
 <script src="../js/main.js"></script>
+<script src="../js/loader.js"></script>
 <script src="../js/api/client.js"></script>
 <script src="../js/api/auth.js"></script>
 <script src="../js/api/session.js"></script>
 <script src="../js/auth-modal.js"></script>
 <script src="../js/auth-ui.js"></script>
+<script src="../js/ule-nav.js"></script>
 <script>
 (function(){
   var app=document.getElementById('editorial-app'), alertBox=document.getElementById('editorial-alert'), list=document.getElementById('editorial-list'), panel=document.getElementById('editorial-form-panel'), form=document.getElementById('editorial-form'), idInput=document.getElementById('editorial-id'), jsonInput=document.getElementById('editorial-json'), status=document.getElementById('editorial-status'), del=document.getElementById('editorial-delete'), title=document.getElementById('editorial-title');
