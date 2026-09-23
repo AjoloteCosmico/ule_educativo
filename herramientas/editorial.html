@@ -88,7 +88,7 @@
     var lab = document.createElement('label');
     lab.htmlFor = 'editorial-' + name;
     lab.textContent = label + (options.required ? ' *' : '');
-    wrap.appendChild(lab);
+    if (type !== 'hidden') wrap.appendChild(lab);
     var input;
     if (type === 'textarea') {
       input = document.createElement('textarea');
@@ -158,16 +158,17 @@
   function buildForm(record) {
     form.replaceChildren();
     var r = record || {};
+    if (resource === 'articles' && !editing) r = Object.assign({contenido_html:'<h2>Sección</h2>\\n<p>Contenido...</p>'}, r);
     var fields;
 
     if (resource === 'articles') {
       fields = [
-        field('id', 'ID', 'text', idOptions()),
+        field('id', 'ID', 'hidden', idOptions()),
         field('titulo', 'Título', 'text', {required:true}),
         field('autor', 'Autor', 'text', {placeholder:'Opcional'}),
         field('fecha', 'Fecha', 'date', {required:true}),
         field('resumen', 'Resumen', 'textarea', {required:true, rows:4}),
-        field('contenido_html', 'Contenido HTML', 'textarea', {required:true, rows:12, help:'El HTML se enviará directamente en contenido_html. No incluir <script>.'}),
+        field('contenido_html', 'Contenido', 'textarea', {required:true, rows:12, help:'Puedes agregar secciones con el botón. El HTML generado se enviará directamente en contenido_html.'}),
         field('imagen_destacada', 'Imagen destacada', 'url', {placeholder:'https://…', help:'Opcional.'}),
         field('imagen_alt', 'Texto alternativo de imagen', 'text', {placeholder:'Opcional'}),
         field('categoria', 'Categoría', 'text', {placeholder:'Opcional'}),
@@ -242,6 +243,25 @@
     });
     if (row.children.length) form.insertBefore(row, form.firstChild);
 
+    if (resource === 'articles') {
+      var contentHelp = document.createElement('div');
+      contentHelp.className = 'form-tool__acciones';
+      var addSection = document.createElement('button');
+      addSection.className = 'button';
+      addSection.type = 'button';
+      addSection.textContent = 'Agregar sección';
+      addSection.addEventListener('click', function () {
+        var content = form.elements.contenido_html;
+        var current = content.value.trim();
+        var section = '<h2>Sección</h2>\\n<p>Contenido...</p>';
+        content.value = current ? current + '\\n\\n' + section : section;
+        content.focus();
+        validateForm();
+      });
+      contentHelp.appendChild(addSection);
+      form.appendChild(contentHelp);
+    }
+
     var actions = document.createElement('div');
     actions.className = 'form-tool__acciones';
     var save = document.createElement('button');
@@ -266,9 +286,14 @@
       actions.appendChild(del);
     }
     form.appendChild(actions);
-    form.addEventListener('input', validateForm);
+    form.addEventListener('input', function (event) {
+      if (!editing && (event.target.name === 'titulo' || event.target.name === 'slogan')) generateId();
+      validateForm();
+    });
     form.addEventListener('change', validateForm);
+    form.addEventListener('submit', save);
     populate(r);
+    if (!editing && form.elements.id) generateId();
     validateForm();
   }
 
@@ -332,6 +357,23 @@
         enlace:value('enlace') || null, tipo:value('tipo'), paginas:parseArray(value('paginas')), prioridad_slot:value('prioridad_slot') || null};
     }
     return p;
+  }
+
+  function slugify(value) {
+    return String(value || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')
+      .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48) || 'contenido';
+  }
+
+  function generateId() {
+    var titleValue = value('titulo') || value('slogan') || labels[resource].toLowerCase();
+    var base = slugify(titleValue);
+    var existing = {};
+    records.forEach(function (record) { if (record.id) existing[record.id] = true; });
+    var id = base;
+    var n = 2;
+    while (existing[id] && (!editing || id !== editing)) id = base + '-' + n++;
+    if (form.elements.id) form.elements.id.value = id;
+    return id;
   }
 
   function populate(r) {
