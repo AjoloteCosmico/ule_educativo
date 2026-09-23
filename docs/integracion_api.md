@@ -152,10 +152,12 @@ panel      a login
   a validar siempre (guía §12, §24) — esto ya está alineado con `arquitectura.md` §14.5
   (`Panel editorial → API → validación → DB`, nunca `Panel → DB`).
 
-### 5. Migrar la captura editorial: de "generar JSON" a "escribir contra la API" — **SIGUIENTE**
+### 5. Migrar la captura editorial: de "generar JSON" a "escribir contra la API" — **EN PROGRESO**
 
 `herramientas/generador-json.html` hoy termina en "descarga el JSON y haz push a mano"
 (`docs/primera_fase.md` §1.5, ya marcado como limitación no resuelta). El cambio mínimo:
+
+**Estado actual:** el backend ya implementa los CRUD editoriales y sus rutas están registradas en `/api/v1`; el generador ya puede publicar creaciones autenticadas. La edición/eliminación y la UX completa del panel quedan como continuación de este mismo paso.
 
 1. Formularios existentes (artículo, bibliografía, elemento de catálogo, anuncio) **se
    conservan tal cual** — mismos campos, misma validación básica.
@@ -208,12 +210,8 @@ que el plan de frontend no las de por resueltas:
 
 1. **Endpoint "quién soy"** para reconstruir sesión al recargar — confirmar nombre exacto si ya
    existe en la plataforma general de `tonalmaster_backend`.
-2. **Esquema de `bibliography`** (columnas `autor`, `año`, `referencia→resumen`, `enlace→url`,
-   `visible`) y de **`catalog_items`** (reconstrucción de `categorias_disponibles`/`categorias`
-   desde `detalles JSONB`) — pendientes según lo ya anotado en `contrato_datos.md` §2 y §3.
-3. **Esquema de `ads`** — es el ajuste más grande de los cuatro recursos según el propio
-   `contrato_datos.md` §4 (faltan columnas: `imagen_alt`, `contacto`, `slogan`, `descripcion`,
-   `peso`, `tipo`, `prioridad_slot`; renombrar `fecha_inicio/fin` → `vigencia_inicio/fin`).
+2. **Autores:** artículos usan `autor` como string (puede contener varios autores); bibliografía usa `autores` como arreglo de strings.
+3. **CRUD editorial:** artículos, bibliografía, catálogos, elementos y anuncios ya están implementados en el backend.
 4. **Origen(es) a autorizar en CORS**: confirmar el dominio real de producción — el `README`
    dice GitHub Pages bajo subpath (`usuario.github.io/ule_educativo/`) y el perfil del repo
    apunta a `ule-educativo.vercel.app`; hay que fijar cuál es el vigente, más
