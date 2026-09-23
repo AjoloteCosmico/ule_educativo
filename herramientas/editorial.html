@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Panel editorial — ule educativo</title>
+<link rel="stylesheet" href="../css/variables.css">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/components.css">
+<link rel="stylesheet" href="../css/theme.css">
+<link rel="stylesheet" href="../css/herramientas.css">
+<link rel="icon" href="../assets/logo/logo.png" type="image/png">
+</head>
+<body>
+<a class="skip-link" href="#contenido-principal">Saltar al contenido</a>
+<header class="container"><nav class="nav" aria-label="Navegación editorial">
+<ul class="nav__lista">
+<li><a class="nav__link" href="../index.html">Inicio</a></li>
+<li><a class="nav__link" href="../articulos.html">Artículos</a></li>
+<li><a class="nav__link" href="../bibliografia.html">Bibliografía</a></li>
+<li><a class="nav__link" href="../catalogos.html">Colecciones</a></li>
+</ul>
+<button class="nav__link" type="button" id="auth-toggle">Sign-in</button>
+<button class="theme-toggle" type="button" id="theme-toggle" aria-label="Cambiar tema"><span class="theme-toggle__icon"><svg class="icon-sol" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"></circle></svg><svg class="icon-luna" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"></path></svg></span><span id="theme-label">Oscuro</span></button>
+</nav></header>
+<auth-modal id="auth-modal"></auth-modal>
+<main id="contenido-principal"><section class="container section">
+<h1>Panel editorial</h1>
+<p>Gestiona el contenido mediante la API. Requiere rol <strong>contributor</strong> o <strong>admin</strong>.</p>
+<div id="editorial-alert" class="form-tool__ayuda" role="status"></div>
+<div id="editorial-app" hidden>
+<div class="form-tool__selector" id="editorial-tabs" role="tablist" aria-label="Tipo de contenido">
+<button class="btn" type="button" role="tab" data-resource="articles" aria-selected="true">Artículos</button>
+<button class="btn" type="button" role="tab" data-resource="bibliography" aria-selected="false">Bibliografía</button>
+<button class="btn" type="button" role="tab" data-resource="catalogs" aria-selected="false">Colecciones</button>
+<button class="btn" type="button" role="tab" data-resource="ads" aria-selected="false">Anuncios</button>
+</div>
+<div class="form-tool__resultado is-visible"><div class="cluster"><h2 id="editorial-title">Artículos</h2><button class="btn" type="button" id="editorial-new">Nuevo</button></div><div id="editorial-list" class="catalog-loading">Cargando…</div></div>
+<div class="form-tool__resultado is-visible" id="editorial-form-panel" hidden>
+<h2 id="editorial-form-title">Nuevo contenido</h2>
+<form id="editorial-form">
+<div class="form-tool__grupo"><label for="editorial-id">id</label><input id="editorial-id" required pattern="[a-z0-9]+([_-][a-z0-9]+)*"></div>
+<div class="form-tool__grupo"><label for="editorial-json">Contenido JSON</label><textarea id="editorial-json" rows="24" spellcheck="false" required></textarea><p class="form-tool__ayuda">Usa las claves definidas en docs/contrato_datos.md.</p></div>
+<div class="form-tool__acciones"><button class="btn" type="submit">Guardar</button><button class="btn" type="button" id="editorial-cancel">Cancelar</button><button class="btn" type="button" id="editorial-delete" hidden>Eliminar</button></div>
+<p id="editorial-status" class="form-tool__ayuda" role="status"></p>
+</form></div>
+</div></section></main>
+<script src="../js/main.js"></script>
+<script src="../js/api/client.js"></script>
+<script src="../js/api/auth.js"></script>
+<script src="../js/api/session.js"></script>
+<script src="../js/auth-modal.js"></script>
+<script src="../js/auth-ui.js"></script>
+<script>
+(function(){
+  var app=document.getElementById('editorial-app'), alertBox=document.getElementById('editorial-alert'), list=document.getElementById('editorial-list'), panel=document.getElementById('editorial-form-panel'), form=document.getElementById('editorial-form'), idInput=document.getElementById('editorial-id'), jsonInput=document.getElementById('editorial-json'), status=document.getElementById('editorial-status'), del=document.getElementById('editorial-delete'), title=document.getElementById('editorial-title');
+  var resource='articles', editing=null, records=[];
+  var labels={articles:'Artículos',bibliography:'Bibliografía',catalogs:'Colecciones',ads:'Anuncios'};
+  var templates={
+    articles:{id:'articulo-000',titulo:'',autor:'',fecha:'2026-09-23',resumen:'',contenido_html:'<h2>Sección</h2><p>Contenido.</p>',imagen_destacada:null,imagen_alt:null,categoria:'',etiquetas:[],bibliografía_relacionada:[],visible:true},
+    bibliography:{id:'biblio-000',titulo:'',autores:[],año:2026,tipo:'libro',editorial:'',resumen:'',url:'',articulos_relacionados:[],visible:true},
+    catalogs:{id:'coleccion-000',titulo:'',descripcion:'',imagen_portada:null,categorias_disponibles:{},elementos:[],visible:true},
+    ads:{id:'anuncio-000',imagen:null,imagen_alt:null,contacto:'',slogan:'',descripcion:'',vigencia_inicio:null,vigencia_fin:null,activo:true,peso:1,enlace:null,tipo:'comunidad',paginas:['home'],prioridad_slot:'normal'}
+  };
+  function msg(t){alertBox.textContent=t;}
+  function closeForm(){panel.hidden=true;editing=null;status.textContent='';}
+  async function load(){
+    list.textContent='Cargando '+labels[resource].toLowerCase()+'…';
+    try{var data=await ULE.api.request('/'+resource);records=Array.isArray(data)?data:(data.items||data.data||[]);render();}
+    catch(e){list.textContent='No fue posible cargar el contenido (HTTP '+(e.status||'red')+').';}
+  }
+  function render(){
+    if(!records.length){list.textContent='No hay registros disponibles.';return;}
+    var table=document.createElement('table');table.style.width='100%';
+    table.innerHTML='<thead><tr><th>ID</th><th>Nombre</th><th>Estado</th><th>Acciones</th></tr></thead>';
+    var body=document.createElement('tbody');
+    records.forEach(function(r){
+      var tr=document.createElement('tr'), id=r.id||'', name=r.titulo||r.slogan||id, visible=resource==='ads'?r.activo!==false:r.visible!==false;
+      var c1=document.createElement('td');c1.textContent=id;var c2=document.createElement('td');c2.textContent=name;var c3=document.createElement('td');c3.textContent=visible?'Visible':'Oculto';var c4=document.createElement('td');
+      var edit=document.createElement('button');edit.className='btn';edit.type='button';edit.textContent='Editar';edit.onclick=function(){openEdit(r);};
+      var remove=document.createElement('button');remove.className='btn';remove.type='button';remove.textContent='Eliminar';remove.onclick=function(){removeRecord(id);};
+      c4.append(edit,document.createTextNode(' '),remove);tr.append(c1,c2,c3,c4);body.appendChild(tr);
+    });table.appendChild(body);list.replaceChildren(table);
+  }
+  function openEdit(r){editing=r.id;idInput.value=r.id;idInput.disabled=true;jsonInput.value=JSON.stringify(r,null,2);del.hidden=false;panel.hidden=false;status.textContent='';}
+  function openNew(){editing=null;idInput.disabled=false;idInput.value=templates[resource].id;jsonInput.value=JSON.stringify(templates[resource],null,2);del.hidden=true;panel.hidden=false;status.textContent='';}
+  async function save(e){
+    e.preventDefault();var payload;try{payload=JSON.parse(jsonInput.value);}catch(x){status.textContent='JSON inválido.';return;}
+    var id=idInput.value.trim();if(!id||payload.id!==id){status.textContent='El id del formulario debe coincidir con payload.id.';return;}
+    var method=editing?'PUT':'POST',path=editing?'/'+resource+'/'+encodeURIComponent(editing):'/'+resource;
+    try{status.textContent='Guardando…';await ULE.api.request(path,{method:method,body:JSON.stringify(payload)});msg(labels[resource]+' guardado.');await load();closeForm();}
+    catch(x){status.textContent='No fue posible guardar (HTTP '+(x.status||'red')+').';}
+  }
+  async function removeRecord(id){
+    if(!confirm('¿Eliminar "'+id+'"?'))return;
+    try{await ULE.api.request('/'+resource+'/'+encodeURIComponent(id),{method:'DELETE'});msg('Registro eliminado.');closeForm();await load();}
+    catch(x){msg('No fue posible eliminar (HTTP '+(x.status||'red')+').');}
+  }
+  document.querySelectorAll('#editorial-tabs [role=tab]').forEach(function(t){t.onclick=function(){resource=t.dataset.resource;document.querySelectorAll('#editorial-tabs [role=tab]').forEach(function(x){x.setAttribute('aria-selected',String(x===t));});title.textContent=labels[resource];closeForm();load();};});
+  document.getElementById('editorial-new').onclick=openNew;document.getElementById('editorial-cancel').onclick=closeForm;del.onclick=function(){if(editing)removeRecord(editing);};form.onsubmit=save;
+  (async function(){try{var u=await ULE.auth.requireRole(['contributor','admin']);app.hidden=false;msg('Sesión editorial activa: '+(u.username||u.email)+' ('+u.role+').');load();}catch(e){msg(e.status===401?'Debes iniciar sesión para acceder al panel editorial.':'No tienes permisos para acceder al panel editorial.');}})();
+})();
+</script>
+</body></html>
