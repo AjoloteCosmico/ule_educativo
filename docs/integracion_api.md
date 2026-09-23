@@ -22,7 +22,7 @@ contrato de lectura, que ya vive en `docs/contrato_datos.md`.
 
 ## Pasos
 
-### 1. Apuntar el loader a la API (config, no código) — **HECHO**
+### 1. Apuntar el loader a la API (config, no código)
 
 En cada página (o en un `js/config.js` nuevo cargado antes de `loader.js`, ya que el sitio no
 tiene build step ni `import.meta.env`):
@@ -44,7 +44,7 @@ implementan el contrato de errores (404 → `null`/`[]`, 5xx/red → `Error`).
 lectura deben quedar fuera de `RequireAuth` (públicos, sin cookie) y filtrar `visible=TRUE` en la
 propia consulta. Si eso ya está así, este paso es puramente de configuración.
 
-### 2. Cliente HTTP central (`js/api/client.js`) — **HECHO**
+### 2. Cliente HTTP central (`js/api/client.js`)
 
 Una sola función, siguiendo la guía del backend, análoga a `apiJSON()` pero para las llamadas
 autenticadas (session-aware, sin bundler así que sin `import`/`export` de módulos ES — mismo
@@ -82,7 +82,7 @@ sesión; nunca `Authorization: Bearer` (la sesión es por cookie `tonalmaster_se
 — no se lee `document.cookie`); nunca `mode: 'no-cors'`; `response.ok` siempre se revisa antes de
 tratar la operación como éxito.
 
-### 3. Módulo de autenticación (`js/api/auth.js`) — **HECHO**
+### 3. Módulo de autenticación (`js/api/auth.js`)
 
 Tres funciones sobre `ULE.api.request`, tal como las define la guía (§20):
 
@@ -122,7 +122,7 @@ ULE.auth.me = async function () {
 El campo `registration_code` solo se muestra en la UI cuando corresponde al flujo autorizado
 (guía §3): el formulario de registro no se enlaza desde la navegación pública del sitio.
 
-### 4. Estado de sesión mínimo (sin framework) — **HECHO**
+### 4. Estado de sesión mínimo (sin framework)
 
 Como el sitio es Web Components + JS plano, el "AuthProvider" de la guía se resuelve como un
 objeto de estado simple en `window.ULE.auth`, con un patrón `checking → sesión válida | 401`
@@ -152,12 +152,10 @@ panel      a login
   a validar siempre (guía §12, §24) — esto ya está alineado con `arquitectura.md` §14.5
   (`Panel editorial → API → validación → DB`, nunca `Panel → DB`).
 
-### 5. Migrar la captura editorial: de "generar JSON" a "escribir contra la API" — **EN PROGRESO**
+### 5. Migrar la captura editorial: de "generar JSON" a "escribir contra la API"
 
 `herramientas/generador-json.html` hoy termina en "descarga el JSON y haz push a mano"
 (`docs/primera_fase.md` §1.5, ya marcado como limitación no resuelta). El cambio mínimo:
-
-**Estado actual:** el backend ya implementa los CRUD editoriales y sus rutas están registradas en `/api/v1`; el generador ya puede publicar creaciones autenticadas. La edición/eliminación y la UX completa del panel quedan como continuación de este mismo paso.
 
 1. Formularios existentes (artículo, bibliografía, elemento de catálogo, anuncio) **se
    conservan tal cual** — mismos campos, misma validación básica.
@@ -191,7 +189,7 @@ queda obsoleto como "hay que subir el archivo a mano", sin construir un CMS nuev
 ### 6. Checklist de salida
 
 - [ ] `ULE.config.dataSource='api'` funciona contra el backend real para los 4 recursos de
-      lectura (loader preparado; falta validar contra backend desplegado).
+      lectura (ya cubierto por `scripts/pruebas_navegador.py`, sin cambios).
 - [ ] Login / registro (con `registration_code`) / logout funcionan con `credentials: 'include'`.
 - [ ] La sesión sobrevive a un reload del panel editorial (`ULE.auth.me()` al iniciar).
 - [ ] `401` limpia estado y redirige a login; `403` muestra "sin permisos" (no se confunden).
@@ -210,8 +208,12 @@ que el plan de frontend no las de por resueltas:
 
 1. **Endpoint "quién soy"** para reconstruir sesión al recargar — confirmar nombre exacto si ya
    existe en la plataforma general de `tonalmaster_backend`.
-2. **Autores:** artículos usan `autor` como string (puede contener varios autores); bibliografía usa `autores` como arreglo de strings.
-3. **CRUD editorial:** artículos, bibliografía, catálogos, elementos y anuncios ya están implementados en el backend.
+2. **Esquema de `bibliography`** (columnas `autor`, `año`, `referencia→resumen`, `enlace→url`,
+   `visible`) y de **`catalog_items`** (reconstrucción de `categorias_disponibles`/`categorias`
+   desde `detalles JSONB`) — pendientes según lo ya anotado en `contrato_datos.md` §2 y §3.
+3. **Esquema de `ads`** — es el ajuste más grande de los cuatro recursos según el propio
+   `contrato_datos.md` §4 (faltan columnas: `imagen_alt`, `contacto`, `slogan`, `descripcion`,
+   `peso`, `tipo`, `prioridad_slot`; renombrar `fecha_inicio/fin` → `vigencia_inicio/fin`).
 4. **Origen(es) a autorizar en CORS**: confirmar el dominio real de producción — el `README`
    dice GitHub Pages bajo subpath (`usuario.github.io/ule_educativo/`) y el perfil del repo
    apunta a `ule-educativo.vercel.app`; hay que fijar cuál es el vigente, más
