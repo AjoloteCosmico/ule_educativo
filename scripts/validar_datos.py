@@ -97,9 +97,11 @@ for i, a in articulos.items():
         avisos.append(f"{i}: contenido_html empieza en <h{niveles[0]}> (debería ser <h2>)")
 
 for i, r in biblio.items():
-    for campo in ("titulo", "autor", "tipo"):
+    for campo in ("titulo", "autores", "tipo"):
         if not r.get(campo):
             errores.append(f"{i}: falta '{campo}'")
+    if r.get("autores") and (not isinstance(r["autores"], list) or not all(isinstance(x, str) and x.strip() for x in r["autores"])):
+        errores.append(f"{i}: 'autores' debe ser un arreglo de strings no vacío")
     if r.get("tipo") and r["tipo"] not in TIPOS_BIBLIO:
         errores.append(f"{i}: tipo '{r['tipo']}' no registrado (agregar a ULE.labels.tipoBiblio y al contrato)")
     if r.get("url") and not re.match(r"^https?://", r["url"]):
