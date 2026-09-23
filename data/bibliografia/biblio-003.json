@@ -1,7 +1,9 @@
 {
   "id": "biblio-003",
   "titulo": "Borhegyi's interpretation of certain Mesoamerican objects as ballgame handstones",
-  "autor": "Clune, Francis J.",
+  "autores": [
+    "Clune, Francis J."
+  ],
   "año": 1963,
   "editorial": "American Antiquity, vol. 29, pp. 241-242",
   "tipo": "articulo",
