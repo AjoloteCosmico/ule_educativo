@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="css/variables.css">
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/nav.css">
   <link rel="stylesheet" href="css/theme.css">
   <link rel="stylesheet" href="css/ads.css">
 
@@ -21,24 +22,7 @@
 
   <a class="skip-link" href="#contenido-principal">Saltar al contenido</a>
 
-  <header class="container">
-    <nav class="nav" aria-label="Navegación principal">
-      <ul class="nav__lista">
-        <li><a class="nav__link" href="index.html">Inicio</a></li>
-        <li><a class="nav__link" href="articulos.html">Artículos</a></li>
-        <li><a class="nav__link" href="bibliografia.html">Bibliografía</a></li>
-        <li><a class="nav__link" href="catalogos.html">Colecciones</a></li>
-      </ul>
-
-      <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Cambiar tema">
-        <span class="theme-toggle__icon">
-          <svg class="icon-sol" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg>
-          <svg class="icon-luna" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"></path></svg>
-        </span>
-        <span id="theme-label">Oscuro</span>
-      </button>
-    </nav>
-  </header>
+  <ule-nav></ule-nav>
 
   <main id="contenido-principal">
     <section class="container section">
@@ -65,7 +49,7 @@
     <p>ule educativo · 2026</p>
   </footer>
 
-  <auth-modal id="auth-modal"></auth-modal>\n<script src="js/main.js"></script><script src="js/api/client.js"></script><script src="js/api/auth.js"></script><script src="js/api/session.js"></script><script src="js/auth-modal.js"></script><script src="js/auth-ui.js"></script>
+  <auth-modal id="auth-modal"></auth-modal>\n<script src="js/main.js"></script><script src="js/ule-nav.js"></script><script src="js/api/client.js"></script><script src="js/api/auth.js"></script><script src="js/api/session.js"></script><script src="js/auth-modal.js"></script><script src="js/auth-ui.js"></script>
   <script src="js/loader.js"></script>
   <script src="js/components.js"></script>
   <script src="js/ads.js"></script>

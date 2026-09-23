@@ -257,15 +257,52 @@ de sesión, 401 y 403.
 4. **Pruebas de integración:** verificar login, reload de sesión, logout, 401, 403 y las operaciones
    CRUD contra el backend real antes de entregar el contrato como cerrado.
 
+5. **`username` en `/auth/me`:** confirmar que login, register y me devuelven `username` (y `role`) para la navbar.
+
 ### Estado de implementación del frontend
 
 - [x] Cliente autenticado con `credentials: include`.
 - [x] `ULE.auth`: login, register, logout y `me`.
 - [x] `<auth-modal>` reutilizable.
-- [x] Botón **Sign-in / Sign-out** en la navegación principal.
-- [x] Enlace **Editorial** visible únicamente para `contributor`/`admin`.
+- [x] Botón **Entrar / Cerrar sesión** en la navegación principal (todas las páginas públicas).
+- [x] Navbar unificada con `<ule-nav>` (mismo marcado en todo el sitio).
+- [x] Nombre de usuario en la navbar cuando `GET /auth/me` lo provee (`username`).
+- [x] Enlace **Editorial** visible únicamente para `contributor`/`admin` (navbar + card en inicio).
 - [x] Panel editorial protegido por `ULE.auth.requireRole()`.
 - [x] Rutas CRUD confirmadas y documentadas.
 - [ ] Completar mapeo UI ↔ DTO para colecciones y elementos.
 - [ ] Ejecutar pruebas navegador contra el backend real.
 
+
+### 8. Navbar compartida y datos de sesión en la UI
+
+El sitio usa un único componente `<ule-nav>` en todas las páginas públicas. La barra muestra:
+
+- **Sin sesión:** botón «Entrar» (abre `<auth-modal>`).
+- **Con sesión:** el **nombre de usuario** junto al botón «Cerrar sesión», y el enlace **Editorial** si el rol es `contributor` o `admin`.
+- En `index.html`, además, una card «Herramienta editorial» visible solo con esos roles.
+
+#### Requisito para el backend — `GET /auth/me` (y respuestas de login/register)
+
+El cuerpo JSON del usuario **debe incluir** al menos:
+
+| Campo | Tipo | Uso en frontend |
+|---|---|---|
+| `username` | string | Nombre visible en la navbar y en el modal de sesión |
+| `email` | string | Fallback de etiqueta si faltara `username` |
+| `role` | string (`reader` \| `contributor` \| `admin`) | Mostrar/ocultar Editorial |
+
+Campos opcionales aceptados como alias de nombre: `name`, `display_name`.
+
+Si `username` no viene en la respuesta, la navbar puede autenticar y cerrar sesión, pero **no** podrá mostrar el nombre del usuario. Este campo es obligatorio para cerrar el checklist de UI de sesión.
+
+Ejemplo mínimo aceptable:
+
+```json
+{
+  "id": "…",
+  "username": "editor.ule",
+  "email": "editor@ejemplo.org",
+  "role": "contributor"
+}
+```

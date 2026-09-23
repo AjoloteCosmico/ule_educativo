@@ -11,28 +11,14 @@
 <link rel="stylesheet" href="css/variables.css">
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/nav.css">
 <link rel="stylesheet" href="css/theme.css">
 <link rel="stylesheet" href="css/ads.css">
 <link rel="icon" href="assets/logo/logo.png" type="image/png">
 </head>
 <body data-ad-page="home">
 <a class="skip-link" href="#contenido-principal">Saltar al contenido</a>
-<header class="container">
-<nav class="nav" aria-label="Navegación principal">
-<ul class="nav__lista">
-<li><a class="nav__link" href="index.html" aria-current="page">Inicio</a></li>
-<li><a class="nav__link" href="articulos.html">Artículos</a></li>
-<li><a class="nav__link" href="bibliografia.html">Bibliografía</a></li>
-<li><a class="nav__link" href="catalogos.html">Colecciones</a></li>
-</ul>
-<button class="theme-toggle" type="button" id="theme-toggle" aria-label="Cambiar tema">
-<span class="theme-toggle__icon">
-<svg class="icon-sol" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg>
-<svg class="icon-luna" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"></path></svg>
-</span><span id="theme-label">Oscuro</span>
-</button>
-</nav>
-</header>
+<ule-nav></ule-nav>
 <main id="contenido-principal">
 <section class="container section" aria-labelledby="titulo-principal">
 <div style="text-align:center; max-width:48rem; margin:0 auto;">
@@ -47,6 +33,11 @@
 <a class="card card-link" href="articulos.html"><h3 class="card__titulo">Artículos</h3><p class="card__cuerpo">Lecturas sobre la historia, arqueología, cultura y vigencia del juego de pelota mesoamericano.</p><span class="button">Leer artículos <span class="card__flecha" aria-hidden="true">→</span></span></a>
 <a class="card card-link" href="bibliografia.html"><h3 class="card__titulo">Bibliografía</h3><p class="card__cuerpo">Libros, artículos y recursos web que sirven como fuentes para conocer y profundizar en el tema.</p><span class="button">Consultar bibliografía <span class="card__flecha" aria-hidden="true">→</span></span></a>
 <a class="card card-link" href="catalogos.html"><h3 class="card__titulo">Colecciones</h3><p class="card__cuerpo">Explora colecciones visuales de piezas, espacios y otros elementos relacionados con el juego de pelota.</p><span class="button">Explorar colecciones <span class="card__flecha" aria-hidden="true">→</span></span></a>
+<a class="card card-link" id="editorial-home" href="herramientas/editorial.html" hidden>
+  <h3 class="card__titulo">Herramienta editorial</h3>
+  <p class="card__cuerpo">Crear, editar y publicar artículos, bibliografía, colecciones y anuncios.</p>
+  <span class="button">Abrir panel <span class="card__flecha" aria-hidden="true">→</span></span>
+</a>
 </div><div class="greca greca--divider" aria-hidden="true"></div>
 </section>
 <section class="container section" aria-labelledby="recientes-titulo">
@@ -63,7 +54,17 @@
 </section>
 </main>
 <footer class="container section" style="text-align:center; opacity:0.7; font-size:var(--fs-anotacion);"><p>ule educativo · 2026 · F.gonzalez · Colectivo Ulama Sierra Tonantzin </p></footer>
-<auth-modal id="auth-modal"></auth-modal>\n<script src="js/main.js"></script><script src="js/api/client.js"></script><script src="js/api/auth.js"></script><script src="js/api/session.js"></script><script src="js/auth-modal.js"></script><script src="js/auth-ui.js"></script><script src="js/loader.js"></script><script src="js/components.js"></script><script src="js/ads.js"></script>
+<auth-modal id="auth-modal"></auth-modal>
+<script src="js/main.js"></script>
+<script src="js/ule-nav.js"></script>
+<script src="js/api/client.js"></script>
+<script src="js/api/auth.js"></script>
+<script src="js/api/session.js"></script>
+<script src="js/auth-modal.js"></script>
+<script src="js/auth-ui.js"></script>
+<script src="js/loader.js"></script>
+<script src="js/components.js"></script>
+<script src="js/ads.js"></script>
 <script>
 (function () {
   const contenedor = document.getElementById('articulos-recientes');
@@ -95,4 +96,5 @@
   });
 })();
 </script>
-</body></html>
+</body>
+</html>
