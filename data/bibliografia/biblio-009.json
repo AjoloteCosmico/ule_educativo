@@ -1,7 +1,9 @@
 {
   "id": "biblio-009",
   "titulo": "Cinco tesis discutibles relativas al juego de pelota",
-  "autor": "Taladoire, Éric",
+  "autores": [
+    "Taladoire, Éric"
+  ],
   "año": 2015,
   "editorial": "Arqueología, núm. 53, INAH, México",
   "tipo": "articulo",
