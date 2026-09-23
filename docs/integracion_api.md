@@ -240,29 +240,32 @@ de sesión, 401 y 403.
 
 ---
 
-## Notas abiertas (requieren al backend, no bloquean este plan)
+## Notas abiertas / últimos ajustes
 
 > Estado revisado contra `utopia-development/tonalmaster_backend` en `main` el 23-09-2026.
-> El CRUD editorial y `GET /auth/me` ya están registrados; las notas siguientes son ajustes de
-> integración/configuración, no endpoints faltantes.
+> El CRUD editorial y `GET /auth/me` ya están registrados; por tanto, no se requieren nuevas
+> rutas CRUD para continuar el frontend.
 
+1. **CORS:** confirmar/fijar los orígenes reales de producción y desarrollo. El backend actualmente
+   permite credenciales para los orígenes configurados; el frontend necesita el dominio de
+   producción vigente y `http://localhost:8000` durante desarrollo.
+2. **Colecciones:** el panel editorial debe mapear el DTO público
+   `categorias_disponibles`/elementos al `detalles` JSONB que espera POST/PUT de `/catalogs`.
+3. **Elementos de colección:** el CRUD del panel debe usar
+   `/catalogs/{id}/items` y separar `id`, `titulo`, `imagen` de las demás propiedades del
+   elemento, que van en `detalles`.
+4. **Pruebas de integración:** verificar login, reload de sesión, logout, 401, 403 y las operaciones
+   CRUD contra el backend real antes de entregar el contrato como cerrado.
 
+### Estado de implementación del frontend
 
-Estas ya están señaladas en `docs/contrato_datos.md` y no son nuevas; se listan aquí solo para
-que el plan de frontend no las de por resueltas:
+- [x] Cliente autenticado con `credentials: include`.
+- [x] `ULE.auth`: login, register, logout y `me`.
+- [x] `<auth-modal>` reutilizable.
+- [x] Botón **Sign-in / Sign-out** en la navegación principal.
+- [x] Enlace **Editorial** visible únicamente para `contributor`/`admin`.
+- [x] Panel editorial protegido por `ULE.auth.requireRole()`.
+- [x] Rutas CRUD confirmadas y documentadas.
+- [ ] Completar mapeo UI ↔ DTO para colecciones y elementos.
+- [ ] Ejecutar pruebas navegador contra el backend real.
 
-1. **Endpoint "quién soy"** para reconstruir sesión al recargar — confirmar nombre exacto si ya
-   existe en la plataforma general de `tonalmaster_backend`.
-2. **Esquema de `bibliography`** (columnas `autor`, `año`, `referencia→resumen`, `enlace→url`,
-   `visible`) y de **`catalog_items`** (reconstrucción de `categorias_disponibles`/`categorias`
-   desde `detalles JSONB`) — pendientes según lo ya anotado en `contrato_datos.md` §2 y §3.
-3. **Esquema de `ads`** — es el ajuste más grande de los cuatro recursos según el propio
-   `contrato_datos.md` §4 (faltan columnas: `imagen_alt`, `contacto`, `slogan`, `descripcion`,
-   `peso`, `tipo`, `prioridad_slot`; renombrar `fecha_inicio/fin` → `vigencia_inicio/fin`).
-4. **Origen(es) a autorizar en CORS**: confirmar el dominio real de producción — el `README`
-   dice GitHub Pages bajo subpath (`usuario.github.io/ule_educativo/`) y el perfil del repo
-   apunta a `ule-educativo.vercel.app`; hay que fijar cuál es el vigente, más
-   `http://localhost:8000` para desarrollo local.
-
-Ninguno de estos cuatro puntos requiere cambiar la forma en que el backend ya funciona hoy; son
-columnas/endpoints puntuales ya justificados por el contrato de datos vigente.
