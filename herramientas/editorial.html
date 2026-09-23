@@ -73,6 +73,7 @@
   var resource = 'articles';
   var editing = null;
   var records = [];
+  var saving = false;
 
   var labels = {
     articles: 'Artículos',
@@ -85,6 +86,7 @@
     options = options || {};
     var wrap = document.createElement('div');
     wrap.className = 'form-tool__grupo';
+    wrap.dataset.field = name;
     var lab = document.createElement('label');
     lab.htmlFor = 'editorial-' + name;
     lab.textContent = label + (options.required ? ' *' : '');
@@ -126,6 +128,7 @@
   function checkbox(name, label, checked) {
     var wrap = document.createElement('div');
     wrap.className = 'form-tool__checkbox-fila';
+    wrap.dataset.field = name;
     var input = document.createElement('input');
     input.type = 'checkbox';
     input.id = 'editorial-' + name;
@@ -158,140 +161,153 @@
   function buildForm(record) {
     form.replaceChildren();
     var r = record || {};
-    if (resource === 'articles' && !editing) r = Object.assign({contenido_html:'<h2>Sección</h2>\\n<p>Contenido...</p>'}, r);
-    var fields;
+    if (resource === 'articles' && !editing) {
+      r = Object.assign({ contenido_html: '<h2>Sección</h2>\n<p>Contenido…</p>' }, r);
+    }
+
+    var fields = [];
 
     if (resource === 'articles') {
       fields = [
         field('id', 'ID', 'hidden', idOptions()),
-        field('titulo', 'Título', 'text', {required:true}),
-        field('autor', 'Autor', 'text', {placeholder:'Opcional'}),
-        field('fecha', 'Fecha', 'date', {required:true}),
-        field('resumen', 'Resumen', 'textarea', {required:true, rows:4}),
-        field('contenido_html', 'Contenido', 'textarea', {required:true, rows:12, help:'Puedes agregar secciones con el botón. El HTML generado se enviará directamente en contenido_html.'}),
-        field('imagen_destacada', 'Imagen destacada', 'url', {placeholder:'https://…', help:'Opcional.'}),
-        field('imagen_alt', 'Texto alternativo de imagen', 'text', {placeholder:'Opcional'}),
-        field('categoria', 'Categoría', 'text', {placeholder:'Opcional'}),
+        field('titulo', 'Título', 'text', { required: true }),
+        field('autor', 'Autor', 'text', { required: true, placeholder: 'Obligatorio' }),
+        field('fecha', 'Fecha', 'date', { required: true }),
+        field('resumen', 'Resumen', 'textarea', { required: true, rows: 4 }),
+        field('contenido_html', 'Contenido HTML', 'textarea', {
+          required: true,
+          rows: 12,
+          help: 'HTML del cuerpo (usa <h2> para secciones). Sin <script>. Rutas relativas.'
+        }),
+        field('imagen_destacada', 'Imagen destacada', 'url', { placeholder: 'https://…', help: 'Opcional.' }),
+        field('imagen_alt', 'Texto alternativo de imagen', 'text', { placeholder: 'Opcional' }),
+        field('categoria', 'Categoría', 'text', { placeholder: 'Opcional' }),
         arrayField('etiquetas', 'Etiquetas', false),
-        arrayField('bibliography_ids', 'Referencias bibliográficas', false, 'IDs de bibliografía, uno por línea.'),
+        arrayField('bibliografia_relacionada', 'Bibliografía relacionada', false, 'IDs de bibliografía, uno por línea (campo bibliografía_relacionada).'),
         checkbox('visible', 'Visible', r.visible !== false)
       ];
     } else if (resource === 'bibliography') {
       fields = [
         field('id', 'ID', 'text', idOptions()),
-        field('titulo', 'Título', 'text', {required:true}),
-        arrayField('autores', 'Autores', false, 'Uno o más autores, uno por línea.'),
-        field('anio', 'Año', 'number', {min:0, step:1}),
-        field('tipo', 'Tipo', 'select', {required:true, options:[
-          {value:'libro',label:'Libro'},
-          {value:'capitulo_libro',label:'Capítulo de libro'},
-          {value:'articulo',label:'Artículo'},
-          {value:'articulo_web',label:'Artículo web'},
-          {value:'web',label:'Web'}
-        ]}),
-        field('editorial', 'Editorial', 'text', {placeholder:'Opcional'}),
-        field('resumen', 'Resumen', 'textarea', {rows:4, placeholder:'Opcional'}),
-        field('url', 'URL', 'url', {placeholder:'https://…', help:'Opcional.'}),
+        field('titulo', 'Título', 'text', { required: true }),
+        arrayField('autores', 'Autores', true, 'Uno o más autores, uno por línea.'),
+        field('anio', 'Año', 'number', { min: 0, step: 1 }),
+        field('tipo', 'Tipo', 'select', {
+          required: true,
+          options: [
+            { value: 'libro', label: 'Libro' },
+            { value: 'capitulo_libro', label: 'Capítulo de libro' },
+            { value: 'articulo', label: 'Artículo' },
+            { value: 'articulo_web', label: 'Artículo web' },
+            { value: 'web', label: 'Web' }
+          ]
+        }),
+        field('editorial', 'Editorial', 'text', { placeholder: 'Opcional' }),
+        field('resumen', 'Resumen', 'textarea', { rows: 4, placeholder: 'Opcional' }),
+        field('url', 'URL', 'url', { placeholder: 'https://…', help: 'Opcional.' }),
         checkbox('visible', 'Visible', r.visible !== false),
-        arrayField('article_ids', 'Artículos relacionados', false, 'IDs de artículos, uno por línea.')
+        arrayField('articulos_relacionados', 'Artículos relacionados', false, 'IDs de artículos, uno por línea (opcional).')
       ];
     } else if (resource === 'catalogs') {
       fields = [
         field('id', 'ID', 'text', idOptions()),
-        field('titulo', 'Título', 'text', {required:true}),
-        field('descripcion', 'Descripción', 'textarea', {rows:4, placeholder:'Opcional'}),
-        field('imagen_portada', 'Imagen de portada', 'url', {placeholder:'https://…', help:'Opcional.'}),
-        field('detalles', 'Detalles', 'textarea', {rows:8, placeholder:'Clave y valor, uno por línea. Ej.: periodo=clasico', help:'Datos adicionales del catálogo como pares clave=valor. No se envía un JSON escrito por la persona.'}),
+        field('titulo', 'Título', 'text', { required: true }),
+        field('descripcion', 'Descripción', 'textarea', { rows: 4, placeholder: 'Opcional' }),
+        field('imagen_portada', 'Imagen de portada', 'url', { placeholder: 'https://…', help: 'Opcional.' }),
+        field('detalles', 'Detalles', 'textarea', {
+          rows: 8,
+          placeholder: 'Clave y valor, uno por línea. Ej.: periodo=clasico',
+          help: 'Datos adicionales del catálogo como pares clave=valor.'
+        }),
         checkbox('visible', 'Visible', r.visible !== false)
       ];
     } else {
       fields = [
         field('id', 'ID', 'text', idOptions()),
-        field('imagen', 'Imagen', 'url', {placeholder:'https://…', help:'Opcional.'}),
-        field('imagen_alt', 'Texto alternativo de imagen', 'text', {placeholder:'Opcional'}),
-        field('contacto', 'Contacto', 'text', {placeholder:'Opcional'}),
-        field('slogan', 'Slogan', 'text', {placeholder:'Opcional'}),
-        field('descripcion', 'Descripción', 'textarea', {rows:4, placeholder:'Opcional'}),
-        field('inicio', 'Inicio', 'date'),
-        field('fin', 'Fin', 'date'),
+        field('imagen', 'Imagen', 'url', { placeholder: 'https://…', help: 'Opcional.' }),
+        field('imagen_alt', 'Texto alternativo de imagen', 'text', { placeholder: 'Opcional' }),
+        field('contacto', 'Contacto', 'text', { placeholder: 'Opcional' }),
+        field('slogan', 'Slogan', 'text', { placeholder: 'Opcional' }),
+        field('descripcion', 'Descripción', 'textarea', { rows: 4, placeholder: 'Opcional' }),
+        field('vigencia_inicio', 'Vigencia inicio', 'date'),
+        field('vigencia_fin', 'Vigencia fin', 'date'),
         checkbox('activo', 'Activo', r.activo !== false),
-        field('peso', 'Peso', 'number', {min:1, step:1}),
-        field('enlace', 'Enlace', 'url', {placeholder:'https://…', help:'Opcional.'}),
-        field('tipo', 'Tipo', 'select', {required:true, options:[
-          {value:'evento',label:'Evento'},
-          {value:'taller',label:'Taller'},
-          {value:'exhibicion',label:'Exhibición'},
-          {value:'sponsor',label:'Sponsor'},
-          {value:'comunidad',label:'Comunidad'},
-          {value:'otro',label:'Otro'}
-        ]}),
+        field('peso', 'Peso', 'number', { min: 1, step: 1 }),
+        field('enlace', 'Enlace', 'url', { placeholder: 'https://…', help: 'Opcional.' }),
+        field('tipo', 'Tipo', 'select', {
+          required: true,
+          options: [
+            { value: 'evento', label: 'Evento' },
+            { value: 'taller', label: 'Taller' },
+            { value: 'exhibicion', label: 'Exhibición' },
+            { value: 'sponsor', label: 'Sponsor' },
+            { value: 'comunidad', label: 'Comunidad' },
+            { value: 'otro', label: 'Otro' }
+          ]
+        }),
         arrayField('paginas', 'Páginas', false, 'home, articulos, articulo, catalogos, bibliografia o todas; una por línea.'),
-        field('prioridad_slot', 'Prioridad del slot', 'text', {placeholder:'Opcional'})
+        field('prioridad_slot', 'Prioridad del slot', 'text', { placeholder: 'Opcional' })
       ];
     }
 
     var row = document.createElement('div');
     row.className = 'form-tool__fila form-tool__fila--2';
     fields.forEach(function (f) {
-      if (f.querySelector('input[name="id"]') || f.querySelector('input[name="fecha"]') ||
-          f.querySelector('input[name="anio"]') || f.querySelector('input[name="inicio"]') ||
-          f.querySelector('input[name="fin"]') || f.querySelector('select[name="tipo"]')) {
+      var name = f.dataset.field;
+      if (name === 'id' || name === 'fecha' || name === 'anio' ||
+          name === 'vigencia_inicio' || name === 'vigencia_fin' || name === 'tipo') {
         row.appendChild(f);
+      } else if (name === 'contenido_html') {
+        var toolbar = document.createElement('div');
+        toolbar.className = 'form-tool__acciones';
+        toolbar.style.marginBlockEnd = 'var(--space-xs)';
+        var addSection = document.createElement('button');
+        addSection.className = 'button';
+        addSection.type = 'button';
+        addSection.textContent = 'Agregar sección';
+        addSection.addEventListener('click', function () {
+          var content = form.elements.contenido_html;
+          if (!content) return;
+          var current = content.value.trim();
+          var section = '<h2>Sección</h2>\n<p>Contenido…</p>';
+          content.value = current ? current + '\n\n' + section : section;
+          content.focus();
+          validateForm();
+        });
+        toolbar.appendChild(addSection);
+        form.appendChild(toolbar);
+        form.appendChild(f);
       } else {
         form.appendChild(f);
       }
     });
     if (row.children.length) form.insertBefore(row, form.firstChild);
 
-    if (resource === 'articles') {
-      var contentHelp = document.createElement('div');
-      contentHelp.className = 'form-tool__acciones';
-      var addSection = document.createElement('button');
-      addSection.className = 'button';
-      addSection.type = 'button';
-      addSection.textContent = 'Agregar sección';
-      addSection.addEventListener('click', function () {
-        var content = form.elements.contenido_html;
-        var current = content.value.trim();
-        var section = '<h2>Sección</h2>\\n<p>Contenido...</p>';
-        content.value = current ? current + '\\n\\n' + section : section;
-        content.focus();
-        validateForm();
-      });
-      contentHelp.appendChild(addSection);
-      form.appendChild(contentHelp);
-    }
-
     var actions = document.createElement('div');
     actions.className = 'form-tool__acciones';
-    var save = document.createElement('button');
-    save.className = 'button';
-    save.type = 'submit';
-    save.id = 'editorial-save';
-    save.textContent = editing ? 'Guardar cambios' : 'Guardar';
-    save.disabled = true;
-    var cancel = document.createElement('button');
-    cancel.className = 'button';
-    cancel.type = 'button';
-    cancel.textContent = 'Cancelar';
-    cancel.id = 'editorial-cancel-form';
-    cancel.onclick = closeForm;
-    actions.append(save, cancel);
+    var saveBtn = document.createElement('button');
+    saveBtn.className = 'button';
+    saveBtn.type = 'submit';
+    saveBtn.id = 'editorial-save';
+    saveBtn.textContent = editing ? 'Guardar cambios' : 'Guardar';
+    saveBtn.disabled = true;
+    var cancelBtn = document.createElement('button');
+    cancelBtn.className = 'button';
+    cancelBtn.type = 'button';
+    cancelBtn.textContent = 'Cancelar';
+    cancelBtn.id = 'editorial-cancel-form';
+    cancelBtn.addEventListener('click', closeForm);
+    actions.append(saveBtn, cancelBtn);
     if (editing) {
       var del = document.createElement('button');
       del.className = 'button';
       del.type = 'button';
       del.textContent = 'Eliminar';
-      del.onclick = function () { removeRecord(editing); };
+      del.addEventListener('click', function () { removeRecord(editing); });
       actions.appendChild(del);
     }
     form.appendChild(actions);
-    form.addEventListener('input', function (event) {
-      if (!editing && (event.target.name === 'titulo' || event.target.name === 'slogan')) generateId();
-      validateForm();
-    });
-    form.addEventListener('change', validateForm);
-    form.addEventListener('submit', save);
+
     populate(r);
     if (!editing && form.elements.id) generateId();
     validateForm();
@@ -324,43 +340,80 @@
   }
 
   function validateForm() {
-    var save = document.getElementById('editorial-save');
-    if (!save) return;
+    var saveBtn = document.getElementById('editorial-save');
+    if (!saveBtn) return;
     var valid = form.checkValidity();
     try {
-      if (resource === 'articles' && value('contenido_html').indexOf('<script') !== -1) valid = false;
+      if (resource === 'articles' && value('contenido_html').toLowerCase().indexOf('<script') !== -1) valid = false;
       if (resource === 'catalogs') parseDetails(value('detalles'));
-      if (resource === 'ads' && value('inicio') && value('fin') && value('fin') < value('inicio')) valid = false;
+      if (resource === 'ads' && value('vigencia_inicio') && value('vigencia_fin') && value('vigencia_fin') < value('vigencia_inicio')) valid = false;
     } catch (e) { valid = false; }
-    save.disabled = !valid;
+    saveBtn.disabled = !valid || saving;
     form.setAttribute('aria-invalid', String(!valid));
   }
 
   function payloadFromForm() {
     var p = {};
     if (resource === 'articles') {
-      p = {id:value('id'), titulo:value('titulo'), autor:value('autor') || null, fecha:value('fecha'),
-        resumen:value('resumen'), contenido_html:value('contenido_html'), imagen_destacada:value('imagen_destacada') || null,
-        imagen_alt:value('imagen_alt') || null, categoria:value('categoria') || null, etiquetas:parseArray(value('etiquetas')),
-        visible:bool('visible'), bibliography_ids:parseArray(value('bibliography_ids'))};
+      p = {
+        id: value('id'),
+        titulo: value('titulo'),
+        autor: value('autor'),
+        fecha: value('fecha'),
+        resumen: value('resumen'),
+        contenido_html: value('contenido_html'),
+        imagen_destacada: value('imagen_destacada') || null,
+        imagen_alt: value('imagen_alt') || null,
+        categoria: value('categoria') || null,
+        etiquetas: parseArray(value('etiquetas')),
+        'bibliografía_relacionada': parseArray(value('bibliografia_relacionada')),
+        visible: bool('visible')
+      };
     } else if (resource === 'bibliography') {
-      p = {id:value('id'), titulo:value('titulo'), autores:parseArray(value('autores')), anio:value('anio') ? Number(value('anio')) : null,
-        tipo:value('tipo'), editorial:value('editorial') || null, resumen:value('resumen') || null, url:value('url') || null,
-        visible:bool('visible'), article_ids:parseArray(value('article_ids'))};
+      p = {
+        id: value('id'),
+        titulo: value('titulo'),
+        autores: parseArray(value('autores')),
+        'año': value('anio') ? Number(value('anio')) : null,
+        tipo: value('tipo'),
+        editorial: value('editorial') || null,
+        resumen: value('resumen') || null,
+        url: value('url') || null,
+        visible: bool('visible'),
+        articulos_relacionados: parseArray(value('articulos_relacionados'))
+      };
     } else if (resource === 'catalogs') {
-      p = {id:value('id'), titulo:value('titulo'), descripcion:value('descripcion') || null,
-        imagen_portada:value('imagen_portada') || null, detalles:parseDetails(value('detalles')), visible:bool('visible')};
+      p = {
+        id: value('id'),
+        titulo: value('titulo'),
+        descripcion: value('descripcion') || null,
+        imagen_portada: value('imagen_portada') || null,
+        detalles: parseDetails(value('detalles')),
+        visible: bool('visible')
+      };
     } else {
-      p = {id:value('id'), imagen:value('imagen') || null, imagen_alt:value('imagen_alt') || null,
-        contacto:value('contacto') || null, slogan:value('slogan') || null, descripcion:value('descripcion') || null,
-        inicio:value('inicio') || null, fin:value('fin') || null, activo:bool('activo'), peso:value('peso') ? Number(value('peso')) : 1,
-        enlace:value('enlace') || null, tipo:value('tipo'), paginas:parseArray(value('paginas')), prioridad_slot:value('prioridad_slot') || null};
+      p = {
+        id: value('id'),
+        imagen: value('imagen') || null,
+        imagen_alt: value('imagen_alt') || null,
+        contacto: value('contacto') || null,
+        slogan: value('slogan') || null,
+        descripcion: value('descripcion') || null,
+        vigencia_inicio: value('vigencia_inicio') || null,
+        vigencia_fin: value('vigencia_fin') || null,
+        activo: bool('activo'),
+        peso: value('peso') ? Number(value('peso')) : 1,
+        enlace: value('enlace') || null,
+        tipo: value('tipo'),
+        paginas: parseArray(value('paginas')),
+        prioridad_slot: value('prioridad_slot') || null
+      };
     }
     return p;
   }
 
-  function slugify(value) {
-    return String(value || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')
+  function slugify(text) {
+    return String(text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
       .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48) || 'contenido';
   }
 
@@ -377,12 +430,27 @@
   }
 
   function populate(r) {
-    Object.keys(r || {}).forEach(function (key) {
-      var el = form.elements[key];
+    r = r || {};
+    var aliases = {
+      anio: r['año'] != null ? r['año'] : r.anio,
+      bibliografia_relacionada: r['bibliografía_relacionada'] || r.bibliografia_relacionada || r.bibliography_ids,
+      articulos_relacionados: r.articulos_relacionados || r.article_ids,
+      vigencia_inicio: r.vigencia_inicio || r.inicio,
+      vigencia_fin: r.vigencia_fin || r.fin
+    };
+    Object.keys(aliases).forEach(function (k) {
+      if (aliases[k] != null && r[k] == null) r[k] = aliases[k];
+    });
+
+    Object.keys(r).forEach(function (key) {
+      var formKey = key;
+      if (key === 'año') formKey = 'anio';
+      if (key === 'bibliografía_relacionada') formKey = 'bibliografia_relacionada';
+      var el = form.elements[formKey] || form.elements[key];
       if (!el) return;
       if (el.type === 'checkbox') el.checked = r[key] !== false;
       else if (Array.isArray(r[key])) el.value = r[key].join('\n');
-      else if (key === 'detalles' && r[key] && typeof r[key] === 'object') {
+      else if ((key === 'detalles') && r[key] && typeof r[key] === 'object') {
         el.value = Object.keys(r[key]).map(function (k) { return k + '=' + r[key][k]; }).join('\n');
       } else el.value = r[key] == null ? '' : r[key];
     });
@@ -395,18 +463,26 @@
   }
 
   async function load() {
+    list.className = 'catalog-loading';
     list.textContent = 'Cargando ' + labels[resource].toLowerCase() + '…';
     try {
       var data = await ULE.api.request('/' + resource);
       records = Array.isArray(data) ? data : (data.items || data.data || []);
       renderList();
     } catch (e) {
+      list.className = 'catalog-empty';
       list.textContent = 'No fue posible cargar el contenido (HTTP ' + (e.status || 'red') + ').';
     }
   }
 
   function renderList() {
-    if (!records.length) { list.className = 'catalog-empty'; list.textContent = 'No hay registros disponibles.'; return; }
+    if (!records.length) {
+      list.className = 'catalog-empty';
+      list.textContent = 'No hay registros disponibles.';
+      return;
+    }
+    list.className = '';
+    list.replaceChildren();
     var table = document.createElement('table');
     table.className = 'editorial-table';
     table.innerHTML = '<thead><tr><th>ID</th><th>Nombre</th><th>Estado</th><th>Acciones</th></tr></thead>';
@@ -416,54 +492,106 @@
       var id = r.id || '';
       var name = r.titulo || r.slogan || id;
       var visible = resource === 'ads' ? r.activo !== false : r.visible !== false;
-      var c = [id, name, visible ? 'Visible' : 'Oculto'].map(function (txt) {
-        var td = document.createElement('td'); td.textContent = txt; return td;
+      [id, name, visible ? 'Visible' : 'Oculto'].forEach(function (txt) {
+        var td = document.createElement('td');
+        td.textContent = txt;
+        tr.appendChild(td);
       });
       var actions = document.createElement('td');
-      var edit = document.createElement('button'); edit.className = 'button'; edit.type = 'button'; edit.textContent = 'Editar';
-      edit.onclick = function () { editing = r.id; formTitle.textContent = 'Editar ' + labels[resource].toLowerCase(); buildForm(r); panel.classList.add('is-active'); panel.scrollIntoView({behavior:'smooth',block:'start'}); };
-      var remove = document.createElement('button'); remove.className = 'button'; remove.type = 'button'; remove.textContent = 'Eliminar';
-      remove.onclick = function () { removeRecord(id); };
-      actions.append(edit, document.createTextNode(' '), remove);
-      c.forEach(function (td) { tr.appendChild(td); }); tr.appendChild(actions); body.appendChild(tr);
+      var edit = document.createElement('button');
+      edit.className = 'button';
+      edit.type = 'button';
+      edit.textContent = 'Editar';
+      edit.addEventListener('click', function () {
+        editing = r.id;
+        formTitle.textContent = 'Editar ' + labels[resource].toLowerCase();
+        buildForm(r);
+        panel.classList.add('is-active');
+        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+      var remove = document.createElement('button');
+      remove.className = 'button';
+      remove.type = 'button';
+      remove.textContent = 'Eliminar';
+      remove.addEventListener('click', function () { removeRecord(id); });
+      actions.append(edit, remove);
+      tr.appendChild(actions);
+      body.appendChild(tr);
     });
-    table.appendChild(body); list.replaceChildren(table);
+    table.appendChild(body);
+    list.appendChild(table);
   }
 
   function openNew() {
     editing = null;
-    formTitle.textContent = 'Nuevo ' + labels[resource].toLowerCase();
+    formTitle.textContent = 'Nuevo ' + labels[resource].toLowerCase().replace(/s$/, '');
     buildForm({});
     panel.classList.add('is-active');
-    panel.scrollIntoView({behavior:'smooth',block:'start'});
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  function closeForm() { panel.classList.remove('is-active'); form.replaceChildren(); editing = null; }
+  function closeForm() {
+    panel.classList.remove('is-active');
+    form.replaceChildren();
+    editing = null;
+    saving = false;
+  }
 
-  async function save(e) {
+  async function onSubmit(e) {
     e.preventDefault();
-    if (!form.checkValidity()) { form.reportValidity(); return; }
+    e.stopPropagation();
+    if (saving) return;
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
     var payload;
-    try { payload = payloadFromForm(); }
-    catch (err) { document.getElementById('editorial-status'); setAlert(err.message, true); return; }
+    try {
+      payload = payloadFromForm();
+    } catch (err) {
+      setAlert(err.message || 'Revisa el formulario.', true);
+      return;
+    }
+    if (!payload.id) {
+      setAlert('Falta el ID del registro.', true);
+      return;
+    }
     var method = editing ? 'PUT' : 'POST';
-    var path = editing ? '/' + resource + '/' + encodeURIComponent(editing) : '/' + resource;
+    var path = editing
+      ? '/' + resource + '/' + encodeURIComponent(editing)
+      : '/' + resource;
+    saving = true;
+    validateForm();
     try {
       setAlert('Guardando…', false);
-      await ULE.api.request(path, {method:method, body:JSON.stringify(payload)});
+      await ULE.api.request(path, {
+        method: method,
+        body: JSON.stringify(payload)
+      });
       setAlert(labels[resource] + ' guardado correctamente.', false);
       closeForm();
       await load();
     } catch (err) {
-      var message = err && err.data && err.data.message ? err.data.message : (err && err.message ? err.message : 'No fue posible guardar el contenido.');
+      var message = 'No fue posible guardar el contenido.';
+      if (err && err.data) {
+        message = err.data.message || err.data.error || err.data.detail || message;
+        if (typeof message === 'object') message = JSON.stringify(message);
+      } else if (err && err.message) {
+        message = err.message;
+      }
+      if (err && err.status) message += ' (HTTP ' + err.status + ')';
       setAlert(message, true);
+    } finally {
+      saving = false;
+      validateForm();
     }
   }
 
   async function removeRecord(id) {
+    if (!id) return;
     if (!window.confirm('¿Eliminar "' + id + '"?')) return;
     try {
-      await ULE.api.request('/' + resource + '/' + encodeURIComponent(id), {method:'DELETE'});
+      await ULE.api.request('/' + resource + '/' + encodeURIComponent(id), { method: 'DELETE' });
       setAlert('Registro eliminado.', false);
       closeForm();
       await load();
@@ -471,6 +599,13 @@
       setAlert(err && err.message ? err.message : 'No fue posible eliminar el registro.', true);
     }
   }
+
+  form.addEventListener('submit', onSubmit);
+  form.addEventListener('input', function (event) {
+    if (!editing && (event.target.name === 'titulo' || event.target.name === 'slogan')) generateId();
+    validateForm();
+  });
+  form.addEventListener('change', validateForm);
 
   document.querySelectorAll('#editorial-tabs [role="tab"]').forEach(function (tab) {
     tab.addEventListener('click', function () {
@@ -485,15 +620,25 @@
   });
 
   document.getElementById('editorial-new').addEventListener('click', openNew);
+  document.getElementById('editorial-cancel').addEventListener('click', closeForm);
 
   (async function () {
     try {
-      var user = await ULE.auth.requireRole(['contributor','admin']);
+      if (!ULE.config || !ULE.config.apiBaseUrl) {
+        setAlert('Falta ULE.config.apiBaseUrl. Revisa js/loader.js o la configuración de la API.', true);
+        return;
+      }
+      var user = await ULE.auth.requireRole(['contributor', 'admin']);
       app.hidden = false;
       setAlert('Sesión editorial activa: ' + (user.username || user.email) + ' (' + user.role + ').', false);
       load();
     } catch (e) {
-      setAlert(e && e.status === 401 ? 'Debes iniciar sesión para acceder al panel editorial.' : 'No tienes permisos para acceder al panel editorial.', true);
+      setAlert(
+        e && e.status === 401
+          ? 'Debes iniciar sesión para acceder al panel editorial.'
+          : 'No tienes permisos para acceder al panel editorial.',
+        true
+      );
     }
   })();
 })();
