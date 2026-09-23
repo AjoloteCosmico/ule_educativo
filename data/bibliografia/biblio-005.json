@@ -1,7 +1,9 @@
 {
   "id": "biblio-005",
   "titulo": "The Ballplayers of Dainzú: An Alternative Interpretation of the Dainzú Iconography",
-  "autor": "Quilter, Jeffrey",
+  "autores": [
+    "Quilter, Jeffrey"
+  ],
   "año": 2010,
   "editorial": "Academia.edu",
   "tipo": "articulo_web",
