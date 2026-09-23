@@ -186,7 +186,46 @@ panel      a login
 Esto cierra exactamente la limitación descrita en `docs/arquitectura.md` §14.8: el generador
 queda obsoleto como "hay que subir el archivo a mano", sin construir un CMS nuevo desde cero.
 
-### 6. Checklist de salida
+### 6. Rutas editoriales confirmadas en backend (guía para el frontend)
+
+La implementación actual de `tonalmaster_backend` ya registra estas rutas protegidas. Todas usan
+sesión por cookie `tonalmaster_session` y requieren rol `contributor` o `admin` para escribir.
+
+| Recurso | Crear | Leer lista | Leer detalle | Actualizar | Eliminar |
+|---|---|---|---|---|---|
+| Artículos | `POST /articles` | `GET /articles` | `GET /articles/{id}` | `PUT /articles/{id}` | `DELETE /articles/{id}` |
+| Bibliografía | `POST /bibliography` | `GET /bibliography` | `GET /bibliography/{id}` | `PUT /bibliography/{id}` | `DELETE /bibliography/{id}` |
+| Colecciones | `POST /catalogs` | `GET /catalogs` | `GET /catalogs/{id}` | `PUT /catalogs/{id}` | `DELETE /catalogs/{id}` |
+| Elementos de colección | `POST /catalogs/{id}/items` | incluido en `GET /catalogs/{id}` | incluido en catálogo | `PUT /catalogs/{id}/items/{item_id}` | `DELETE /catalogs/{id}/items/{item_id}` |
+| Anuncios | `POST /ads` | `GET /ads` | — | `PUT /ads/{id}` | `DELETE /ads/{id}` |
+
+**Autenticación:**
+
+- `POST /auth/login` → 200 + usuario + cookie.
+- `POST /auth/register` → 201 + usuario + cookie.
+- `GET /auth/me` → 200 + usuario; 401 sin sesión.
+- `POST /auth/logout` → 204.
+- El frontend debe usar `credentials: 'include'`; no necesita leer la cookie HttpOnly.
+
+**Contrato de escritura que debe respetar el panel editorial:**
+
+- Artículos y bibliografía reciben directamente el DTO descrito en `contrato_datos.md`.
+- Los artículos aceptan `bibliografía_relacionada` como arreglo de ids; el backend lo recibe como
+  `BibliographyIDs`.
+- Bibliografía acepta `autores` como arreglo. Una referencia puede tener múltiples autores.
+- Colecciones se almacenan internamente mediante `detalles` JSONB. El DTO público expone
+  `categorias_disponibles` y `elementos`; el panel debe convertir esos campos a `detalles`
+  cuando haga POST/PUT.
+- Un elemento de colección usa `id`, `titulo`, `imagen` y el resto de sus propiedades dentro
+  de `detalles`. Al editarlo, el frontend debe separar nuevamente esos campos antes del PUT.
+- Anuncios usan `id` dentro del JSON de creación y `/ads/{id}` para PUT/DELETE.
+
+**Rutas que todavía debe consumir/ajustar el frontend:** ninguna ruta CRUD nueva es necesaria en
+este punto; el backend ya tiene el CRUD completo. Lo que queda del lado frontend es implementar
+la presentación y el mapeo de DTO ↔ `detalles` para colecciones/elementos, además de las pruebas
+de sesión, 401 y 403.
+
+### 7. Checklist de salida
 
 - [ ] `ULE.config.dataSource='api'` funciona contra el backend real para los 4 recursos de
       lectura (ya cubierto por `scripts/pruebas_navegador.py`, sin cambios).
@@ -202,6 +241,12 @@ queda obsoleto como "hay que subir el archivo a mano", sin construir un CMS nuev
 ---
 
 ## Notas abiertas (requieren al backend, no bloquean este plan)
+
+> Estado revisado contra `utopia-development/tonalmaster_backend` en `main` el 23-09-2026.
+> El CRUD editorial y `GET /auth/me` ya están registrados; las notas siguientes son ajustes de
+> integración/configuración, no endpoints faltantes.
+
+
 
 Estas ya están señaladas en `docs/contrato_datos.md` y no son nuevas; se listan aquí solo para
 que el plan de frontend no las de por resueltas:
