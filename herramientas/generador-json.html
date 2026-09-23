@@ -43,6 +43,12 @@
       <h1>Generador de JSON</h1>
       <p>Arma el archivo (o fragmento) de contenido a partir de un formulario, en vez de escribir el JSON a mano.</p>
 
+      <div class="herramienta-aviso" id="sesion-aviso">
+        <strong>Acceso editorial.</strong> Esta herramienta requiere una sesión con rol <code>contributor</code> o <code>admin</code> para publicar.
+      </div>
+
+      <div class="herramienta-aviso" id="publicacion-estado" role="status" aria-live="polite"></div>
+
       <div class="herramienta-aviso">
         <strong>Herramienta interna, no pública.</strong> No está enlazada desde el menú del sitio y no escribe nada en el repositorio.
         <ol>
@@ -128,7 +134,7 @@
         </div>
 
         <div class="form-tool__acciones">
-          <button type="submit" class="btn">Generar JSON</button>
+          <button type="submit" class="btn">Preparar publicación</button>
           <button type="reset" class="btn">Limpiar formulario</button>
         </div>
       </form>
@@ -379,6 +385,10 @@
   </footer>
 
   <script src="../js/main.js"></script>
+  <script src="../js/loader.js"></script>
+  <script src="../js/api/client.js"></script>
+  <script src="../js/api/auth.js"></script>
+  <script src="../js/api/session.js"></script>
   <script>
     (function () {
       const tabs = document.querySelectorAll('#selector-tipo [role="tab"]');
@@ -387,6 +397,21 @@
       const resultadoInstrucciones = document.getElementById('resultado-instrucciones');
       const resultadoJson = document.getElementById('resultado-json');
       const resultadoCopiado = document.getElementById('resultado-copiado');
+      let usuarioActual = null;
+      let objetoActual = null;
+      let tipoActual = null;
+
+      async function prepararSesion() {
+        try {
+          usuarioActual = await ULE.auth.requireRole(['contributor', 'admin']);
+          document.getElementById('sesion-aviso').innerHTML = '<strong>Sesión activa.</strong> ' + escaparHtml(usuarioActual.username || usuarioActual.email) + ' (' + escaparHtml(usuarioActual.role) + ').';
+        } catch (error) {
+          usuarioActual = null;
+          document.getElementById('sesion-aviso').innerHTML = error.status === 401
+            ? '<strong>Sesión requerida.</strong> Inicia sesión para publicar contenido.'
+            : '<strong>Sin permisos.</strong> Esta herramienta requiere rol contributor o admin.';
+        }
+      }
 
       function mostrarTipo(tipo) {
         tabs.forEach((t) => t.setAttribute('aria-selected', String(t.dataset.tipo === tipo)));
@@ -547,6 +572,8 @@
           const objetoCrudo = constructores[tipo](fd);
           const objeto = limpiar(objetoCrudo);
           const json = JSON.stringify(objeto, null, 2);
+          objetoActual = objeto;
+          tipoActual = tipo;
 
           resultadoInstrucciones.innerHTML = instrucciones[tipo](objeto, extra);
           resultadoJson.textContent = json;
@@ -567,6 +594,46 @@
           resultadoCopiado.textContent = 'No se pudo copiar automáticamente; selecciona el texto manualmente.';
         }
       });
+
+
+      async function publicar() {
+        const estado = document.getElementById('publicacion-estado');
+        if (!objetoActual || !tipoActual) return;
+        if (!usuarioActual) {
+          estado.textContent = 'Debes iniciar sesión con rol contributor o admin.';
+          return;
+        }
+        const rutas = {
+          articulo: { method: 'POST', path: '/articles' },
+          biblio: { method: 'POST', path: '/bibliography' },
+          anuncio: { method: 'POST', path: '/ads' }
+        };
+        let req = rutas[tipoActual];
+        if (tipoActual === 'catalogo') {
+          const catalogo = document.querySelector('#cat-destino').value.trim();
+          req = { method: 'POST', path: '/catalogs/' + encodeURIComponent(catalogo) + '/items' };
+        }
+        try {
+          estado.textContent = 'Publicando…';
+          const data = await ULE.api.request(req.path, { method: req.method, body: JSON.stringify(objetoActual) });
+          estado.textContent = 'Publicado correctamente.';
+          resultadoJson.textContent = JSON.stringify(data, null, 2);
+        } catch (error) {
+          if (error.status === 401) {
+            usuarioActual = null;
+            estado.textContent = 'La sesión expiró. Inicia sesión nuevamente.';
+          } else if (error.status === 403) {
+            estado.textContent = 'No tienes permisos para publicar este contenido.';
+          } else {
+            const mensaje = error.data && error.data.error && error.data.error.message;
+            estado.textContent = mensaje || 'No fue posible publicar el contenido (HTTP ' + (error.status || 'red') + ').';
+          }
+        }
+      }
+
+      document.getElementById('btn-descargar').insertAdjacentHTML('beforebegin', '<button type="button" class="btn" id="btn-publicar">Publicar en la API</button>');
+      document.getElementById('btn-publicar').addEventListener('click', publicar);
+      prepararSesion();
 
       document.getElementById('btn-descargar').addEventListener('click', () => {
         const nombre = resultado.dataset.filename || 'contenido.json';
