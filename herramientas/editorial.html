@@ -1,1 +1,647 @@
-SEE_FILE
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Panel editorial — ule educativo</title>
+<link rel="stylesheet" href="../css/variables.css">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/components.css">
+<link rel="stylesheet" href="../css/theme.css">
+<link rel="stylesheet" href="../css/herramientas.css">
+<link rel="stylesheet" href="../css/nav.css">
+<link rel="icon" href="../assets/logo/logo.png" type="image/png">
+</head>
+<body>
+<a class="skip-link" href="#contenido-principal">Saltar al contenido</a>
+<ule-nav></ule-nav>
+<auth-modal id="auth-modal"></auth-modal>
+
+<main id="contenido-principal">
+<section class="container section">
+<h1>Panel editorial</h1>
+<p>Gestiona el contenido de <em>ule educativo</em>. Requiere rol <strong>contributor</strong> o <strong>admin</strong>.</p>
+<div id="editorial-alert" class="form-tool__ayuda" role="status" aria-live="polite"></div>
+
+<div id="editorial-app" hidden>
+<div class="catalog-selector" id="editorial-tabs" role="tablist" aria-label="Tipo de contenido">
+<button class="catalog-selector__tab" type="button" role="tab" data-resource="articles" aria-selected="true">Artículos</button>
+<button class="catalog-selector__tab" type="button" role="tab" data-resource="bibliography" aria-selected="false">Bibliografía</button>
+<button class="catalog-selector__tab" type="button" role="tab" data-resource="catalogs" aria-selected="false">Colecciones</button>
+<button class="catalog-selector__tab" type="button" role="tab" data-resource="ads" aria-selected="false">Anuncios</button>
+</div>
+
+<div class="form-tool__resultado is-visible">
+<div class="cluster" style="justify-content:space-between;">
+<h2 id="editorial-title">Artículos</h2>
+<button class="button" type="button" id="editorial-new">Nuevo</button>
+</div>
+<div id="editorial-list" class="catalog-loading" role="status">Cargando…</div>
+</div>
+
+<div class="form-tool" id="editorial-form-panel">
+<div class="cluster" style="justify-content:space-between;">
+<h2 id="editorial-form-title">Nuevo contenido</h2>
+<button class="button" type="button" id="editorial-cancel">Cancelar</button>
+</div>
+<form id="editorial-form" novalidate></form>
+</div>
+</div>
+</section>
+</main>
+
+<script src="../js/main.js"></script>
+<script src="../js/loader.js"></script>
+<script src="../js/api/client.js"></script>
+<script src="../js/api/auth.js"></script>
+<script src="../js/api/session.js"></script>
+<script src="../js/auth-modal.js"></script>
+<script src="../js/auth-ui.js"></script>
+<script src="../js/ule-nav.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var app = document.getElementById('editorial-app');
+  var alertBox = document.getElementById('editorial-alert');
+  var list = document.getElementById('editorial-list');
+  var panel = document.getElementById('editorial-form-panel');
+  var form = document.getElementById('editorial-form');
+  var title = document.getElementById('editorial-title');
+  var formTitle = document.getElementById('editorial-form-title');
+  var resource = 'articles';
+  var editing = null;
+  var records = [];
+  var saving = false;
+
+  var labels = {
+    articles: 'Artículos',
+    bibliography: 'Bibliografía',
+    catalogs: 'Colecciones',
+    ads: 'Anuncios'
+  };
+
+  function field(name, label, type, options) {
+    options = options || {};
+    var wrap = document.createElement('div');
+    wrap.className = 'form-tool__grupo';
+    wrap.dataset.field = name;
+    var lab = document.createElement('label');
+    lab.htmlFor = 'editorial-' + name;
+    lab.textContent = label + (options.required ? ' *' : '');
+    if (type !== 'hidden') wrap.appendChild(lab);
+    var input;
+    if (type === 'textarea') {
+      input = document.createElement('textarea');
+      if (options.rows) input.rows = options.rows;
+    } else if (type === 'select') {
+      input = document.createElement('select');
+      (options.options || []).forEach(function (item) {
+        var opt = document.createElement('option');
+        opt.value = item.value;
+        opt.textContent = item.label;
+        input.appendChild(opt);
+      });
+    } else {
+      input = document.createElement('input');
+      input.type = type || 'text';
+    }
+    input.id = 'editorial-' + name;
+    input.name = name;
+    input.required = !!options.required;
+    if (options.pattern) input.pattern = options.pattern;
+    if (options.min !== undefined) input.min = options.min;
+    if (options.step) input.step = options.step;
+    if (options.placeholder) input.placeholder = options.placeholder;
+    if (options.accept) input.accept = options.accept;
+    wrap.appendChild(input);
+    if (options.help) {
+      var help = document.createElement('p');
+      help.className = 'form-tool__ayuda';
+      help.textContent = options.help;
+      wrap.appendChild(help);
+    }
+    return wrap;
+  }
+
+  function checkbox(name, label, checked) {
+    var wrap = document.createElement('div');
+    wrap.className = 'form-tool__checkbox-fila';
+    wrap.dataset.field = name;
+    var input = document.createElement('input');
+    input.type = 'checkbox';
+    input.id = 'editorial-' + name;
+    input.name = name;
+    input.checked = checked !== false;
+    var lab = document.createElement('label');
+    lab.htmlFor = input.id;
+    lab.textContent = label;
+    wrap.append(input, lab);
+    return wrap;
+  }
+
+  function arrayField(name, label, required, help) {
+    return field(name, label, 'textarea', {
+      required: required,
+      rows: 3,
+      placeholder: 'Un valor por línea',
+      help: help || 'Un valor por línea. Se enviará como un arreglo.'
+    });
+  }
+
+  function idOptions() {
+    return {
+      required: true,
+      pattern: '[a-z0-9]+([-_][a-z0-9]+)*',
+      help: 'Solo minúsculas, números, guion y guion bajo.'
+    };
+  }
+
+  function buildForm(record) {
+    form.replaceChildren();
+    var r = record || {};
+    if (resource === 'articles' && !editing) {
+      r = Object.assign({ contenido_html: '<h2>Sección</h2>\n<p>Contenido…</p>' }, r);
+    }
+
+    var fields = [];
+
+    if (resource === 'articles') {
+      fields = [
+        field('id', 'ID', 'hidden', idOptions()),
+        field('titulo', 'Título', 'text', { required: true }),
+        field('autor', 'Autor', 'text', { required: true, placeholder: 'Obligatorio' }),
+        field('fecha', 'Fecha', 'date', { required: true }),
+        field('resumen', 'Resumen', 'textarea', { required: true, rows: 4 }),
+        field('contenido_html', 'Contenido HTML', 'textarea', {
+          required: true,
+          rows: 12,
+          help: 'HTML del cuerpo (usa <h2> para secciones). Sin <script>. Rutas relativas.'
+        }),
+        field('imagen_destacada', 'Imagen destacada', 'url', { placeholder: 'https://…', help: 'Opcional.' }),
+        field('imagen_alt', 'Texto alternativo de imagen', 'text', { placeholder: 'Opcional' }),
+        field('categoria', 'Categoría', 'text', { placeholder: 'Opcional' }),
+        arrayField('etiquetas', 'Etiquetas', false),
+        arrayField('bibliografia_relacionada', 'Bibliografía relacionada', false, 'IDs de bibliografía, uno por línea (campo bibliografía_relacionada).'),
+        checkbox('visible', 'Visible', r.visible !== false)
+      ];
+    } else if (resource === 'bibliography') {
+      fields = [
+        field('id', 'ID', 'text', idOptions()),
+        field('titulo', 'Título', 'text', { required: true }),
+        arrayField('autores', 'Autores', true, 'Uno o más autores, uno por línea.'),
+        field('anio', 'Año', 'number', { min: 0, step: 1 }),
+        field('tipo', 'Tipo', 'select', {
+          required: true,
+          options: [
+            { value: 'libro', label: 'Libro' },
+            { value: 'capitulo_libro', label: 'Capítulo de libro' },
+            { value: 'articulo', label: 'Artículo' },
+            { value: 'articulo_web', label: 'Artículo web' },
+            { value: 'web', label: 'Web' }
+          ]
+        }),
+        field('editorial', 'Editorial', 'text', { placeholder: 'Opcional' }),
+        field('resumen', 'Resumen', 'textarea', { rows: 4, placeholder: 'Opcional' }),
+        field('url', 'URL', 'url', { placeholder: 'https://…', help: 'Opcional.' }),
+        checkbox('visible', 'Visible', r.visible !== false),
+        arrayField('articulos_relacionados', 'Artículos relacionados', false, 'IDs de artículos, uno por línea (opcional).')
+      ];
+    } else if (resource === 'catalogs') {
+      fields = [
+        field('id', 'ID', 'text', idOptions()),
+        field('titulo', 'Título', 'text', { required: true }),
+        field('descripcion', 'Descripción', 'textarea', { rows: 4, placeholder: 'Opcional' }),
+        field('imagen_portada', 'Imagen de portada', 'url', { placeholder: 'https://…', help: 'Opcional.' }),
+        field('detalles', 'Detalles', 'textarea', {
+          rows: 8,
+          placeholder: 'Clave y valor, uno por línea. Ej.: periodo=clasico',
+          help: 'Datos adicionales del catálogo como pares clave=valor.'
+        }),
+        checkbox('visible', 'Visible', r.visible !== false)
+      ];
+    } else {
+      fields = [
+        field('id', 'ID', 'text', idOptions()),
+        field('imagen', 'Imagen', 'url', { placeholder: 'https://…', help: 'Opcional.' }),
+        field('imagen_alt', 'Texto alternativo de imagen', 'text', { placeholder: 'Opcional' }),
+        field('contacto', 'Contacto', 'text', { placeholder: 'Opcional' }),
+        field('slogan', 'Slogan', 'text', { placeholder: 'Opcional' }),
+        field('descripcion', 'Descripción', 'textarea', { rows: 4, placeholder: 'Opcional' }),
+        field('vigencia_inicio', 'Vigencia inicio', 'date'),
+        field('vigencia_fin', 'Vigencia fin', 'date'),
+        checkbox('activo', 'Activo', r.activo !== false),
+        field('peso', 'Peso', 'number', { min: 1, step: 1 }),
+        field('enlace', 'Enlace', 'url', { placeholder: 'https://…', help: 'Opcional.' }),
+        field('tipo', 'Tipo', 'select', {
+          required: true,
+          options: [
+            { value: 'evento', label: 'Evento' },
+            { value: 'taller', label: 'Taller' },
+            { value: 'exhibicion', label: 'Exhibición' },
+            { value: 'sponsor', label: 'Sponsor' },
+            { value: 'comunidad', label: 'Comunidad' },
+            { value: 'otro', label: 'Otro' }
+          ]
+        }),
+        arrayField('paginas', 'Páginas', false, 'home, articulos, articulo, catalogos, bibliografia o todas; una por línea.'),
+        field('prioridad_slot', 'Prioridad del slot', 'text', { placeholder: 'Opcional' })
+      ];
+    }
+
+    var row = document.createElement('div');
+    row.className = 'form-tool__fila form-tool__fila--2';
+    fields.forEach(function (f) {
+      var name = f.dataset.field;
+      if (name === 'id' || name === 'fecha' || name === 'anio' ||
+          name === 'vigencia_inicio' || name === 'vigencia_fin' || name === 'tipo') {
+        row.appendChild(f);
+      } else if (name === 'contenido_html') {
+        var toolbar = document.createElement('div');
+        toolbar.className = 'form-tool__acciones';
+        toolbar.style.marginBlockEnd = 'var(--space-xs)';
+        var addSection = document.createElement('button');
+        addSection.className = 'button';
+        addSection.type = 'button';
+        addSection.textContent = 'Agregar sección';
+        addSection.addEventListener('click', function () {
+          var content = form.elements.contenido_html;
+          if (!content) return;
+          var current = content.value.trim();
+          var section = '<h2>Sección</h2>\n<p>Contenido…</p>';
+          content.value = current ? current + '\n\n' + section : section;
+          content.focus();
+          validateForm();
+        });
+        toolbar.appendChild(addSection);
+        form.appendChild(toolbar);
+        form.appendChild(f);
+      } else {
+        form.appendChild(f);
+      }
+    });
+    if (row.children.length) form.insertBefore(row, form.firstChild);
+
+    var actions = document.createElement('div');
+    actions.className = 'form-tool__acciones';
+    var saveBtn = document.createElement('button');
+    saveBtn.className = 'button';
+    saveBtn.type = 'submit';
+    saveBtn.id = 'editorial-save';
+    saveBtn.textContent = editing ? 'Guardar cambios' : 'Guardar';
+    saveBtn.disabled = true;
+    var cancelBtn = document.createElement('button');
+    cancelBtn.className = 'button';
+    cancelBtn.type = 'button';
+    cancelBtn.textContent = 'Cancelar';
+    cancelBtn.id = 'editorial-cancel-form';
+    cancelBtn.addEventListener('click', closeForm);
+    actions.append(saveBtn, cancelBtn);
+    if (editing) {
+      var del = document.createElement('button');
+      del.className = 'button';
+      del.type = 'button';
+      del.textContent = 'Eliminar';
+      del.addEventListener('click', function () { removeRecord(editing); });
+      actions.appendChild(del);
+    }
+    form.appendChild(actions);
+
+    populate(r);
+    if (!editing && form.elements.id) generateId();
+    validateForm();
+  }
+
+  function parseArray(value) {
+    return String(value || '').split(/[\n,]/).map(function (x) { return x.trim(); }).filter(Boolean);
+  }
+
+  function parseDetails(value) {
+    var details = {};
+    String(value || '').split('\n').forEach(function (line) {
+      line = line.trim();
+      if (!line) return;
+      var pos = line.indexOf('=');
+      if (pos < 1) throw new Error('Cada detalle debe tener formato clave=valor.');
+      details[line.slice(0, pos).trim()] = line.slice(pos + 1).trim();
+    });
+    return details;
+  }
+
+  function value(name) {
+    var el = form.elements[name];
+    return el ? el.value.trim() : '';
+  }
+
+  function bool(name) {
+    var el = form.elements[name];
+    return !!el && el.checked;
+  }
+
+  function validateForm() {
+    var saveBtn = document.getElementById('editorial-save');
+    if (!saveBtn) return;
+    var valid = form.checkValidity();
+    try {
+      if (resource === 'articles' && value('contenido_html').toLowerCase().indexOf('<script') !== -1) valid = false;
+      if (resource === 'catalogs') parseDetails(value('detalles'));
+      if (resource === 'ads' && value('vigencia_inicio') && value('vigencia_fin') && value('vigencia_fin') < value('vigencia_inicio')) valid = false;
+    } catch (e) { valid = false; }
+    saveBtn.disabled = !valid || saving;
+    form.setAttribute('aria-invalid', String(!valid));
+  }
+
+  function payloadFromForm() {
+    var p = {};
+    if (resource === 'articles') {
+      p = {
+        id: value('id'),
+        titulo: value('titulo'),
+        autor: value('autor'),
+        fecha: value('fecha'),
+        resumen: value('resumen'),
+        contenido_html: value('contenido_html'),
+        imagen_destacada: value('imagen_destacada') || null,
+        imagen_alt: value('imagen_alt') || null,
+        categoria: value('categoria') || null,
+        etiquetas: parseArray(value('etiquetas')),
+        'bibliografía_relacionada': parseArray(value('bibliografia_relacionada')),
+        visible: bool('visible')
+      };
+    } else if (resource === 'bibliography') {
+      p = {
+        id: value('id'),
+        titulo: value('titulo'),
+        autores: parseArray(value('autores')),
+        'año': value('anio') ? Number(value('anio')) : null,
+        tipo: value('tipo'),
+        editorial: value('editorial') || null,
+        resumen: value('resumen') || null,
+        url: value('url') || null,
+        visible: bool('visible'),
+        articulos_relacionados: parseArray(value('articulos_relacionados'))
+      };
+    } else if (resource === 'catalogs') {
+      p = {
+        id: value('id'),
+        titulo: value('titulo'),
+        descripcion: value('descripcion') || null,
+        imagen_portada: value('imagen_portada') || null,
+        detalles: parseDetails(value('detalles')),
+        visible: bool('visible')
+      };
+    } else {
+      p = {
+        id: value('id'),
+        imagen: value('imagen') || null,
+        imagen_alt: value('imagen_alt') || null,
+        contacto: value('contacto') || null,
+        slogan: value('slogan') || null,
+        descripcion: value('descripcion') || null,
+        vigencia_inicio: value('vigencia_inicio') || null,
+        vigencia_fin: value('vigencia_fin') || null,
+        activo: bool('activo'),
+        peso: value('peso') ? Number(value('peso')) : 1,
+        enlace: value('enlace') || null,
+        tipo: value('tipo'),
+        paginas: parseArray(value('paginas')),
+        prioridad_slot: value('prioridad_slot') || null
+      };
+    }
+    return p;
+  }
+
+  function slugify(text) {
+    return String(text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48) || 'contenido';
+  }
+
+  function generateId() {
+    var titleValue = value('titulo') || value('slogan') || labels[resource].toLowerCase();
+    var base = slugify(titleValue);
+    var existing = {};
+    records.forEach(function (record) { if (record.id) existing[record.id] = true; });
+    var id = base;
+    var n = 2;
+    while (existing[id] && (!editing || id !== editing)) id = base + '-' + n++;
+    if (form.elements.id) form.elements.id.value = id;
+    return id;
+  }
+
+  function populate(r) {
+    r = r || {};
+    var aliases = {
+      anio: r['año'] != null ? r['año'] : r.anio,
+      bibliografia_relacionada: r['bibliografía_relacionada'] || r.bibliografia_relacionada || r.bibliography_ids,
+      articulos_relacionados: r.articulos_relacionados || r.article_ids,
+      vigencia_inicio: r.vigencia_inicio || r.inicio,
+      vigencia_fin: r.vigencia_fin || r.fin
+    };
+    Object.keys(aliases).forEach(function (k) {
+      if (aliases[k] != null && r[k] == null) r[k] = aliases[k];
+    });
+
+    Object.keys(r).forEach(function (key) {
+      var formKey = key;
+      if (key === 'año') formKey = 'anio';
+      if (key === 'bibliografía_relacionada') formKey = 'bibliografia_relacionada';
+      var el = form.elements[formKey] || form.elements[key];
+      if (!el) return;
+      if (el.type === 'checkbox') el.checked = r[key] !== false;
+      else if (Array.isArray(r[key])) el.value = r[key].join('\n');
+      else if ((key === 'detalles') && r[key] && typeof r[key] === 'object') {
+        el.value = Object.keys(r[key]).map(function (k) { return k + '=' + r[key][k]; }).join('\n');
+      } else el.value = r[key] == null ? '' : r[key];
+    });
+    if (form.elements.id) form.elements.id.disabled = !!editing;
+  }
+
+  function setAlert(text, error) {
+    alertBox.textContent = text || '';
+    alertBox.setAttribute('role', error ? 'alert' : 'status');
+  }
+
+  async function load() {
+    list.className = 'catalog-loading';
+    list.textContent = 'Cargando ' + labels[resource].toLowerCase() + '…';
+    try {
+      var data = await ULE.api.request('/' + resource);
+      records = Array.isArray(data) ? data : (data.items || data.data || []);
+      renderList();
+    } catch (e) {
+      list.className = 'catalog-empty';
+      list.textContent = 'No fue posible cargar el contenido (HTTP ' + (e.status || 'red') + ').';
+    }
+  }
+
+  function renderList() {
+    if (!records.length) {
+      list.className = 'catalog-empty';
+      list.textContent = 'No hay registros disponibles.';
+      return;
+    }
+    list.className = '';
+    list.replaceChildren();
+    var table = document.createElement('table');
+    table.className = 'editorial-table';
+    table.innerHTML = '<thead><tr><th>ID</th><th>Nombre</th><th>Estado</th><th>Acciones</th></tr></thead>';
+    var body = document.createElement('tbody');
+    records.forEach(function (r) {
+      var tr = document.createElement('tr');
+      var id = r.id || '';
+      var name = r.titulo || r.slogan || id;
+      var visible = resource === 'ads' ? r.activo !== false : r.visible !== false;
+      [id, name, visible ? 'Visible' : 'Oculto'].forEach(function (txt) {
+        var td = document.createElement('td');
+        td.textContent = txt;
+        tr.appendChild(td);
+      });
+      var actions = document.createElement('td');
+      var edit = document.createElement('button');
+      edit.className = 'button';
+      edit.type = 'button';
+      edit.textContent = 'Editar';
+      edit.addEventListener('click', function () {
+        editing = r.id;
+        formTitle.textContent = 'Editar ' + labels[resource].toLowerCase();
+        buildForm(r);
+        panel.classList.add('is-active');
+        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+      var remove = document.createElement('button');
+      remove.className = 'button';
+      remove.type = 'button';
+      remove.textContent = 'Eliminar';
+      remove.addEventListener('click', function () { removeRecord(id); });
+      actions.append(edit, remove);
+      tr.appendChild(actions);
+      body.appendChild(tr);
+    });
+    table.appendChild(body);
+    list.appendChild(table);
+  }
+
+  function openNew() {
+    editing = null;
+    formTitle.textContent = 'Nuevo ' + labels[resource].toLowerCase().replace(/s$/, '');
+    buildForm({});
+    panel.classList.add('is-active');
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function closeForm() {
+    panel.classList.remove('is-active');
+    form.replaceChildren();
+    editing = null;
+    saving = false;
+  }
+
+  async function onSubmit(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (saving) return;
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+    var payload;
+    try {
+      payload = payloadFromForm();
+    } catch (err) {
+      setAlert(err.message || 'Revisa el formulario.', true);
+      return;
+    }
+    if (!payload.id) {
+      setAlert('Falta el ID del registro.', true);
+      return;
+    }
+    var method = editing ? 'PUT' : 'POST';
+    var path = editing
+      ? '/' + resource + '/' + encodeURIComponent(editing)
+      : '/' + resource;
+    saving = true;
+    validateForm();
+    try {
+      setAlert('Guardando…', false);
+      await ULE.api.request(path, {
+        method: method,
+        body: JSON.stringify(payload)
+      });
+      setAlert(labels[resource] + ' guardado correctamente.', false);
+      closeForm();
+      await load();
+    } catch (err) {
+      var message = 'No fue posible guardar el contenido.';
+      if (err && err.data) {
+        message = err.data.message || err.data.error || err.data.detail || message;
+        if (typeof message === 'object') message = JSON.stringify(message);
+      } else if (err && err.message) {
+        message = err.message;
+      }
+      if (err && err.status) message += ' (HTTP ' + err.status + ')';
+      setAlert(message, true);
+    } finally {
+      saving = false;
+      validateForm();
+    }
+  }
+
+  async function removeRecord(id) {
+    if (!id) return;
+    if (!window.confirm('¿Eliminar "' + id + '"?')) return;
+    try {
+      await ULE.api.request('/' + resource + '/' + encodeURIComponent(id), { method: 'DELETE' });
+      setAlert('Registro eliminado.', false);
+      closeForm();
+      await load();
+    } catch (err) {
+      setAlert(err && err.message ? err.message : 'No fue posible eliminar el registro.', true);
+    }
+  }
+
+  form.addEventListener('submit', onSubmit);
+  form.addEventListener('input', function (event) {
+    if (!editing && (event.target.name === 'titulo' || event.target.name === 'slogan')) generateId();
+    validateForm();
+  });
+  form.addEventListener('change', validateForm);
+
+  document.querySelectorAll('#editorial-tabs [role="tab"]').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      resource = tab.dataset.resource;
+      document.querySelectorAll('#editorial-tabs [role="tab"]').forEach(function (x) {
+        x.setAttribute('aria-selected', String(x === tab));
+      });
+      title.textContent = labels[resource];
+      closeForm();
+      load();
+    });
+  });
+
+  document.getElementById('editorial-new').addEventListener('click', openNew);
+  document.getElementById('editorial-cancel').addEventListener('click', closeForm);
+
+  (async function () {
+    try {
+      if (!ULE.config || !ULE.config.apiBaseUrl) {
+        setAlert('Falta ULE.config.apiBaseUrl. Revisa js/loader.js o la configuración de la API.', true);
+        return;
+      }
+      var user = await ULE.auth.requireRole(['contributor', 'admin']);
+      app.hidden = false;
+      setAlert('Sesión editorial activa: ' + (user.username || user.email) + ' (' + user.role + ').', false);
+      load();
+    } catch (e) {
+      setAlert(
+        e && e.status === 401
+          ? 'Debes iniciar sesión para acceder al panel editorial.'
+          : 'No tienes permisos para acceder al panel editorial.',
+        true
+      );
+    }
+  })();
+})();
+</script>
+</body>
+</html>
