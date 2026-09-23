@@ -517,18 +517,40 @@
         }, 700);
       } catch (err) {
         var status = err && err.status;
+        var code = err && err.data && err.data.code;
         var text = 'No se pudo completar la operación. Inténtalo de nuevo.';
-        if (status === 401) text = 'Correo o contraseña incorrectos.';
-        if (status === 403) text = 'No tienes permiso para esta acción.';
-        if (status === 409) text = 'Ese correo o usuario ya está registrado.';
-        if (status === 400) {
-          var dataMsg =
-            err.data && (err.data.message || err.data.error || err.data.detail);
-          text = dataMsg || 'Revisa los datos del formulario.';
-        }
-        if (!status && err && err.message && /apiBaseUrl|config/i.test(err.message)) {
+
+        var messages = {
+          registration_code_invalid: 'El código de registro no es válido.',
+          user_already_exists: 'El correo electrónico o nombre de usuario ya está registrado.',
+          invalid_request: 'Revisa los datos ingresados.',
+          invalid_credentials: 'Correo o contraseña incorrectos.',
+          unauthorized: 'Tu sesión ha expirado. Inicia sesión nuevamente.',
+          forbidden: 'No tienes permisos para realizar esta acción.'
+        };
+
+        if (code && messages[code]) {
+          text = messages[code];
+        } else if (status === 401) {
+          text = 'Correo o contraseña incorrectos.';
+        } else if (status === 403) {
+          text = 'No tienes permisos para realizar esta acción.';
+        } else if (status === 409) {
+          text = 'El correo electrónico o nombre de usuario ya está registrado.';
+        } else if (status === 400) {
+          text = 'Revisa los datos ingresados.';
+        } else if (status >= 500) {
+          text = this._mode === 'register'
+            ? 'No pudimos crear tu cuenta en este momento. Inténtalo nuevamente.'
+            : 'No pudimos iniciar sesión en este momento. Inténtalo nuevamente.';
+        } else if (!status && err && err.message && /apiBaseUrl|config/i.test(err.message)) {
           text = 'La API no está configurada. Revisa ULE.config.apiBaseUrl.';
         }
+
+        if (window.console && typeof console.error === 'function') {
+          console.error('[ULE.auth] Error de autenticación:', err);
+        }
+
         this._showError(text);
       } finally {
         this._setBusy(false);
