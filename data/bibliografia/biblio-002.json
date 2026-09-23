@@ -1,7 +1,9 @@
 {
   "id": "biblio-002",
   "titulo": "Estudio sobre los yugos. Análisis comparativo de los yugos y sus contextos en Mesoamérica, en especial, los yugos de la Costa del Golfo de México",
-  "autor": "Kurosaki Maekawa, Mitsuru",
+  "autores": [
+    "Kurosaki Maekawa, Mitsuru"
+  ],
   "año": 2006,
   "editorial": "Escuela Nacional de Antropología e Historia. México, D.F.",
   "tipo": "articulo",
