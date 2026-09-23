@@ -270,6 +270,9 @@
         '  <div class="auth-modal__body" data-body></div>' +
         '</dialog>';
 
+      var logo = this.shadowRoot.querySelector('.auth-modal__logo');
+      if (logo && window.location.pathname.indexOf('/herramientas/') !== -1) logo.src = '../assets/logo/logo.png';
+
       var cerrar = this.shadowRoot.querySelector('.auth-modal__cerrar');
       var self = this;
       cerrar.addEventListener('click', function () {
