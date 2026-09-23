@@ -1,7 +1,9 @@
 {
   "id": "biblio-006",
   "titulo": "The Pre-Columbian Ballgames: A Pan-Mesoamerican Tradition",
-  "autor": "Borhegyi, Stephan F. de",
+  "autores": [
+    "Borhegyi, Stephan F. de"
+  ],
   "año": 1980,
   "editorial": "Milwaukee Public Museum, Contributions in Anthropology, Milwaukee",
   "tipo": "libro",
