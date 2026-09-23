@@ -1,7 +1,10 @@
 {
   "id": "biblio-007",
   "titulo": "The Mesoamerican Ballgame",
-  "autor": "Scarborough, Vernon L.; Wilcox, David R.",
+  "autores": [
+    "Scarborough, Vernon L.",
+    "Wilcox, David R."
+  ],
   "año": 1991,
   "editorial": "University of Arizona Press, Tucson",
   "tipo": "libro",
