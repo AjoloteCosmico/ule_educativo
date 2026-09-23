@@ -1,7 +1,9 @@
 {
   "id": "biblio-004",
   "titulo": "Pre-columbian ball-game handstones: rejoinder to Clune",
-  "autor": "Borhegyi, Stephan F. de",
+  "autores": [
+    "Borhegyi, Stephan F. de"
+  ],
   "año": 1964,
   "editorial": "American Antiquity, vol. 39, núm. 1, pp. 84-86",
   "tipo": "articulo",
