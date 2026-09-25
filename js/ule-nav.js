@@ -86,6 +86,8 @@
       var toggle = this.querySelector('#nav-toggle');
       var nav = this.querySelector('.nav');
       if (!toggle || !nav) return;
+      // Evita que main.js registre de nuevo el menú generado por <ule-nav>.
+      toggle.dataset.uleNavBound = '1';
 
       function closeMenu() {
         nav.classList.remove('nav--open');
