@@ -74,6 +74,16 @@
   var editing = null;
   var records = [];
   var saving = false;
+  var contentBlocks = [];
+  var blocksContainer = null;
+  var blockTypeLabels = {
+    encabezado: 'Encabezado',
+    parrafo: 'Párrafo',
+    imagen: 'Imagen',
+    lista: 'Lista',
+    cita: 'Cita',
+    legado: 'Contenido existente (no editable por bloques)'
+  };
 
   var labels = {
     articles: 'Artículos',
@@ -158,12 +168,241 @@
     };
   }
 
+  /* ---------- Editor de contenido por bloques (Fase 1) ----------
+     El usuario que captura nunca ve ni escribe HTML: cada bloque es un
+     conjunto de campos de formulario normales. El HTML se genera aquí
+     mismo justo antes de enviar el payload, con el mismo vocabulario de
+     etiquetas que ya documentaba el campo (h2/h3, p, img, ul/li,
+     blockquote). El contrato de datos no cambia: contenido_html sigue
+     viajando como el mismo string de siempre. */
+
+  function isValidImageUrl(url) {
+    return /^https?:\/\//i.test(String(url || '').trim());
+  }
+
+  function newBlock(type) {
+    if (type === 'encabezado') return { type: type, nivel: 'h2', texto: '' };
+    if (type === 'imagen') return { type: type, url: '', alt: '' };
+    return { type: type, texto: '' };
+  }
+
+  function compileBlocksToHtml(blocks) {
+    return blocks.map(function (b) {
+      if (b.type === 'legado') return b.html || '';
+      if (b.type === 'encabezado') {
+        var nivel = b.nivel === 'h3' ? 'h3' : 'h2';
+        return '<' + nivel + '>' + htmlEscape(b.texto) + '</' + nivel + '>';
+      }
+      if (b.type === 'parrafo') return '<p>' + htmlEscape(b.texto || '').replace(/\n/g, '<br>') + '</p>';
+      if (b.type === 'imagen') return '<img src="' + htmlEscape(b.url) + '" alt="' + htmlEscape(b.alt) + '">';
+      if (b.type === 'lista') {
+        var items = String(b.texto || '').split('\n').map(function (x) { return x.trim(); }).filter(Boolean);
+        if (!items.length) return '';
+        return '<ul>\n' + items.map(function (i) { return '<li>' + htmlEscape(i) + '</li>'; }).join('\n') + '\n</ul>';
+      }
+      if (b.type === 'cita') return '<blockquote>' + htmlEscape(b.texto) + '</blockquote>';
+      return '';
+    }).filter(Boolean).join('\n\n');
+  }
+
+  function htmlEscape(text) {
+    var div = document.createElement('div');
+    div.textContent = text == null ? '' : String(text);
+    return div.innerHTML;
+  }
+
+  function parseHtmlToBlocks(html) {
+    var container = document.createElement('div');
+    container.innerHTML = String(html || '');
+    var blocks = [];
+    Array.prototype.forEach.call(container.childNodes, function (node) {
+      if (node.nodeType === 3) {
+        var text = node.textContent.trim();
+        if (text) blocks.push({ type: 'legado', html: htmlEscape(text) });
+        return;
+      }
+      if (node.nodeType !== 1) return;
+      var tag = node.tagName.toLowerCase();
+      if (tag === 'h2' || tag === 'h3') {
+        blocks.push({ type: 'encabezado', nivel: tag, texto: node.textContent.trim() });
+      } else if (tag === 'p') {
+        var tmp = document.createElement('div');
+        tmp.innerHTML = node.innerHTML.replace(/<br\s*\/?>/gi, '\n');
+        blocks.push({ type: 'parrafo', texto: tmp.textContent.trim() });
+      } else if (tag === 'img') {
+        blocks.push({ type: 'imagen', url: node.getAttribute('src') || '', alt: node.getAttribute('alt') || '' });
+      } else if (tag === 'ul' || tag === 'ol') {
+        var items = Array.prototype.map.call(node.querySelectorAll('li'), function (li) {
+          return li.textContent.trim();
+        }).filter(Boolean);
+        blocks.push({ type: 'lista', texto: items.join('\n') });
+      } else if (tag === 'blockquote') {
+        blocks.push({ type: 'cita', texto: node.textContent.trim() });
+      } else {
+        blocks.push({ type: 'legado', html: node.outerHTML });
+      }
+    });
+    return blocks;
+  }
+
+  function syncHiddenField() {
+    var hidden = form.elements.contenido_html;
+    if (hidden) hidden.value = compileBlocksToHtml(contentBlocks);
+    validateForm();
+  }
+
+  function moveBlock(index, dir) {
+    var target = index + dir;
+    if (target < 0 || target >= contentBlocks.length) return;
+    var tmp = contentBlocks[index];
+    contentBlocks[index] = contentBlocks[target];
+    contentBlocks[target] = tmp;
+    renderBlockEditor();
+  }
+
+  function removeBlock(index) {
+    contentBlocks.splice(index, 1);
+    renderBlockEditor();
+  }
+
+  function updateBlock(index, key, val) {
+    contentBlocks[index][key] = val;
+    syncHiddenField();
+  }
+
+  function addBlock(type) {
+    contentBlocks.push(newBlock(type));
+    renderBlockEditor();
+  }
+
+  function blockCard(block, index) {
+    var card = document.createElement('div');
+    card.className = 'content-block';
+
+    var head = document.createElement('div');
+    head.className = 'content-block__head';
+    var label = document.createElement('strong');
+    label.textContent = (index + 1) + '. ' + (blockTypeLabels[block.type] || block.type);
+    var actions = document.createElement('div');
+    actions.className = 'content-block__actions';
+    var up = document.createElement('button');
+    up.type = 'button'; up.className = 'button'; up.textContent = '↑';
+    up.setAttribute('aria-label', 'Mover bloque arriba');
+    up.disabled = index === 0;
+    up.addEventListener('click', function () { moveBlock(index, -1); });
+    var down = document.createElement('button');
+    down.type = 'button'; down.className = 'button'; down.textContent = '↓';
+    down.setAttribute('aria-label', 'Mover bloque abajo');
+    down.disabled = index === contentBlocks.length - 1;
+    down.addEventListener('click', function () { moveBlock(index, 1); });
+    var del = document.createElement('button');
+    del.type = 'button'; del.className = 'button'; del.textContent = 'Eliminar';
+    del.addEventListener('click', function () { removeBlock(index); });
+    actions.append(up, down, del);
+    head.append(label, actions);
+    card.appendChild(head);
+
+    if (block.type === 'legado') {
+      var note = document.createElement('p');
+      note.className = 'form-tool__ayuda';
+      note.textContent = 'Contenido existente que todavía no se puede editar por bloques. Se conserva igual al guardar, o puedes eliminarlo.';
+      card.appendChild(note);
+    } else if (block.type === 'encabezado') {
+      var nivelSel = document.createElement('select');
+      [['h2', 'Sección (H2)'], ['h3', 'Subsección (H3)']].forEach(function (o) {
+        var opt = document.createElement('option');
+        opt.value = o[0]; opt.textContent = o[1];
+        if (block.nivel === o[0]) opt.selected = true;
+        nivelSel.appendChild(opt);
+      });
+      nivelSel.addEventListener('change', function () { updateBlock(index, 'nivel', nivelSel.value); });
+      var textoEnc = document.createElement('input');
+      textoEnc.type = 'text'; textoEnc.value = block.texto || ''; textoEnc.placeholder = 'Texto del encabezado';
+      textoEnc.addEventListener('input', function () { updateBlock(index, 'texto', textoEnc.value); });
+      card.append(nivelSel, textoEnc);
+    } else if (block.type === 'parrafo' || block.type === 'cita') {
+      var ta = document.createElement('textarea');
+      ta.rows = 4; ta.value = block.texto || '';
+      ta.placeholder = block.type === 'cita' ? 'Texto de la cita' : 'Texto del párrafo';
+      ta.addEventListener('input', function () { updateBlock(index, 'texto', ta.value); });
+      card.appendChild(ta);
+    } else if (block.type === 'lista') {
+      var lta = document.createElement('textarea');
+      lta.rows = 4; lta.value = block.texto || ''; lta.placeholder = 'Un elemento por línea';
+      lta.addEventListener('input', function () { updateBlock(index, 'texto', lta.value); });
+      card.appendChild(lta);
+    } else if (block.type === 'imagen') {
+      var url = document.createElement('input');
+      url.type = 'url'; url.value = block.url || ''; url.placeholder = 'https://…';
+      url.addEventListener('input', function () { updateBlock(index, 'url', url.value); });
+      var alt = document.createElement('input');
+      alt.type = 'text'; alt.value = block.alt || ''; alt.placeholder = 'Texto alternativo (obligatorio)';
+      alt.addEventListener('input', function () { updateBlock(index, 'alt', alt.value); });
+      var helpImg = document.createElement('p');
+      helpImg.className = 'form-tool__ayuda';
+      helpImg.textContent = 'Por ahora la imagen solo puede venir de un enlace (URL).';
+      card.append(url, alt, helpImg);
+    }
+    return card;
+  }
+
+  function renderBlockEditor() {
+    if (!blocksContainer) return;
+    blocksContainer.replaceChildren();
+    if (!contentBlocks.length) {
+      var empty = document.createElement('p');
+      empty.className = 'form-tool__ayuda';
+      empty.textContent = 'Todavía no hay bloques. Agrega uno abajo.';
+      blocksContainer.appendChild(empty);
+    }
+    contentBlocks.forEach(function (block, index) {
+      blocksContainer.appendChild(blockCard(block, index));
+    });
+    syncHiddenField();
+  }
+
+  function buildContentEditor() {
+    var wrap = document.createElement('div');
+    wrap.className = 'form-tool__grupo';
+    var label = document.createElement('label');
+    label.textContent = 'Contenido';
+    wrap.appendChild(label);
+    var help = document.createElement('p');
+    help.className = 'form-tool__ayuda';
+    help.textContent = 'Arma el cuerpo del artículo por bloques. No hace falta escribir HTML.';
+    wrap.appendChild(help);
+
+    blocksContainer = document.createElement('div');
+    blocksContainer.className = 'content-blocks';
+    wrap.appendChild(blocksContainer);
+
+    var addRow = document.createElement('div');
+    addRow.className = 'form-tool__acciones';
+    var typeSelect = document.createElement('select');
+    [['encabezado', 'Encabezado'], ['parrafo', 'Párrafo'], ['imagen', 'Imagen'], ['lista', 'Lista'], ['cita', 'Cita']].forEach(function (o) {
+      var opt = document.createElement('option');
+      opt.value = o[0]; opt.textContent = o[1];
+      typeSelect.appendChild(opt);
+    });
+    var addBtn = document.createElement('button');
+    addBtn.type = 'button'; addBtn.className = 'button'; addBtn.textContent = '+ Agregar bloque';
+    addBtn.addEventListener('click', function () { addBlock(typeSelect.value); });
+    addRow.append(typeSelect, addBtn);
+    wrap.appendChild(addRow);
+
+    renderBlockEditor();
+    return wrap;
+  }
+  /* ---------- fin editor de bloques ---------- */
+
   function buildForm(record) {
     form.replaceChildren();
     var r = record || {};
     if (resource === 'articles' && !editing) {
       r = Object.assign({ contenido_html: '<h2>Sección</h2>\n<p>Contenido…</p>' }, r);
     }
+    blocksContainer = null;
+    contentBlocks = resource === 'articles' ? parseHtmlToBlocks(r.contenido_html || '') : [];
 
     var fields = [];
 
@@ -174,11 +413,7 @@
         field('autor', 'Autor', 'text', { required: true, placeholder: 'Obligatorio' }),
         field('fecha', 'Fecha', 'date', { required: true }),
         field('resumen', 'Resumen', 'textarea', { required: true, rows: 4 }),
-        field('contenido_html', 'Contenido HTML', 'textarea', {
-          required: true,
-          rows: 12,
-          help: 'HTML del cuerpo (usa <h2> para secciones). Sin <script>. Rutas relativas.'
-        }),
+        field('contenido_html', 'Contenido HTML', 'hidden', {}),
         field('imagen_destacada', 'Imagen destacada', 'url', { placeholder: 'https://…', help: 'Opcional.' }),
         field('imagen_alt', 'Texto alternativo de imagen', 'text', { placeholder: 'Opcional' }),
         field('categoria', 'Categoría', 'text', { placeholder: 'Opcional' }),
@@ -258,25 +493,8 @@
           name === 'vigencia_inicio' || name === 'vigencia_fin' || name === 'tipo') {
         row.appendChild(f);
       } else if (name === 'contenido_html') {
-        var toolbar = document.createElement('div');
-        toolbar.className = 'form-tool__acciones';
-        toolbar.style.marginBlockEnd = 'var(--space-xs)';
-        var addSection = document.createElement('button');
-        addSection.className = 'button';
-        addSection.type = 'button';
-        addSection.textContent = 'Agregar sección';
-        addSection.addEventListener('click', function () {
-          var content = form.elements.contenido_html;
-          if (!content) return;
-          var current = content.value.trim();
-          var section = '<h2>Sección</h2>\n<p>Contenido…</p>';
-          content.value = current ? current + '\n\n' + section : section;
-          content.focus();
-          validateForm();
-        });
-        toolbar.appendChild(addSection);
-        form.appendChild(toolbar);
-        form.appendChild(f);
+        form.appendChild(f); // campo oculto, se sincroniza desde el editor de bloques
+        form.appendChild(buildContentEditor());
       } else {
         form.appendChild(f);
       }
@@ -344,7 +562,14 @@
     if (!saveBtn) return;
     var valid = form.checkValidity();
     try {
-      if (resource === 'articles' && value('contenido_html').toLowerCase().indexOf('<script') !== -1) valid = false;
+      if (resource === 'articles') {
+        if (!contentBlocks.length) valid = false;
+        contentBlocks.forEach(function (b) {
+          if (b.type === 'imagen' && (!isValidImageUrl(b.url) || !String(b.alt || '').trim())) valid = false;
+          if ((b.type === 'encabezado' || b.type === 'parrafo' || b.type === 'cita') && !String(b.texto || '').trim()) valid = false;
+          if (b.type === 'lista' && !String(b.texto || '').split('\n').some(function (x) { return x.trim(); })) valid = false;
+        });
+      }
       if (resource === 'catalogs') parseDetails(value('detalles'));
       if (resource === 'ads' && value('vigencia_inicio') && value('vigencia_fin') && value('vigencia_fin') < value('vigencia_inicio')) valid = false;
     } catch (e) { valid = false; }
@@ -443,6 +668,7 @@
     });
 
     Object.keys(r).forEach(function (key) {
+      if (key === 'contenido_html') return; // ya sincronizado por el editor de bloques
       var formKey = key;
       if (key === 'año') formKey = 'anio';
       if (key === 'bibliografía_relacionada') formKey = 'bibliografia_relacionada';
