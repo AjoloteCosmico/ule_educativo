@@ -359,10 +359,23 @@
       var alt = document.createElement('input');
       alt.type = 'text'; alt.value = block.alt || ''; alt.placeholder = 'Texto alternativo (obligatorio)';
       alt.addEventListener('input', function () { updateBlock(index, 'alt', alt.value); });
+      var imagePreview = document.createElement('div');
+      imagePreview.className = 'content-block__image-preview';
+      var imagePreviewImg = document.createElement('img');
+      imagePreviewImg.alt = '';
+      imagePreviewImg.loading = 'lazy';
+      imagePreviewImg.hidden = !isValidImageUrl(block.url);
+      imagePreviewImg.src = isValidImageUrl(block.url) ? block.url : '';
+      imagePreview.appendChild(imagePreviewImg);
+      url.addEventListener('input', function () {
+        var valid = isValidImageUrl(url.value);
+        imagePreviewImg.hidden = !valid;
+        imagePreviewImg.src = valid ? url.value.trim() : '';
+      });
       var helpImg = document.createElement('p');
       helpImg.className = 'form-tool__ayuda';
-      helpImg.textContent = 'Por ahora la imagen solo puede venir de un enlace (URL).';
-      card.append(url, alt, helpImg);
+      helpImg.textContent = 'Por ahora la imagen solo puede venir de un enlace (URL). La vista previa no se envía a la API.';
+      card.append(url, alt, imagePreview, helpImg);
     }
     return card;
   }
@@ -895,6 +908,9 @@
   document.querySelectorAll('#editorial-tabs [role="tab"]').forEach(function (tab) {
     tab.addEventListener('click', function () {
       resource = tab.dataset.resource;
+      listSearch = '';
+      var searchInput = document.getElementById('editorial-search');
+      if (searchInput) searchInput.value = '';
       document.querySelectorAll('#editorial-tabs [role="tab"]').forEach(function (x) {
         x.setAttribute('aria-selected', String(x === tab));
       });
