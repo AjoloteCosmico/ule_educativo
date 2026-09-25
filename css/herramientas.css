@@ -405,3 +405,27 @@
 .content-block textarea {
   min-height: 7rem;
 }
+
+
+.content-block__image-preview {
+  margin-block-start: var(--space-sm);
+  min-height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed color-mix(in srgb, var(--color-texto) 18%, transparent);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background-color: var(--color-fondo);
+}
+
+.content-block__image-preview img {
+  display: block;
+  width: 100%;
+  max-height: 16rem;
+  object-fit: contain;
+}
+
+.content-block__image-preview img[hidden] {
+  display: none;
+}
