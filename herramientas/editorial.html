@@ -33,9 +33,18 @@
 </div>
 
 <div class="form-tool__resultado is-visible">
-<div class="cluster" style="justify-content:space-between;">
-<h2 id="editorial-title">Artículos</h2>
-<button class="button" type="button" id="editorial-new">Nuevo</button>
+<div class="editorial-list-head">
+  <div>
+    <h2 id="editorial-title">Artículos</h2>
+    <p id="editorial-count" class="form-tool__ayuda" aria-live="polite"></p>
+  </div>
+  <button class="button" type="button" id="editorial-new">Nuevo</button>
+</div>
+<div class="editorial-list-tools">
+  <label class="editorial-list-search">
+    <span>Buscar en el listado</span>
+    <input type="search" id="editorial-search" placeholder="Título, ID o nombre…" autocomplete="off">
+  </label>
 </div>
 <div id="editorial-list" class="catalog-loading" role="status">Cargando…</div>
 </div>
@@ -74,6 +83,7 @@
   var editing = null;
   var records = [];
   var saving = false;
+  var listSearch = '';
   var contentBlocks = [];
   var blocksContainer = null;
   var contentPreview = null;
@@ -735,9 +745,25 @@
   }
 
   function renderList() {
+    var query = listSearch.trim().toLowerCase();
+    var filtered = records.filter(function (r) {
+      if (!query) return true;
+      return [r.id, r.titulo, r.slogan, r.nombre].join(' ').toLowerCase().includes(query);
+    });
+    var count = document.getElementById('editorial-count');
+    if (count) {
+      count.textContent = records.length
+        ? (filtered.length + ' de ' + records.length + ' registros')
+        : 'Sin registros';
+    }
     if (!records.length) {
       list.className = 'catalog-empty';
       list.textContent = 'No hay registros disponibles.';
+      return;
+    }
+    if (!filtered.length) {
+      list.className = 'catalog-empty';
+      list.textContent = 'No hay registros que coincidan con la búsqueda.';
       return;
     }
     list.className = '';
@@ -746,7 +772,7 @@
     table.className = 'editorial-table';
     table.innerHTML = '<thead><tr><th>ID</th><th>Nombre</th><th>Estado</th><th>Acciones</th></tr></thead>';
     var body = document.createElement('tbody');
-    records.forEach(function (r) {
+    filtered.forEach(function (r) {
       var tr = document.createElement('tr');
       var id = r.id || '';
       var name = r.titulo || r.slogan || id;
@@ -876,6 +902,11 @@
       closeForm();
       load();
     });
+  });
+
+  document.getElementById('editorial-search').addEventListener('input', function (event) {
+    listSearch = event.target.value;
+    renderList();
   });
 
   document.getElementById('editorial-new').addEventListener('click', openNew);
