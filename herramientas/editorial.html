@@ -76,6 +76,7 @@
   var saving = false;
   var contentBlocks = [];
   var blocksContainer = null;
+  var contentPreview = null;
   var blockTypeLabels = {
     encabezado: 'Encabezado',
     parrafo: 'Párrafo',
@@ -245,9 +246,19 @@
     return blocks;
   }
 
+  function renderContentPreview() {
+    if (!contentPreview) return;
+    var body = contentPreview.querySelector('.editorial-content-preview__body');
+    if (!body) return;
+    body.innerHTML = compileBlocksToHtml(contentBlocks);
+    var empty = contentPreview.querySelector('.editorial-content-preview__empty');
+    if (empty) empty.hidden = !!contentBlocks.length;
+  }
+
   function syncHiddenField() {
     var hidden = form.elements.contenido_html;
     if (hidden) hidden.value = compileBlocksToHtml(contentBlocks);
+    renderContentPreview();
     validateForm();
   }
 
@@ -376,6 +387,27 @@
     blocksContainer.className = 'content-blocks';
     wrap.appendChild(blocksContainer);
 
+    contentPreview = document.createElement('section');
+    contentPreview.className = 'editorial-content-preview';
+    contentPreview.setAttribute('aria-label', 'Vista previa del contenido');
+    var previewHead = document.createElement('div');
+    previewHead.className = 'editorial-content-preview__head';
+    var previewTitle = document.createElement('strong');
+    previewTitle.textContent = 'Vista previa';
+    var previewHelp = document.createElement('span');
+    previewHelp.textContent = 'Así se verá el cuerpo del artículo.';
+    previewHead.append(previewTitle, previewHelp);
+    var previewArticle = document.createElement('article');
+    previewArticle.className = 'articulo editorial-content-preview__article';
+    var previewBody = document.createElement('div');
+    previewBody.className = 'articulo__cuerpo editorial-content-preview__body';
+    var previewEmpty = document.createElement('p');
+    previewEmpty.className = 'editorial-content-preview__empty';
+    previewEmpty.textContent = 'Agrega bloques para ver una vista previa.';
+    previewArticle.append(previewBody, previewEmpty);
+    contentPreview.append(previewHead, previewArticle);
+    wrap.appendChild(contentPreview);
+
     var addRow = document.createElement('div');
     addRow.className = 'form-tool__acciones';
     var typeSelect = document.createElement('select');
@@ -391,6 +423,7 @@
     wrap.appendChild(addRow);
 
     renderBlockEditor();
+    renderContentPreview();
     return wrap;
   }
   /* ---------- fin editor de bloques ---------- */
