@@ -194,7 +194,7 @@
   function newBlock(type) {
     if (type === 'encabezado') return { type: type, nivel: 'h2', texto: '' };
     if (type === 'imagen') return { type: type, url: '', alt: '' };
-    return { type: type, texto: '' };
+    return { type: type, estilo: 'ul', texto: '' };
   }
 
   function compileBlocksToHtml(blocks) {
@@ -207,9 +207,10 @@
       if (b.type === 'parrafo') return '<p>' + htmlEscape(b.texto || '').replace(/\n/g, '<br>') + '</p>';
       if (b.type === 'imagen') return '<img src="' + htmlEscape(b.url) + '" alt="' + htmlEscape(b.alt) + '">';
       if (b.type === 'lista') {
+        var tag = b.estilo === 'ol' ? 'ol' : 'ul';
         var items = String(b.texto || '').split('\n').map(function (x) { return x.trim(); }).filter(Boolean);
         if (!items.length) return '';
-        return '<ul>\n' + items.map(function (i) { return '<li>' + htmlEscape(i) + '</li>'; }).join('\n') + '\n</ul>';
+        return '<' + tag + '>\n' + items.map(function (i) { return '<li>' + htmlEscape(i) + '</li>'; }).join('\n') + '\n</' + tag + '>';
       }
       if (b.type === 'cita') return '<blockquote>' + htmlEscape(b.texto) + '</blockquote>';
       return '';
@@ -246,7 +247,7 @@
         var items = Array.prototype.map.call(node.querySelectorAll('li'), function (li) {
           return li.textContent.trim();
         }).filter(Boolean);
-        blocks.push({ type: 'lista', texto: items.join('\n') });
+        blocks.push({ type: 'lista', estilo: tag === 'ol' ? 'ol' : 'ul', texto: items.join('\n') });
       } else if (tag === 'blockquote') {
         blocks.push({ type: 'cita', texto: node.textContent.trim() });
       } else {
@@ -348,10 +349,19 @@
       ta.addEventListener('input', function () { updateBlock(index, 'texto', ta.value); });
       card.appendChild(ta);
     } else if (block.type === 'lista') {
+      var listType = document.createElement('select');
+      [['ul', 'Con viñetas'], ['ol', 'Numerada']].forEach(function (o) {
+        var opt = document.createElement('option');
+        opt.value = o[0]; opt.textContent = o[1];
+        if ((block.estilo || 'ul') === o[0]) opt.selected = true;
+        listType.appendChild(opt);
+      });
+      listType.setAttribute('aria-label', 'Tipo de lista');
+      listType.addEventListener('change', function () { updateBlock(index, 'estilo', listType.value); });
       var lta = document.createElement('textarea');
       lta.rows = 4; lta.value = block.texto || ''; lta.placeholder = 'Un elemento por línea';
       lta.addEventListener('input', function () { updateBlock(index, 'texto', lta.value); });
-      card.appendChild(lta);
+      card.append(listType, lta);
     } else if (block.type === 'imagen') {
       var url = document.createElement('input');
       url.type = 'url'; url.value = block.url || ''; url.placeholder = 'https://…';
