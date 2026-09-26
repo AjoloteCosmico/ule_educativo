@@ -37,7 +37,7 @@ window.ULE = window.ULE || {};
 // en Fase 2 podrá cambiarse a un adaptador HTTP sin modificar los consumidores.
 ULE.config = ULE.config || {};
 ULE.config.dataSource = ULE.config.dataSource || 'api';
-ULE.config.apiBaseUrl = ULE.config.apiBaseUrl || 'http://localhost:8080/api/v1';
+ULE.config.apiBaseUrl = ULE.config.apiBaseUrl || 'http://api.u-topia.space/api/v1/';
 
 ULE.loader = (function () {
   const cache = new Map();
