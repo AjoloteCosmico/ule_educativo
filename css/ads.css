@@ -3,10 +3,9 @@
    ========================================================================== */
 
 [data-ad-slots] {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: var(--space-lg);
-  align-items: stretch;
   width: 100%;
 }
 
@@ -47,13 +46,11 @@
 
 @media (max-width: 900px) {
   [data-ad-slots] {
-    grid-template-columns: 1fr;
     gap: var(--space-lg);
   }
 
   [data-ad-slot] > ad-card {
     width: 100%;
-    max-width: 640px;
-    margin-inline: auto;
+    max-width: none;
   }
 }
