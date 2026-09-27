@@ -1,36 +1,26 @@
-/* ==========================================================================
-   ads.css — Integración visual de anuncios
-   Complementa el estilo interno de <ad-card> (que vive en Shadow DOM).
-   Estas reglas solo controlan el espacio que el componente ocupa dentro
-   de la página — nunca el interior de la card.
-   ========================================================================== */
+[data-ad-slots] {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-md);
+  align-items: start;
+}
 
-/* El slot nunca debe convertirse en una franja de ancho completo. */
 [data-ad-slot] {
   width: 100%;
   margin-block: var(--space-md);
 }
 
-/* Anuncio vertical: tamaño contenido, centrado y coherente con las cards. */
 [data-ad-slot] > ad-card {
   display: block;
   width: min(100%, 360px);
   margin-inline: auto;
 }
 
-/* En horizontal aprovechamos el ancho, pero conservamos un límite visual
-   para que la card no se sienta un banner publicitario de ancho completo. */
 [data-ad-slot][data-ad-horizontal="true"] > ad-card {
   width: min(100%, 640px);
   margin-inline: auto;
 }
 
-/* Nota: el propio <ad-card> ya es un contenedor de tamaño (container query
-   interna) y se repliega solo a layout vertical si el espacio real cae
-   por debajo de ~360px, sin importar el atributo "horizontal". Este ancho
-   máximo de aquí es solo una preferencia de composición de la página. */
-
-/* La sección que contiene anuncios debe respirar como cualquier otra sección. */
 .ad-section {
   margin-block: var(--space-xl);
   padding-block: var(--space-md);
@@ -50,7 +40,17 @@
   opacity: 0.75;
 }
 
-/* Si el slot queda oculto porque no hay anuncio, no conserva espacio. */
 [data-ad-slot][hidden] {
   display: none;
+}
+
+@media (max-width: 900px) {
+  [data-ad-slots] {
+    grid-template-columns: 1fr;
+  }
+
+  [data-ad-slot] > ad-card,
+  [data-ad-slot][data-ad-horizontal="true"] > ad-card {
+    width: min(100%, 640px);
+  }
 }
