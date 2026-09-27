@@ -309,9 +309,21 @@ ULE.loader = (function () {
   }
 
   function normalizeCollection(data) {
+    // La API puede entregar colecciones directamente o envueltas en
+    // data/items (incluyendo una envoltura adicional usada por algunos
+    // endpoints). Normalizamos aquí para que los consumidores no tengan
+    // que conocer la forma concreta de la respuesta HTTP.
     if (Array.isArray(data)) return data;
-    if (data && Array.isArray(data.items)) return data.items;
-    if (data && Array.isArray(data.data)) return data.data;
+    if (!data || typeof data !== 'object') return [];
+
+    if (Array.isArray(data.items)) return data.items;
+    if (Array.isArray(data.data)) return data.data;
+
+    if (data.data && typeof data.data === 'object') {
+      if (Array.isArray(data.data.items)) return data.data.items;
+      if (Array.isArray(data.data.data)) return data.data.data;
+    }
+
     return [];
   }
 
