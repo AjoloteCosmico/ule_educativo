@@ -150,11 +150,28 @@ ULE.ads = (function () {
 
   async function renderSlots(root, pagina) {
     const scope = root || document;
-    const slots = Array.from(scope.querySelectorAll('[data-ad-slot]'));
-    if (!slots.length) return [];
+    const container = scope.querySelector('[data-ad-slots]');
+    if (!container) return [];
+
+    // La cantidad de slots es una regla del componente, no una responsabilidad
+    // de cada página. Así una página antigua o cacheada no puede degradar la
+    // sección a un solo anuncio.
+    let slots = Array.from(container.querySelectorAll(':scope > [data-ad-slot]'));
+    while (slots.length < 3) {
+      const slot = document.createElement('div');
+      slot.setAttribute('data-ad-slot', '');
+      slot.setAttribute('data-ad-horizontal', 'true');
+      container.appendChild(slot);
+      slots.push(slot);
+    }
+
     const seleccion = await getSelectedAds(pagina);
-    slots.forEach(function (slot, index) { renderSlot(slot, seleccion[index] || null); });
-    const section = scope.querySelector('.ad-section');
+
+    slots.slice(0, 3).forEach(function (slot, index) {
+      renderSlot(slot, seleccion[index] || null);
+    });
+
+    const section = container.closest('.ad-section');
     if (section) section.hidden = seleccion.length === 0;
     return seleccion;
   }
