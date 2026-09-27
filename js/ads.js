@@ -37,11 +37,12 @@ ULE.ads = (function () {
     return true;
   }
 
-  function getValidAds(ads, today, pagina) {
+  function getValidAds(ads, today) {
+    // Regla editorial vigente: los anuncios activos y vigentes forman un
+    // conjunto global. No se filtran por "paginas": los seleccionados se
+    // muestran en todas las páginas que tengan sección de anuncios.
     return ads.filter(function (ad) {
-      if (!isVigente(ad, today)) return false;
-      if (!pagina || !Array.isArray(ad.paginas) || !ad.paginas.length) return true;
-      return ad.paginas.includes('todas') || ad.paginas.includes(pagina);
+      return isVigente(ad, today);
     });
   }
 
@@ -83,7 +84,7 @@ ULE.ads = (function () {
 
   async function getSelectedAds(pagina) {
     const ads = await loadAds();
-    const validAds = getValidAds(ads, fechaActual(), pagina);
+    const validAds = getValidAds(ads, fechaActual());
     const key = pagina || '__all__';
     if (!selectionCache.has(key)) selectionCache.set(key, weightedSample(validAds, 3));
     return selectionCache.get(key);
