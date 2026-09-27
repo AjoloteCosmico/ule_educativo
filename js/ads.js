@@ -57,13 +57,41 @@ ULE.ads = (function () {
     return ads[ads.length - 1];
   }
 
-  async function getRandomAd(pagina) {
-    const ads = await loadAds();
-    return weightedRandom(getValidAds(ads, fechaActual(), pagina));
+  function weightedSample(ads, cantidad) {
+    const disponibles = ads.slice();
+    const seleccion = [];
+    while (seleccion.length < Math.min(cantidad, disponibles.length)) {
+      const total = disponibles.reduce(function (sum, ad) {
+        const peso = Number(ad.peso);
+        return sum + (Number.isFinite(peso) && peso >= 1 ? peso : 1);
+      }, 0);
+      let random = Math.random() * total;
+      let elegido = disponibles[disponibles.length - 1];
+      for (const ad of disponibles) {
+        const peso = Number(ad.peso);
+        random -= Number.isFinite(peso) && peso >= 1 ? peso : 1;
+        if (random <= 0) { elegido = ad; break; }
+      }
+      seleccion.push(elegido);
+      disponibles.splice(disponibles.indexOf(elegido), 1);
+    }
+    return seleccion;
   }
 
-  // Si no hay anuncio, se oculta también la sección contenedora (encabezado
-  // "Comunidad" incluido) para no dejar un título sin contenido.
+  async function getSelectedAds(pagina) {
+    const ads = await loadAds();
+    const validAds = getValidAds(ads, fechaActual(), pagina);
+    const key = pagina || '__all__';
+    if (!selectionCache.has(key)) selectionCache.set(key, weightedSample(validAds, 3));
+    return selectionCache.get(key);
+  }
+
+  async function getRandomAd(pagina) {
+    const seleccion = await getSelectedAds(pagina);
+    return seleccion.length ? seleccion[Math.floor(Math.random() * seleccion.length)] : null;
+  }
+
+  // Si no hay anuncio, se oculta también la sección contenedora.
   function toggleSection(slot, visible) {
     const section = slot.closest('.ad-section');
     if (section) section.hidden = !visible;
@@ -73,19 +101,12 @@ ULE.ads = (function () {
     if (!ad) {
       slot.hidden = true;
       slot.replaceChildren();
-      toggleSection(slot, false);
       return;
     }
-
     slot.hidden = false;
     toggleSection(slot, true);
     slot.replaceChildren();
-
     const card = document.createElement('ad-card');
-    // Mapeo explícito: los campos del JSON (español) no siempre coinciden
-    // 1:1 con el nombre del atributo que lee <ad-card> (ver components.js).
-    // "imagen" -> "data-image" es el caso importante: si se generaba como
-    // "data-imagen" el componente nunca lo leía y la imagen no se mostraba.
     const attrMap = {
       imagen: 'image',
       imagen_alt: 'imagen-alt',
@@ -99,7 +120,6 @@ ULE.ads = (function () {
     Object.keys(attrMap).forEach(function (campo) {
       if (ad[campo]) card.setAttribute('data-' + attrMap[campo], ad[campo]);
     });
-
     if (slot.dataset.adHorizontal === 'true') card.setAttribute('horizontal', '');
     slot.appendChild(card);
   }
@@ -108,13 +128,11 @@ ULE.ads = (function () {
     const scope = root || document;
     const slots = Array.from(scope.querySelectorAll('[data-ad-slot]'));
     if (!slots.length) return [];
-
-    const ads = await loadAds();
-    const validAds = getValidAds(ads, fechaActual(), pagina);
-    slots.forEach(function (slot) {
-      renderSlot(slot, weightedRandom(validAds));
-    });
-    return validAds;
+    const seleccion = await getSelectedAds(pagina);
+    slots.forEach(function (slot, index) { renderSlot(slot, seleccion[index] || null); });
+    const section = scope.querySelector('.ad-section');
+    if (section) section.hidden = seleccion.length === 0;
+    return seleccion;
   }
 
   function init() {
@@ -122,12 +140,10 @@ ULE.ads = (function () {
     const start = function () { renderSlots(document, pagina); };
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', start, { once: true });
-    } else {
-      start();
-    }
+    } else start();
   }
 
   init();
 
-  return { loadAds, getValidAds, getRandomAd, renderSlot, renderSlots };
+  return { loadAds, getValidAds, getSelectedAds, getRandomAd, renderSlot, renderSlots };
 })();
