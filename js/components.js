@@ -423,10 +423,11 @@
         '.media__fallback svg { width: 42%; height: 42%; opacity: 0.9; }' +
         '.media.is-empty img { display: none; }' +
         '.media:not(.is-empty) .media__fallback { display: none; }' +
-        '.body { display: flex; flex-direction: column; gap: var(--space-sm); padding: var(--space-md); flex: 1; min-width: 0; }' +
-        '.slogan { font-size: var(--fs-h3); font-weight: 700; color: var(--color-titulo-card); margin: 0; }' +
-        '.contacto { font-size: var(--fs-cuerpo); color: var(--color-cuerpo-card); margin: 0; }' +
-        '.legal { font-family: var(--font-anotaciones); font-style: italic; font-size: var(--fs-anotacion); color: var(--color-cuerpo-card); opacity: 0.8; margin: 0; margin-top: auto; }' +
+        '.body { display: flex; flex-direction: column; gap: var(--space-sm); padding: clamp(var(--space-md), 3vw, var(--space-lg)); flex: 1; min-width: 0; }' +
+        '.slogan { font-size: clamp(var(--fs-h3), 2.4cqw, 1.35rem); font-weight: 700; color: var(--color-titulo-card); margin: 0; line-height: var(--lh-titulo); }' +
+        '.contacto { font-size: var(--fs-cuerpo); color: var(--color-cuerpo-card); margin: 0; line-height: var(--lh-cuerpo); font-weight: 500; }' +
+        '.description { font-size: var(--fs-cuerpo); color: var(--color-cuerpo-card); line-height: var(--lh-cuerpo); margin: 0; overflow-wrap: anywhere; }' +
+        '.validity { display: inline-flex; align-self: flex-start; margin-top: auto; padding: 0.3rem 0.6rem; border-radius: var(--radius-pill); background: color-mix(in srgb, var(--color-principal) 10%, transparent); color: var(--color-texto); font-family: var(--font-anotaciones); font-size: var(--fs-anotacion); line-height: 1.3; }' +
         'a.wrap:focus-visible { outline: 2px solid var(--color-link-focus); outline-offset: 3px; }' +
         '@media (prefers-reduced-motion: reduce) {' +
         '  .card { animation: none; box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--color-principal) 65%, transparent), var(--shadow-card); }' +
@@ -444,7 +445,8 @@
         '<div class="body">' +
         '<p class="slogan" part="slogan"></p>' +
         '<p class="contacto" part="contacto"></p>' +
-        '<p class="legal" part="legal"></p>' +
+        '<p class="description" part="descripcion"></p>' +
+        (vigenciaFin ? '<p class="validity" part="vigencia">Vigente hasta: ' + formatFecha(vigenciaFin) + '</p>' : '') +
         '</div>' +
         (enlace ? '</a>' : '</div>');
 
@@ -465,8 +467,7 @@
 
       root.querySelector('.slogan').textContent = slogan;
       root.querySelector('.contacto').textContent = contacto;
-      const legal = vigenciaFin ? 'Vigente hasta: ' + formatFecha(vigenciaFin) : descripcion;
-      root.querySelector('.legal').textContent = legal;
+      root.querySelector('.description').textContent = descripcion;
 
       const link = root.querySelector('a.wrap');
       if (link && slogan) link.setAttribute('aria-label', slogan + (contacto ? ' — ' + contacto : '') + ' (abre en pestaña nueva)');
