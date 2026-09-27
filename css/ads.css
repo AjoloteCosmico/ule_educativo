@@ -1,24 +1,25 @@
+/* ==========================================================================
+   ads.css — layout de la sección de anuncios
+   ========================================================================== */
+
 [data-ad-slots] {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--space-md);
-  align-items: start;
+  gap: var(--space-lg);
+  align-items: stretch;
+  width: 100%;
 }
 
 [data-ad-slot] {
   width: 100%;
-  margin-block: var(--space-md);
+  min-width: 0;
 }
 
 [data-ad-slot] > ad-card {
   display: block;
-  width: min(100%, 360px);
-  margin-inline: auto;
-}
-
-[data-ad-slot][data-ad-horizontal="true"] > ad-card {
-  width: min(100%, 640px);
-  margin-inline: auto;
+  width: 100%;
+  max-width: none;
+  margin: 0;
 }
 
 .ad-section {
@@ -47,23 +48,12 @@
 @media (max-width: 900px) {
   [data-ad-slots] {
     grid-template-columns: 1fr;
+    gap: var(--space-lg);
   }
 
-  [data-ad-slot] > ad-card,
-  [data-ad-slot][data-ad-horizontal="true"] > ad-card {
-    width: min(100%, 640px);
+  [data-ad-slot] > ad-card {
+    width: 100%;
+    max-width: 640px;
+    margin-inline: auto;
   }
-}
-
-
-[data-ad-slots] {
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:var(--space-md);
-  align-items:start;
-}
-@media (max-width:900px) {
-  [data-ad-slots] { grid-template-columns:1fr; }
-  [data-ad-slot] > ad-card,
-  [data-ad-slot][data-ad-horizontal="true"] > ad-card { width:min(100%,640px); }
 }
