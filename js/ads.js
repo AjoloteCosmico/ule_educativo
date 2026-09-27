@@ -86,7 +86,27 @@ ULE.ads = (function () {
     const ads = await loadAds();
     const validAds = getValidAds(ads, fechaActual());
     const key = pagina || '__all__';
-    if (!selectionCache.has(key)) selectionCache.set(key, weightedSample(validAds, 3));
+
+    if (!selectionCache.has(key)) {
+      const seleccion = weightedSample(validAds, 3);
+
+      // La regla editorial pide tres espacios visibles. Si la DB tiene
+      // menos de tres anuncios vigentes, reutilizamos cíclicamente los
+      // anuncios disponibles para ocupar los tres slots; no se inventa
+      // contenido y, cuando existen 3+, la selección sigue siendo sin
+      // reemplazo y por tanto son tres anuncios distintos.
+      if (seleccion.length > 0 && seleccion.length < 3) {
+        const base = seleccion.slice();
+        let i = 0;
+        while (seleccion.length < 3) {
+          seleccion.push(base[i % base.length]);
+          i++;
+        }
+      }
+
+      selectionCache.set(key, seleccion);
+    }
+
     return selectionCache.get(key);
   }
 
