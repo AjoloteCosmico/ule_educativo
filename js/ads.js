@@ -6,6 +6,9 @@ ULE.ads = (function () {
   // Los anuncios se obtienen SIEMPRE a través de ULE.loader.loadAds(): este
   // módulo no sabe si vienen de data/anuncios.json o de la API (docs/arquitectura.md §4).
   let cache = null;
+  // Mantiene la misma selección de hasta tres anuncios durante la vida de la página.
+  // La clave permite que cada página tenga su propio conjunto seleccionado.
+  const selectionCache = new Map();
 
   async function loadAds() {
     if (cache) return cache;
