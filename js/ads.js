@@ -6,8 +6,8 @@ ULE.ads = (function () {
   // Los anuncios se obtienen SIEMPRE a través de ULE.loader.loadAds(): este
   // módulo no sabe si vienen de data/anuncios.json o de la API (docs/arquitectura.md §4).
   let cache = null;
-  // Mantiene la misma selección de hasta tres anuncios durante la vida de la página.
-  // La clave permite que cada página tenga su propio conjunto seleccionado.
+  // Mantiene la misma selección de hasta tres anuncios distintos durante la
+  // vida de la página. La clave permite que cada página tenga su propio conjunto.
   const selectionCache = new Map();
 
   async function loadAds() {
@@ -41,8 +41,14 @@ ULE.ads = (function () {
     // Regla editorial vigente: los anuncios activos y vigentes forman un
     // conjunto global. No se filtran por "paginas": los seleccionados se
     // muestran en todas las páginas que tengan sección de anuncios.
+    // Deduplicamos por id por si la fuente entregara el mismo anuncio dos veces.
+    const seen = new Set();
     return ads.filter(function (ad) {
-      return isVigente(ad, today);
+      if (!isVigente(ad, today)) return false;
+      const key = ad.id || JSON.stringify(ad);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
     });
   }
 
@@ -61,23 +67,32 @@ ULE.ads = (function () {
     return ads[ads.length - 1];
   }
 
+  /**
+   * Selección ponderada SIN reemplazo: cada anuncio aparece a lo sumo una vez.
+   * Nunca se inventan ni se duplican anuncios para rellenar slots
+   * (docs/politica_anuncios.md).
+   */
   function weightedSample(ads, cantidad) {
     const disponibles = ads.slice();
     const seleccion = [];
-    while (seleccion.length < Math.min(cantidad, disponibles.length)) {
+    const limite = Math.min(cantidad, disponibles.length);
+    while (seleccion.length < limite) {
       const total = disponibles.reduce(function (sum, ad) {
         const peso = Number(ad.peso);
         return sum + (Number.isFinite(peso) && peso >= 1 ? peso : 1);
       }, 0);
       let random = Math.random() * total;
-      let elegido = disponibles[disponibles.length - 1];
-      for (const ad of disponibles) {
-        const peso = Number(ad.peso);
+      let elegidoIndex = disponibles.length - 1;
+      for (let i = 0; i < disponibles.length; i++) {
+        const peso = Number(disponibles[i].peso);
         random -= Number.isFinite(peso) && peso >= 1 ? peso : 1;
-        if (random <= 0) { elegido = ad; break; }
+        if (random <= 0) {
+          elegidoIndex = i;
+          break;
+        }
       }
-      seleccion.push(elegido);
-      disponibles.splice(disponibles.indexOf(elegido), 1);
+      seleccion.push(disponibles[elegidoIndex]);
+      disponibles.splice(elegidoIndex, 1);
     }
     return seleccion;
   }
@@ -88,22 +103,9 @@ ULE.ads = (function () {
     const key = pagina || '__all__';
 
     if (!selectionCache.has(key)) {
+      // Hasta 3, siempre distintos. Con 1 o 2 vigentes se muestran solo esos;
+      // no se reutilizan cíclicamente para completar tres espacios.
       const seleccion = weightedSample(validAds, 3);
-
-      // La regla editorial pide tres espacios visibles. Si la DB tiene
-      // menos de tres anuncios vigentes, reutilizamos cíclicamente los
-      // anuncios disponibles para ocupar los tres slots; no se inventa
-      // contenido y, cuando existen 3+, la selección sigue siendo sin
-      // reemplazo y por tanto son tres anuncios distintos.
-      if (seleccion.length > 0 && seleccion.length < 3) {
-        const base = seleccion.slice();
-        let i = 0;
-        while (seleccion.length < 3) {
-          seleccion.push(base[i % base.length]);
-          i++;
-        }
-      }
-
       selectionCache.set(key, seleccion);
     }
 
@@ -153,11 +155,12 @@ ULE.ads = (function () {
     const container = scope.querySelector('[data-ad-slots]');
     if (!container) return [];
 
-    // La cantidad de slots es una regla del componente, no una responsabilidad
-    // de cada página. Así una página antigua o cacheada no puede degradar la
-    // sección a un solo anuncio.
+    const seleccion = await getSelectedAds(pagina);
+
+    // Asegura tantos slots como anuncios seleccionados (máx. 3), sin inventar
+    // huecos que luego se rellenen con el mismo anuncio.
     let slots = Array.from(container.querySelectorAll(':scope > [data-ad-slot]'));
-    while (slots.length < 3) {
+    while (slots.length < seleccion.length) {
       const slot = document.createElement('div');
       slot.setAttribute('data-ad-slot', '');
       slot.setAttribute('data-ad-horizontal', 'true');
@@ -165,10 +168,13 @@ ULE.ads = (function () {
       slots.push(slot);
     }
 
-    const seleccion = await getSelectedAds(pagina);
-
-    slots.slice(0, 3).forEach(function (slot, index) {
-      renderSlot(slot, seleccion[index] || null);
+    // Oculta slots sobrantes si hay más marcados en el HTML que anuncios.
+    slots.forEach(function (slot, index) {
+      if (index < seleccion.length) {
+        renderSlot(slot, seleccion[index]);
+      } else {
+        renderSlot(slot, null);
+      }
     });
 
     const section = container.closest('.ad-section');
@@ -186,5 +192,5 @@ ULE.ads = (function () {
 
   init();
 
-  return { loadAds, getValidAds, getSelectedAds, getRandomAd, renderSlot, renderSlots };
+  return { loadAds, getValidAds, getSelectedAds, getRandomAd, renderSlot, renderSlots, weightedSample };
 })();
