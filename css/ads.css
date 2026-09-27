@@ -54,3 +54,16 @@
     width: min(100%, 640px);
   }
 }
+
+
+[data-ad-slots] {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:var(--space-md);
+  align-items:start;
+}
+@media (max-width:900px) {
+  [data-ad-slots] { grid-template-columns:1fr; }
+  [data-ad-slot] > ad-card,
+  [data-ad-slot][data-ad-horizontal="true"] > ad-card { width:min(100%,640px); }
+}
