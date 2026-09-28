@@ -1038,9 +1038,18 @@
       return;
     }
     var method = editing ? 'PUT' : 'POST';
-    var path = editing
-      ? '/' + resource + '/' + encodeURIComponent(editing)
-      : '/' + resource;
+    var path;
+    if (resource === 'catalogItems') {
+      if (!selectedCatalog || !selectedCatalog.id) {
+        setAlert('No hay una colección seleccionada.', true);
+        return;
+      }
+      path = '/catalogs/' + encodeURIComponent(selectedCatalog.id) + '/items';
+    } else {
+      path = editing
+        ? '/' + resource + '/' + encodeURIComponent(editing)
+        : '/' + resource;
+    }
     saving = true;
     validateForm();
     try {
@@ -1049,7 +1058,12 @@
         method: method,
         body: JSON.stringify(payload)
       });
-      setAlert(labels[resource] + ' guardado correctamente.', false);
+      setAlert(
+        resource === 'catalogItems'
+          ? 'Elemento guardado correctamente.'
+          : labels[resource] + ' guardado correctamente.',
+        false
+      );
       closeForm();
       await load();
     } catch (err) {
@@ -1072,7 +1086,10 @@
     if (!id) return;
     if (!window.confirm('¿Eliminar "' + id + '"?')) return;
     try {
-      await ULE.api.request('/' + resource + '/' + encodeURIComponent(id), { method: 'DELETE' });
+      var removePath = resource === 'catalogItems'
+        ? '/catalogs/' + encodeURIComponent(selectedCatalog.id) + '/items/' + encodeURIComponent(id)
+        : '/' + resource + '/' + encodeURIComponent(id);
+      await ULE.api.request(removePath, { method: 'DELETE' });
       setAlert('Registro eliminado.', false);
       closeForm();
       await load();
