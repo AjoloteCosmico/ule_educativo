@@ -526,6 +526,19 @@
         }),
         checkbox('visible', 'Visible', r.visible !== false)
       ];
+    } else if (resource === 'catalogItems') {
+      fields = [
+        field('id', 'ID', 'text', idOptions()),
+        field('titulo', 'Título', 'text', { required: true }),
+        field('imagen', 'Imagen', 'url', { required: true, placeholder: 'https://…', help: 'URL pública de la imagen.' }),
+        field('imagen_alt', 'Texto alternativo', 'text', { placeholder: 'Describe brevemente la imagen.' }),
+        field('descripcion', 'Descripción', 'textarea', { rows: 4, placeholder: 'Opcional' }),
+        field('año_descubrimiento', 'Año de descubrimiento', 'number', { min: 0, step: 1, placeholder: 'Opcional' }),
+        field('ubicacion', 'Ubicación', 'text', { placeholder: 'Opcional' }),
+        field('categoria_periodo', 'Periodo', 'text', { placeholder: 'Ej. clásico' }),
+        field('categoria_material', 'Material', 'text', { placeholder: 'Ej. piedra' }),
+        field('categoria_cultura', 'Cultura', 'text', { placeholder: 'Ej. maya' })
+      ];
     } else {
       fields = [
         field('id', 'ID', 'text', idOptions()),
@@ -641,6 +654,10 @@
         });
       }
       if (resource === 'catalogs') parseDetails(value('detalles'));
+      if (resource === 'catalogItems') {
+        if (!value('imagen') || !isValidImageUrl(value('imagen'))) valid = false;
+        if (value('año_descubrimiento') && Number(value('año_descubrimiento')) < 0) valid = false;
+      }
       if (resource === 'ads' && value('vigencia_inicio') && value('vigencia_fin') && value('vigencia_fin') < value('vigencia_inicio')) valid = false;
     } catch (e) { valid = false; }
     saveBtn.disabled = !valid || saving;
@@ -685,6 +702,21 @@
         imagen_portada: value('imagen_portada') || null,
         detalles: parseDetails(value('detalles')),
         visible: bool('visible')
+      };
+    } else if (resource === 'catalogItems') {
+      var categorias = {};
+      if (value('categoria_periodo')) categorias.periodo = value('categoria_periodo');
+      if (value('categoria_material')) categorias.material = value('categoria_material');
+      if (value('categoria_cultura')) categorias.cultura = value('categoria_cultura');
+      p = {
+        id: value('id'),
+        titulo: value('titulo'),
+        imagen: value('imagen'),
+        imagen_alt: value('imagen_alt') || null,
+        descripcion: value('descripcion') || null,
+        categorias: categorias,
+        año_descubrimiento: value('año_descubrimiento') ? Number(value('año_descubrimiento')) : null,
+        ubicacion: value('ubicacion') || null
       };
     } else {
       p = {
@@ -972,7 +1004,6 @@
   }
 
   function openNew() {
-    if (resource === 'catalogItems') return;
     editing = null;
     formTitle.textContent = 'Nuevo ' + labels[resource].toLowerCase().replace(/s$/, '');
     buildForm({});
