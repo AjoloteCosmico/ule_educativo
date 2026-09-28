@@ -35,7 +35,9 @@
 <div class="form-tool__resultado is-visible">
 <div class="editorial-list-head">
   <div>
+    <button class="button" type="button" id="editorial-back-catalogs" hidden>← Colecciones</button>
     <h2 id="editorial-title">Artículos</h2>
+    <p id="editorial-context" class="form-tool__ayuda" hidden></p>
     <p id="editorial-count" class="form-tool__ayuda" aria-live="polite"></p>
   </div>
   <button class="button" type="button" id="editorial-new">Nuevo</button>
@@ -80,6 +82,7 @@
   var title = document.getElementById('editorial-title');
   var formTitle = document.getElementById('editorial-form-title');
   var resource = 'articles';
+  var selectedCatalog = null;
   var editing = null;
   var records = [];
   var saving = false;
@@ -100,6 +103,7 @@
     articles: 'Artículos',
     bibliography: 'Bibliografía',
     catalogs: 'Colecciones',
+    catalogItems: 'Elementos',
     ads: 'Anuncios'
   };
 
@@ -758,8 +762,19 @@
     list.className = 'catalog-loading';
     list.textContent = 'Cargando ' + labels[resource].toLowerCase() + '…';
     try {
-      var data = await ULE.api.request('/' + resource);
-      records = Array.isArray(data) ? data : (data.items || data.data || []);
+      if (resource === 'catalogItems') {
+        if (!selectedCatalog) {
+          records = [];
+          renderList();
+          return;
+        }
+        var catalog = await ULE.api.request('/catalogs/' + encodeURIComponent(selectedCatalog.id));
+        selectedCatalog = catalog;
+        records = Array.isArray(catalog && catalog.elementos) ? catalog.elementos : [];
+      } else {
+        var data = await ULE.api.request('/' + resource);
+        records = Array.isArray(data) ? data : (data.items || data.data || []);
+      }
       renderList();
     } catch (e) {
       list.className = 'catalog-empty';
@@ -769,11 +784,32 @@
 
   function renderList() {
     var query = listSearch.trim().toLowerCase();
+    var count = document.getElementById('editorial-count');
+    var context = document.getElementById('editorial-context');
+
+    if (resource === 'catalogItems') {
+      var catalogName = selectedCatalog && (selectedCatalog.titulo || selectedCatalog.id);
+      if (context) {
+        context.hidden = false;
+        context.textContent = catalogName ? 'Colección: ' + catalogName : '';
+      }
+      if (count) {
+        count.textContent = records.length
+          ? records.length + (records.length === 1 ? ' elemento' : ' elementos')
+          : 'Sin elementos';
+      }
+      renderCatalogItemsList(query);
+      return;
+    }
+
+    if (context) {
+      context.hidden = true;
+      context.textContent = '';
+    }
     var filtered = records.filter(function (r) {
       if (!query) return true;
       return [r.id, r.titulo, r.slogan, r.nombre].join(' ').toLowerCase().includes(query);
     });
-    var count = document.getElementById('editorial-count');
     if (count) {
       count.textContent = records.length
         ? (filtered.length + ' de ' + records.length + ' registros')
@@ -806,6 +842,15 @@
         tr.appendChild(td);
       });
       var actions = document.createElement('td');
+      if (resource === 'catalogs') {
+        var items = document.createElement('button');
+        items.className = 'button';
+        items.type = 'button';
+        items.textContent = 'Elementos';
+        items.addEventListener('click', function () { openCatalogItems(r); });
+        actions.appendChild(items);
+      }
+
       var edit = document.createElement('button');
       edit.className = 'button';
       edit.type = 'button';
@@ -830,7 +875,104 @@
     list.appendChild(table);
   }
 
+  function renderCatalogItemsList(query) {
+    var filtered = records.filter(function (r) {
+      if (!query) return true;
+      return [r.id, r.titulo, r.descripcion, r.ubicacion].join(' ').toLowerCase().includes(query);
+    });
+
+    if (!records.length) {
+      list.className = 'catalog-empty';
+      list.textContent = 'Esta colección todavía no tiene elementos.';
+      return;
+    }
+    if (!filtered.length) {
+      list.className = 'catalog-empty';
+      list.textContent = 'No hay elementos que coincidan con la búsqueda.';
+      return;
+    }
+
+    list.className = '';
+    list.replaceChildren();
+
+    var table = document.createElement('table');
+    table.className = 'editorial-table';
+    table.innerHTML = '<thead><tr><th>ID</th><th>Elemento</th><th>Imagen</th><th>Ubicación</th></tr></thead>';
+
+    var body = document.createElement('tbody');
+    filtered.forEach(function (r) {
+      var tr = document.createElement('tr');
+
+      var id = document.createElement('td');
+      id.textContent = r.id || '';
+      tr.appendChild(id);
+
+      var name = document.createElement('td');
+      name.textContent = r.titulo || r.id || 'Sin título';
+      tr.appendChild(name);
+
+      var imageCell = document.createElement('td');
+      if (r.imagen) {
+        var image = document.createElement('img');
+        image.src = r.imagen;
+        image.alt = r.imagen_alt || '';
+        image.loading = 'lazy';
+        image.className = 'editorial-table__image';
+        image.addEventListener('error', function () {
+          image.hidden = true;
+          imageCell.textContent = 'No disponible';
+        });
+        imageCell.appendChild(image);
+      } else {
+        imageCell.textContent = 'Sin imagen';
+      }
+      tr.appendChild(imageCell);
+
+      var location = document.createElement('td');
+      location.textContent = r.ubicacion || '—';
+      tr.appendChild(location);
+
+      body.appendChild(tr);
+    });
+
+    table.appendChild(body);
+    list.appendChild(table);
+  }
+
+  function openCatalogItems(catalog) {
+    if (!catalog || !catalog.id) return;
+    selectedCatalog = catalog;
+    resource = 'catalogItems';
+    listSearch = '';
+    var searchInput = document.getElementById('editorial-search');
+    if (searchInput) searchInput.value = '';
+    document.querySelectorAll('#editorial-tabs [role="tab"]').forEach(function (tab) {
+      tab.setAttribute('aria-selected', String(tab.dataset.resource === 'catalogs'));
+    });
+    document.getElementById('editorial-tabs').hidden = true;
+    document.getElementById('editorial-back-catalogs').hidden = false;
+    document.getElementById('editorial-new').hidden = true;
+    title.textContent = 'Elementos';
+    closeForm();
+    load();
+  }
+
+  function closeCatalogItems() {
+    selectedCatalog = null;
+    resource = 'catalogs';
+    listSearch = '';
+    var searchInput = document.getElementById('editorial-search');
+    if (searchInput) searchInput.value = '';
+    document.getElementById('editorial-tabs').hidden = false;
+    document.getElementById('editorial-back-catalogs').hidden = true;
+    document.getElementById('editorial-new').hidden = false;
+    title.textContent = labels.catalogs;
+    closeForm();
+    load();
+  }
+
   function openNew() {
+    if (resource === 'catalogItems') return;
     editing = null;
     formTitle.textContent = 'Nuevo ' + labels[resource].toLowerCase().replace(/s$/, '');
     buildForm({});
@@ -917,6 +1059,7 @@
 
   document.querySelectorAll('#editorial-tabs [role="tab"]').forEach(function (tab) {
     tab.addEventListener('click', function () {
+      selectedCatalog = null;
       resource = tab.dataset.resource;
       listSearch = '';
       var searchInput = document.getElementById('editorial-search');
@@ -925,6 +1068,9 @@
         x.setAttribute('aria-selected', String(x === tab));
       });
       title.textContent = labels[resource];
+      document.getElementById('editorial-tabs').hidden = false;
+      document.getElementById('editorial-back-catalogs').hidden = true;
+      document.getElementById('editorial-new').hidden = false;
       closeForm();
       load();
     });
@@ -937,6 +1083,7 @@
 
   document.getElementById('editorial-new').addEventListener('click', openNew);
   document.getElementById('editorial-cancel').addEventListener('click', closeForm);
+  document.getElementById('editorial-back-catalogs').addEventListener('click', closeCatalogItems);
 
   (async function () {
     try {
