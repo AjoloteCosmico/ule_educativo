@@ -376,6 +376,15 @@
   white-space: nowrap;
 }
 
+.editorial-table__image {
+  display: block;
+  width: 4.5rem;
+  height: 4.5rem;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-fondo);
+}
+
 .editorial-table td:last-child .button + .button {
   margin-inline-start: var(--space-xs);
 }
