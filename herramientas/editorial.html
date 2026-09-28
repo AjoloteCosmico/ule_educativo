@@ -166,6 +166,84 @@
     return wrap;
   }
 
+  function categoriesField(valueObject) {
+    var wrap = document.createElement('div');
+    wrap.className = 'form-tool__grupo form-tool__categorias';
+    wrap.dataset.field = 'categorias';
+    var label = document.createElement('label');
+    label.textContent = 'Categorías';
+    wrap.appendChild(label);
+
+    var help = document.createElement('p');
+    help.className = 'form-tool__ayuda';
+    help.textContent = 'Puedes agregar tantas categorías como necesites.';
+    wrap.appendChild(help);
+
+    var rows = document.createElement('div');
+    rows.className = 'form-tool__categorias-lista';
+    rows.id = 'editorial-categorias-lista';
+    wrap.appendChild(rows);
+
+    function addRow(key, value) {
+      var row = document.createElement('div');
+      row.className = 'form-tool__categoria-fila';
+
+      var keyInput = document.createElement('input');
+      keyInput.type = 'text';
+      keyInput.name = 'categoria_clave';
+      keyInput.placeholder = 'Clave';
+      keyInput.value = key || '';
+
+      var valueInput = document.createElement('input');
+      valueInput.type = 'text';
+      valueInput.name = 'categoria_valor';
+      valueInput.placeholder = 'Valor';
+      valueInput.value = value == null ? '' : value;
+
+      var remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'button';
+      remove.textContent = 'Quitar';
+      remove.addEventListener('click', function () {
+        row.remove();
+        validateForm();
+      });
+
+      row.append(keyInput, valueInput, remove);
+      rows.appendChild(row);
+    }
+
+    var initial = valueObject && typeof valueObject === 'object' ? valueObject : {};
+    Object.keys(initial).forEach(function (key) {
+      addRow(key, initial[key]);
+    });
+    addRow('', '');
+
+    var add = document.createElement('button');
+    add.type = 'button';
+    add.className = 'button';
+    add.textContent = '+ Agregar categoría';
+    add.addEventListener('click', function () {
+      addRow('', '');
+      var inputs = rows.querySelectorAll('input');
+      if (inputs.length) inputs[inputs.length - 2].focus();
+    });
+    wrap.appendChild(add);
+    return wrap;
+  }
+
+  function readCategories() {
+    var result = {};
+    var list = document.getElementById('editorial-categorias-lista');
+    if (!list) return result;
+    list.querySelectorAll('.form-tool__categoria-fila').forEach(function (row) {
+      var key = row.querySelector('input[name="categoria_clave"]').value.trim();
+      var value = row.querySelector('input[name="categoria_valor"]').value.trim();
+      if (key) result[key] = value;
+    });
+    return result;
+  }
+
   function arrayField(name, label, required, help) {
     return field(name, label, 'textarea', {
       required: required,
@@ -534,11 +612,9 @@
         field('imagen_alt', 'Texto alternativo', 'text', { placeholder: 'Describe brevemente la imagen.' }),
         field('descripcion', 'Descripción', 'textarea', { rows: 4, placeholder: 'Opcional' }),
         field('año_descubrimiento', 'Año de descubrimiento', 'number', { min: 0, step: 1, placeholder: 'Opcional' }),
-        field('ubicacion', 'Ubicación', 'text', { placeholder: 'Opcional' }),
-        field('categoria_periodo', 'Periodo', 'text', { placeholder: 'Ej. clásico' }),
-        field('categoria_material', 'Material', 'text', { placeholder: 'Ej. piedra' }),
-        field('categoria_cultura', 'Cultura', 'text', { placeholder: 'Ej. maya' })
+        field('ubicacion', 'Ubicación', 'text', { placeholder: 'Opcional' })
       ];
+      var categoriaEditor = categoriesField(r.categorias);
     } else {
       fields = [
         field('id', 'ID', 'text', idOptions()),
@@ -583,6 +659,7 @@
       }
     });
     if (row.children.length) form.insertBefore(row, form.firstChild);
+    if (resource === 'catalogItems') form.appendChild(categoriaEditor);
 
     var actions = document.createElement('div');
     actions.className = 'form-tool__acciones';
@@ -704,10 +781,7 @@
         visible: bool('visible')
       };
     } else if (resource === 'catalogItems') {
-      var categorias = {};
-      if (value('categoria_periodo')) categorias.periodo = value('categoria_periodo');
-      if (value('categoria_material')) categorias.material = value('categoria_material');
-      if (value('categoria_cultura')) categorias.cultura = value('categoria_cultura');
+      var categorias = readCategories();
       p = {
         id: value('id'),
         titulo: value('titulo'),
@@ -782,6 +856,45 @@
         el.value = Object.keys(r[key]).map(function (k) { return k + '=' + r[key][k]; }).join('\n');
       } else el.value = r[key] == null ? '' : r[key];
     });
+    if (resource === 'catalogItems' && form.elements.id) {
+      var categoryList = document.getElementById('editorial-categorias-lista');
+      if (categoryList && r.categorias && typeof r.categorias === 'object') {
+        categoryList.replaceChildren();
+        Object.keys(r.categorias).forEach(function (key) {
+          var row = document.createElement('div');
+          row.className = 'form-tool__categoria-fila';
+
+          var keyInput = document.createElement('input');
+          keyInput.type = 'text';
+          keyInput.name = 'categoria_clave';
+          keyInput.placeholder = 'Clave';
+          keyInput.value = key;
+
+          var valueInput = document.createElement('input');
+          valueInput.type = 'text';
+          valueInput.name = 'categoria_valor';
+          valueInput.placeholder = 'Valor';
+          valueInput.value = r.categorias[key] == null ? '' : r.categorias[key];
+
+          var remove = document.createElement('button');
+          remove.type = 'button';
+          remove.className = 'button';
+          remove.textContent = 'Quitar';
+          remove.addEventListener('click', function () {
+            row.remove();
+            validateForm();
+          });
+
+          row.append(keyInput, valueInput, remove);
+          categoryList.appendChild(row);
+        });
+        var emptyRow = document.createElement('div');
+        emptyRow.className = 'form-tool__categoria-fila';
+        emptyRow.innerHTML = '<input type="text" name="categoria_clave" placeholder="Clave"><input type="text" name="categoria_valor" placeholder="Valor"><button type="button" class="button">Quitar</button>';
+        emptyRow.querySelector('button').addEventListener('click', function () { emptyRow.remove(); validateForm(); });
+        categoryList.appendChild(emptyRow);
+      }
+    }
     if (form.elements.id) form.elements.id.disabled = !!editing;
   }
 
