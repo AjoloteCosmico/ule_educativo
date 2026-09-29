@@ -808,8 +808,9 @@
       dialog.style.border = 'none';
       dialog.style.borderRadius = 'var(--radius-lg)';
       dialog.style.padding = '0';
-      dialog.style.maxWidth = '640px';
+      dialog.style.maxWidth = 'none';
       dialog.style.width = '92vw';
+      dialog.style.maxHeight = '92dvh';
       dialog.style.color = 'var(--color-texto)';
       dialog.style.backgroundColor = 'var(--color-fondo)';
 
@@ -843,6 +844,7 @@
       dialog.setAttribute('aria-labelledby', titleId);
 
       const content = document.createElement('div');
+      content.className = 'catalog-modal__content';
       content.style.padding = 'var(--space-lg)';
 
       const closeBtn = document.createElement('button');
@@ -857,10 +859,8 @@
       img.alt = item.imagen_alt || item.titulo || '';
       img.addEventListener('error', () => { img.style.visibility = 'hidden'; });
       img.src = item.imagen || '';
-      img.style.width = '100%';
-      img.style.maxHeight = '55vh';
+      img.className = 'catalog-modal__imagen';
       img.style.objectFit = 'contain';
-      img.style.marginBlockEnd = 'var(--space-md)';
 
       const h3 = document.createElement('h3');
       h3.id = titleId;
@@ -887,12 +887,20 @@
         badges.appendChild(badge);
       });
 
+      const media = document.createElement('div');
+      media.className = 'catalog-modal__media';
+      media.appendChild(img);
+
+      const details = document.createElement('div');
+      details.className = 'catalog-modal__details';
+      details.appendChild(h3);
+      details.appendChild(meta);
+      details.appendChild(desc);
+      details.appendChild(badges);
+
       content.appendChild(closeBtn);
-      content.appendChild(img);
-      content.appendChild(h3);
-      content.appendChild(meta);
-      content.appendChild(desc);
-      content.appendChild(badges);
+      content.appendChild(media);
+      content.appendChild(details);
       dialog.appendChild(content);
 
       if (typeof dialog.showModal === 'function') {
