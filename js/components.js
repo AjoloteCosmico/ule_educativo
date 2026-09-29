@@ -833,6 +833,7 @@
 
     _openDialog(item) {
       const dialog = this._dialog;
+      const scrollY = window.scrollY;
       const catalogId = this.getAttribute('data-catalog') || this._catalog.id || '';
       const url = new URL(window.location.href);
       if (catalogId) url.searchParams.set('catalogo', catalogId);
@@ -897,7 +898,7 @@
       details.appendChild(desc);
       details.appendChild(badges);
 
-      content.appendChild(closeBtn);
+      dialog.appendChild(closeBtn);
       content.appendChild(media);
       content.appendChild(details);
       dialog.appendChild(content);
@@ -907,6 +908,14 @@
       } else {
         dialog.setAttribute('open', '');
       }
+
+      // Abrir el diálogo no debe alterar la posición de lectura del catálogo.
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: scrollY, left: window.scrollX, behavior: 'instant' });
+        requestAnimationFrame(() => {
+          if (window.scrollY !== scrollY) window.scrollTo(0, scrollY);
+        });
+      });
     }
   }
 
