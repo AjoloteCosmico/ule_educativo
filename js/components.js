@@ -849,10 +849,9 @@
 
       const closeBtn = document.createElement('button');
       closeBtn.type = 'button';
-      closeBtn.className = 'btn';
-      closeBtn.textContent = 'Cerrar';
+      closeBtn.className = 'btn catalog-modal__close';
+      closeBtn.textContent = '×';
       closeBtn.setAttribute('aria-label', 'Cerrar detalle');
-      closeBtn.style.float = 'inline-end';
       closeBtn.addEventListener('click', () => dialog.close());
 
       const img = document.createElement('img');
