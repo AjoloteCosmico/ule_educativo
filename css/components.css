@@ -157,6 +157,24 @@
   background: rgba(0, 0, 0, 0.55);
 }
 
+.catalog-modal {
+  position: relative;
+}
+
+.catalog-modal > .btn {
+  position: absolute;
+  inset-block-start: var(--space-sm);
+  inset-inline-end: var(--space-sm);
+  z-index: 3;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  line-height: 1;
+  font-size: 1.35rem;
+}
+
 .catalog-modal__content {
   box-sizing: border-box;
   display: flex;
