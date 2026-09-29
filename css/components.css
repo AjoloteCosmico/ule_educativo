@@ -158,7 +158,12 @@
 }
 
 .catalog-modal {
-  position: relative;
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  box-sizing: border-box;
+  max-width: min(94vw, 1400px);
+  max-height: calc(100dvh - 2 * var(--space-md));
 }
 
 .catalog-modal__close {
@@ -216,6 +221,7 @@
 @media (min-width: 900px) {
   .catalog-modal {
     width: min(94vw, 1400px);
+    max-height: calc(100dvh - 2 * var(--space-md));
   }
 
   .catalog-modal__content {
