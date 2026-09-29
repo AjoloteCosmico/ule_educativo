@@ -218,6 +218,27 @@
   margin-block-end: var(--space-sm);
 }
 
+.catalog-modal__navigation {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-block-start: var(--space-lg);
+}
+
+.catalog-modal__navigation .btn {
+  min-width: 7rem;
+}
+
+@media (max-width: 899px) {
+  .catalog-modal__navigation {
+    margin-block-start: var(--space-md);
+  }
+
+  .catalog-modal__navigation .btn {
+    flex: 1;
+  }
+}
+
 @media (min-width: 900px) {
   .catalog-modal {
     width: min(94vw, 1400px);
