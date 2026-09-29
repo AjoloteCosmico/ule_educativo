@@ -831,6 +831,16 @@
       return dialog;
     }
 
+    _navigateItem(direction) {
+      if (!this._catalog || !Array.isArray(this._catalog.elementos) || !this._catalog.elementos.length) return;
+      const items = this._catalog.elementos;
+      const currentId = this._dialog && this._dialog.dataset.itemId;
+      let index = items.findIndex((elemento) => elemento.id === currentId);
+      if (index < 0) return;
+      index = (index + direction + items.length) % items.length;
+      this._openDialog(items[index]);
+    }
+
     _openDialog(item) {
       const dialog = this._dialog;
       const scrollY = window.scrollY;
@@ -840,6 +850,7 @@
       if (item.id) url.searchParams.set('pieza', item.id);
       window.history.replaceState({}, '', url);
       dialog.innerHTML = '';
+      dialog.dataset.itemId = item.id || '';
 
       const titleId = 'catalog-modal-titulo-' + this._instanceId;
       dialog.setAttribute('aria-labelledby', titleId);
@@ -891,12 +902,36 @@
       media.className = 'catalog-modal__media';
       media.appendChild(img);
 
+      const navigation = document.createElement('nav');
+      navigation.className = 'catalog-modal__navigation';
+      navigation.setAttribute('aria-label', 'Navegación de elementos');
+
+      const previousBtn = document.createElement('button');
+      previousBtn.type = 'button';
+      previousBtn.className = 'btn';
+      previousBtn.textContent = 'Anterior';
+      previousBtn.addEventListener('click', () => {
+        this._navigateItem(-1);
+      });
+
+      const nextBtn = document.createElement('button');
+      nextBtn.type = 'button';
+      nextBtn.className = 'btn';
+      nextBtn.textContent = 'Siguiente';
+      nextBtn.addEventListener('click', () => {
+        this._navigateItem(1);
+      });
+
+      navigation.appendChild(previousBtn);
+      navigation.appendChild(nextBtn);
+
       const details = document.createElement('div');
       details.className = 'catalog-modal__details';
       details.appendChild(h3);
       details.appendChild(meta);
       details.appendChild(desc);
       details.appendChild(badges);
+      details.appendChild(navigation);
 
       dialog.appendChild(closeBtn);
       content.appendChild(media);
