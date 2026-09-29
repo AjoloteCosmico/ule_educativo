@@ -161,7 +161,7 @@
   position: relative;
 }
 
-.catalog-modal > .btn {
+.catalog-modal__close {
   position: absolute;
   inset-block-start: var(--space-sm);
   inset-inline-end: var(--space-sm);
