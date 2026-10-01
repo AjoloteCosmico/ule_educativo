@@ -49,21 +49,28 @@
     contenido.innerHTML = '<div class="catalog-empty"' + (esError ? ' role="alert"' : '') + '>' + cuerpo + '</div>';
   }
 
-  function sincronizarUrl(catalogoId, conservarPieza) {
+  function sincronizarUrl(catalogoId, conservarPieza, conservarFiltros) {
     const url = new URL(window.location.href);
     url.searchParams.set('catalogo', catalogoId);
     if (!conservarPieza) url.searchParams.delete('pieza');
+
+    if (!conservarFiltros) {
+      Array.from(url.searchParams.keys()).forEach(function (key) {
+        if (/^filtro\[.*\]$/.test(key)) url.searchParams.delete(key);
+      });
+    }
+
     window.history.replaceState({}, '', url);
   }
 
-  function mostrarCatalogo(id, piezaId) {
+  function mostrarCatalogo(id, piezaId, conservarFiltros) {
     if (!id) return;
     aviso.textContent = '';
     contenido.innerHTML = '';
     const grid = document.createElement('catalog-grid');
     grid.setAttribute('data-catalog', id);
     contenido.appendChild(grid);
-    sincronizarUrl(id, !!piezaId);
+    sincronizarUrl(id, !!piezaId, conservarFiltros === true);
 
     if (piezaId) {
       grid.whenReady().then(function (ok) {
@@ -110,14 +117,14 @@
       inicial = inicial || visibles[0];
 
       selector.value = inicial.id;
-      mostrarCatalogo(inicial.id, piezaId);
+      mostrarCatalogo(inicial.id, piezaId, true);
     } catch (e) {
       console.error('[ULE] Error cargando catálogos:', e);
       sinOpciones('No fue posible cargar las colecciones', 'No fue posible cargar las colecciones. Inténtalo de nuevo en unos minutos.', true);
     }
   }
 
-  selector.addEventListener('change', function () { mostrarCatalogo(selector.value); });
+  selector.addEventListener('change', function () { mostrarCatalogo(selector.value, null, false); });
   init();
 })();
 </script>
