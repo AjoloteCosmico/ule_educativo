@@ -91,6 +91,25 @@
   }
 
   /* ==========================================================================
+     <contenedor-scrolleable>
+     Contenedor reutilizable para contenido con desplazamiento vertical.
+     Mantiene el contenido dentro del flujo y reserva el espacio de la barra.
+     Se usa en Light DOM para que el contenido conserve los estilos de la página.
+     ========================================================================== */
+  class ContenedorScrolleable extends HTMLElement {
+    connectedCallback() {
+      if (this._initialized) return;
+      this.classList.add('contenedor-scrolleable');
+      this._initialized = true;
+    }
+  }
+
+  /* Registro defensivo: evita errores si el script se evalúa más de una vez. */
+  if (!customElements.get('contenedor-scrolleable')) {
+    customElements.define('contenedor-scrolleable', ContenedorScrolleable);
+  }
+
+  /* ==========================================================================
      <ule-badge>
      Atributos:
        type  — clave de categoría-valor, p. ej. "periodo-clasico",
@@ -928,8 +947,7 @@
       const details = document.createElement('div');
       details.className = 'catalog-modal__details';
 
-      const detailsScroll = document.createElement('div');
-      detailsScroll.className = 'catalog-modal__details-scroll';
+      const detailsScroll = document.createElement('contenedor-scrolleable');
       detailsScroll.appendChild(h3);
       detailsScroll.appendChild(meta);
       detailsScroll.appendChild(desc);
