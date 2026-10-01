@@ -591,6 +591,8 @@
         ? categoriesAttr.split(',').map((s) => s.trim()).filter(Boolean)
         : Object.keys(catalog.categorias_disponibles || {});
 
+      this._activeFilters = this._readFiltersFromUrl(categoryKeys);
+
       this.innerHTML = '';
       this._clearFiltersButton = null;
 
@@ -639,6 +641,52 @@
       return true;
     }
 
+    _readFiltersFromUrl(categoryKeys) {
+      const params = new URLSearchParams(window.location.search);
+      const available = this._catalog.categorias_disponibles || {};
+      const filters = {};
+
+      categoryKeys.forEach((key) => {
+        const values = params.getAll('filtro[' + key + ']');
+        if (!values.length) return;
+
+        const allowed = available[key] || [];
+        const valid = values.filter((value, index, list) =>
+          allowed.includes(value) && list.indexOf(value) === index
+        );
+
+        if (valid.length) filters[key] = valid;
+      });
+
+      return filters;
+    }
+
+    _syncFiltersToUrl() {
+      const url = new URL(window.location.href);
+
+      Object.keys(this._catalog.categorias_disponibles || {}).forEach((key) => {
+        url.searchParams.delete('filtro[' + key + ']');
+      });
+
+      Object.keys(this._activeFilters).forEach((key) => {
+        (this._activeFilters[key] || []).forEach((value) => {
+          url.searchParams.append('filtro[' + key + ']', value);
+        });
+      });
+
+      window.history.replaceState({}, '', url);
+    }
+
+    _restoreFilterInputs() {
+      this.querySelectorAll('[data-catalog-filters] input[type="checkbox"]').forEach((input) => {
+        const fieldset = input.closest('fieldset');
+        const legend = fieldset ? fieldset.querySelector('legend') : null;
+        const key = legend ? legend.textContent.toLowerCase() : '';
+        const values = this._activeFilters[key] || [];
+        input.checked = values.includes(input.value);
+      });
+    }
+
     _hasActiveFilters() {
       return Object.values(this._activeFilters).some((values) => values.length);
     }
@@ -646,6 +694,7 @@
     _clearFilters() {
       this._activeFilters = {};
       this.querySelectorAll('[data-catalog-filters] input[type="checkbox"]').forEach((input) => { input.checked = false; });
+      this._syncFiltersToUrl();
       this._renderGrid();
     }
 
@@ -688,11 +737,16 @@
           input.type = 'checkbox';
           input.id = id;
           input.value = value;
+          input.checked = (this._activeFilters[key] || []).includes(value);
+
           input.addEventListener('change', () => {
             const current = this._activeFilters[key] || [];
             this._activeFilters[key] = input.checked
-              ? current.concat(value)
+              ? Array.from(new Set(current.concat(value)))
               : current.filter((v) => v !== value);
+
+            if (!this._activeFilters[key].length) delete this._activeFilters[key];
+            this._syncFiltersToUrl();
             this._renderGrid();
           });
 
