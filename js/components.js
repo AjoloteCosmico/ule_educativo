@@ -10,6 +10,7 @@
      <biblio-card>     — card de referencia bibliográfica
      <ad-card>          — card de anuncio (vertical u horizontal)
      <catalog-grid>    — buscador/filtro + grid de piezas de un catálogo
+     <contenedor-scrolleable> — contenedor reutilizable con scroll vertical
 
    Diseño de encapsulación:
      ule-badge, article-card, biblio-card y ad-card usan Shadow DOM: son
