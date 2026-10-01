@@ -927,10 +927,15 @@
 
       const details = document.createElement('div');
       details.className = 'catalog-modal__details';
-      details.appendChild(h3);
-      details.appendChild(meta);
-      details.appendChild(desc);
-      details.appendChild(badges);
+
+      const detailsScroll = document.createElement('div');
+      detailsScroll.className = 'catalog-modal__details-scroll';
+      detailsScroll.appendChild(h3);
+      detailsScroll.appendChild(meta);
+      detailsScroll.appendChild(desc);
+      detailsScroll.appendChild(badges);
+
+      details.appendChild(detailsScroll);
       details.appendChild(navigation);
 
       dialog.appendChild(closeBtn);
