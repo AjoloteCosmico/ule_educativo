@@ -499,333 +499,6 @@
   }
 
   /* ==========================================================================
-     <rueda-filtros>
-     Interfaz visual reutilizable para filtros categóricos multi-selección.
-
-     Propiedad:
-       model = {
-         categories: [{ key, label, values: [{ value, label }] }],
-         active: { [key]: ['valor', ...] }
-       }
-
-     Eventos:
-       rueda-filtros:change -> { key, value, selected }
-       rueda-filtros:clear  -> {}
-     
-     La rueda NO conoce cómo se filtran los datos ni cómo se sincroniza la URL.
-     Es deliberadamente una capa de presentación para poder reutilizarla en
-     colecciones, artículos, bibliografía u otras secciones.
-     ========================================================================== */
-  class RuedaFiltros extends HTMLElement {
-    constructor() {
-      super();
-      this._model = { categories: [], active: {} };
-      this._uid = 'rueda-' + Math.random().toString(36).slice(2, 9);
-    }
-
-    set model(value) {
-      this._model = value && Array.isArray(value.categories)
-        ? {
-            categories: value.categories,
-            active: Object.assign({}, value.active || {})
-          }
-        : { categories: [], active: {} };
-      this._render();
-    }
-
-    get model() {
-      return this._model;
-    }
-
-    connectedCallback() {
-      this.tabIndex = -1;
-      this._render();
-    }
-
-    _render() {
-      if (!this.isConnected) return;
-
-      const categories = this._model.categories || [];
-      this.innerHTML = '';
-
-      if (!categories.length) {
-        this.hidden = true;
-        return;
-      }
-      this.hidden = false;
-
-      const wrapper = document.createElement('div');
-      wrapper.className = 'rueda-filtros';
-      wrapper.setAttribute('role', 'group');
-      wrapper.setAttribute('aria-label', 'Filtros');
-
-      const header = document.createElement('div');
-      header.className = 'rueda-filtros__header';
-
-      const heading = document.createElement('div');
-      heading.className = 'rueda-filtros__heading';
-      heading.textContent = 'Filtrar por';
-      header.appendChild(heading);
-
-      const summary = document.createElement('span');
-      summary.className = 'rueda-filtros__summary';
-      summary.textContent = this._summaryText();
-      header.appendChild(summary);
-      wrapper.appendChild(header);
-
-      const stage = document.createElement('div');
-      stage.className = 'rueda-filtros__stage';
-
-      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      svg.setAttribute('viewBox', '0 0 640 640');
-      svg.setAttribute('role', 'img');
-      svg.setAttribute('aria-labelledby', this._uid + '-title ' + this._uid + '-desc');
-      svg.classList.add('rueda-filtros__svg');
-
-      const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
-      title.id = this._uid + '-title';
-      title.textContent = 'Rueda de filtros';
-      svg.appendChild(title);
-
-      const desc = document.createElementNS('http://www.w3.org/2000/svg', 'desc');
-      desc.id = this._uid + '-desc';
-      desc.textContent = 'Cada anillo representa una categoría. Pulsa un segmento para activar o desactivar ese valor.';
-      svg.appendChild(desc);
-
-      const center = 320;
-      const centerRadius = 72;
-      const ringWidth = 66;
-      const ringGap = 8;
-      const maxRadius = 292;
-      const ringCount = Math.max(categories.length, 1);
-      const usable = maxRadius - centerRadius;
-      const step = Math.min(ringWidth, usable / ringCount - ringGap);
-      const gap = Math.max(ringGap, (usable - step * ringCount) / Math.max(ringCount, 1));
-
-      const activeTotal = Object.values(this._model.active || {}).reduce(
-        (sum, values) => sum + (Array.isArray(values) ? values.length : 0), 0
-      );
-
-      const centerGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      centerGroup.classList.add('rueda-filtros__center');
-      centerGroup.setAttribute('role', 'button');
-      centerGroup.setAttribute('tabindex', '0');
-      centerGroup.setAttribute('aria-label', activeTotal ? 'Limpiar todos los filtros' : 'No hay filtros activos');
-      centerGroup.setAttribute('focusable', 'true');
-
-      const centerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      centerCircle.setAttribute('cx', center);
-      centerCircle.setAttribute('cy', center);
-      centerCircle.setAttribute('r', centerRadius);
-      centerGroup.appendChild(centerCircle);
-
-      const centerText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      centerText.setAttribute('x', center);
-      centerText.setAttribute('y', center - 5);
-      centerText.setAttribute('text-anchor', 'middle');
-      centerText.classList.add('rueda-filtros__center-count');
-      centerText.textContent = String(activeTotal);
-      centerGroup.appendChild(centerText);
-
-      const centerLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      centerLabel.setAttribute('x', center);
-      centerLabel.setAttribute('y', center + 18);
-      centerLabel.setAttribute('text-anchor', 'middle');
-      centerLabel.classList.add('rueda-filtros__center-label');
-      centerLabel.textContent = activeTotal ? 'activos' : 'filtros';
-      centerGroup.appendChild(centerLabel);
-
-      const clearHint = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      clearHint.setAttribute('x', center);
-      clearHint.setAttribute('y', center + 38);
-      clearHint.setAttribute('text-anchor', 'middle');
-      clearHint.classList.add('rueda-filtros__center-hint');
-      clearHint.textContent = activeTotal ? 'limpiar' : 'selecciona';
-      centerGroup.appendChild(clearHint);
-
-      const clear = () => {
-        if (!activeTotal) return;
-        this.dispatchEvent(new CustomEvent('rueda-filtros:clear', {
-          bubbles: true,
-          composed: true
-        }));
-      };
-      centerGroup.addEventListener('click', clear);
-      centerGroup.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          clear();
-        }
-      });
-
-      categories.forEach((category, categoryIndex) => {
-        const values = category.values || [];
-        if (!values.length) return;
-
-        const radius = centerRadius + gap + categoryIndex * (step + gap) + step / 2;
-        const circumference = 2 * Math.PI * radius;
-        const segmentGap = Math.min(5, circumference / values.length * 0.08);
-        const segmentLength = Math.max(2, circumference / values.length - segmentGap);
-
-        const ring = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        ring.classList.add('rueda-filtros__ring');
-        ring.setAttribute('aria-label', category.label);
-
-        const categoryLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        categoryLabel.setAttribute('x', center);
-        categoryLabel.setAttribute('y', center - radius + step / 2 + 4);
-        categoryLabel.setAttribute('text-anchor', 'middle');
-        categoryLabel.classList.add('rueda-filtros__category');
-        categoryLabel.textContent = category.label;
-        ring.appendChild(categoryLabel);
-
-        values.forEach((entry, valueIndex) => {
-          const selected = (this._model.active[category.key] || []).includes(entry.value);
-          const angle = -90 + (360 / values.length) * valueIndex;
-          const dashOffset = -(circumference / values.length * valueIndex);
-
-          const segment = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-          segment.setAttribute('cx', center);
-          segment.setAttribute('cy', center);
-          segment.setAttribute('r', radius);
-          segment.setAttribute('fill', 'none');
-          segment.setAttribute('stroke-width', step);
-          segment.setAttribute('stroke-linecap', values.length > 12 ? 'butt' : 'round');
-          segment.setAttribute('stroke-dasharray', segmentLength + ' ' + (circumference - segmentLength));
-          segment.setAttribute('stroke-dashoffset', dashOffset);
-          segment.setAttribute('transform', 'rotate(' + angle + ' ' + center + ' ' + center + ')');
-          segment.classList.add('rueda-filtros__segment');
-          if (selected) segment.classList.add('is-selected');
-
-          const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-          group.classList.add('rueda-filtros__item');
-          group.setAttribute('role', 'checkbox');
-          group.setAttribute('tabindex', '0');
-          group.setAttribute('aria-checked', selected ? 'true' : 'false');
-          group.setAttribute('aria-label', category.label + ': ' + entry.label);
-          group.dataset.key = category.key;
-          group.dataset.value = entry.value;
-
-          const hit = segment.cloneNode(false);
-          hit.classList.add('rueda-filtros__hit');
-          hit.removeAttribute('stroke');
-          hit.setAttribute('stroke', 'transparent');
-          hit.setAttribute('stroke-width', Math.max(step + 12, 32));
-          group.appendChild(segment);
-          group.appendChild(hit);
-
-          const tooltip = document.createElementNS('http://www.w3.org/2000/svg', 'title');
-          tooltip.textContent = category.label + ': ' + entry.label + (selected ? ' · activo' : '');
-          group.appendChild(tooltip);
-
-          const toggle = () => {
-            this.dispatchEvent(new CustomEvent('rueda-filtros:change', {
-              bubbles: true,
-              composed: true,
-              detail: {
-                key: category.key,
-                value: entry.value,
-                selected: !selected
-              }
-            }));
-          };
-          group.addEventListener('click', toggle);
-          group.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
-              event.preventDefault();
-              toggle();
-            }
-          });
-
-          ring.appendChild(group);
-        });
-
-        svg.appendChild(ring);
-      });
-
-      svg.appendChild(centerGroup);
-      stage.appendChild(svg);
-      wrapper.appendChild(stage);
-
-      const legend = document.createElement('div');
-      legend.className = 'rueda-filtros__legend';
-      categories.forEach((category) => {
-        const selected = (this._model.active[category.key] || []).length;
-        const item = document.createElement('span');
-        item.className = 'rueda-filtros__legend-item' + (selected ? ' is-active' : '');
-        item.innerHTML = '<span class="rueda-filtros__legend-dot" aria-hidden="true"></span>' +
-          this._escapeHtml(category.label) + (selected ? ' · ' + selected : '');
-        legend.appendChild(item);
-      });
-      wrapper.appendChild(legend);
-
-      const valuesLegend = document.createElement('div');
-      valuesLegend.className = 'rueda-filtros__values';
-      categories.forEach((category) => {
-        const group = document.createElement('div');
-        group.className = 'rueda-filtros__values-group';
-
-        const label = document.createElement('span');
-        label.className = 'rueda-filtros__values-label';
-        label.textContent = category.label;
-        group.appendChild(label);
-
-        const buttons = document.createElement('div');
-        buttons.className = 'rueda-filtros__value-list';
-
-        (category.values || []).forEach((entry) => {
-          const selected = (this._model.active[category.key] || []).includes(entry.value);
-          const button = document.createElement('button');
-          button.type = 'button';
-          button.className = 'rueda-filtros__value' + (selected ? ' is-selected' : '');
-          button.textContent = entry.label;
-          button.setAttribute('aria-pressed', selected ? 'true' : 'false');
-          button.addEventListener('click', () => {
-            this.dispatchEvent(new CustomEvent('rueda-filtros:change', {
-              bubbles: true,
-              composed: true,
-              detail: {
-                key: category.key,
-                value: entry.value,
-                selected: !selected
-              }
-            }));
-          });
-          buttons.appendChild(button);
-        });
-
-        group.appendChild(buttons);
-        valuesLegend.appendChild(group);
-      });
-      wrapper.appendChild(valuesLegend);
-
-      const help = document.createElement('p');
-      help.className = 'rueda-filtros__help';
-      help.textContent = 'Puedes seleccionar varios valores. Los filtros de categorías distintas se combinan.';
-      wrapper.appendChild(help);
-
-      this.appendChild(wrapper);
-    }
-
-    _summaryText() {
-      const active = this._model.active || {};
-      const count = Object.values(active).reduce(
-        (sum, values) => sum + (Array.isArray(values) ? values.length : 0), 0
-      );
-      if (!count) return 'Sin filtros activos';
-      return count + (count === 1 ? ' filtro activo' : ' filtros activos');
-    }
-
-    _escapeHtml(value) {
-      return String(value || '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
-    }
-  }
-
-  /* ==========================================================================
   (Light DOM — reutiliza css/components.css)
      Atributos:
        data-catalog    — id lógico del catálogo (preferido)
@@ -942,8 +615,7 @@
       }
 
       if (allowFilter && categoryKeys.length) {
-        this._filterWheel = this._buildFilters(categoryKeys);
-        this.appendChild(this._filterWheel);
+        this.appendChild(this._buildFilters(categoryKeys));
       }
 
       this._statusEl = document.createElement('p');
@@ -1022,61 +694,73 @@
     _clearFilters() {
       this._activeFilters = {};
       this._syncFiltersToUrl();
-      this._updateFilterWheel();
       this._renderGrid();
     }
 
     _buildFilters(categoryKeys) {
-      const wrap = document.createElement('rueda-filtros');
+      const wrap = document.createElement('div');
+      wrap.className = 'cluster';
+      wrap.dataset.catalogFilters = 'true';
+      wrap.setAttribute('role', 'group');
+      wrap.setAttribute('aria-label', 'Filtros del catálogo');
+      wrap.style.marginBlockEnd = 'var(--space-lg)';
       const available = this._catalog.categorias_disponibles || {};
-
-      const categories = categoryKeys.map((key) => ({
-        key: key,
-        label: capitalize(key),
-        values: (available[key] || []).map((value) => ({
-          value: value,
-          label: capitalize(value)
-        }))
-      })).filter((category) => category.values.length);
-
-      wrap.model = {
-        categories: categories,
-        active: this._activeFilters
-      };
-
-      wrap.addEventListener('rueda-filtros:change', (event) => {
-        const detail = event.detail || {};
-        if (!detail.key || !detail.value) return;
-
-        const current = this._activeFilters[detail.key] || [];
-        this._activeFilters[detail.key] = detail.selected
-          ? Array.from(new Set(current.concat(detail.value)))
-          : current.filter((value) => value !== detail.value);
-
-        if (!this._activeFilters[detail.key].length) {
-          delete this._activeFilters[detail.key];
-        }
-
-        this._syncFiltersToUrl();
-        this._updateFilterWheel();
-        this._renderGrid();
+      categoryKeys.forEach((key) => {
+        const values = available[key] || [];
+        if (!values.length) return;
+        const fieldset = document.createElement('fieldset');
+        fieldset.style.border = 'none';
+        fieldset.style.padding = '0';
+        fieldset.style.margin = '0';
+        const legend = document.createElement('legend');
+        legend.className = 'anotacion';
+        legend.textContent = capitalize(key);
+        fieldset.appendChild(legend);
+        const cluster = document.createElement('div');
+        cluster.className = 'cluster';
+        values.forEach((value) => {
+          const id = 'filtro-' + this._instanceId + '-' + key + '-' + slugify(value);
+          const label = document.createElement('label');
+          label.style.display = 'inline-flex';
+          label.style.alignItems = 'center';
+          label.style.gap = 'var(--space-xs)';
+          label.setAttribute('for', id);
+          const input = document.createElement('input');
+          input.type = 'checkbox';
+          input.id = id;
+          input.value = value;
+          input.checked = (this._activeFilters[key] || []).includes(value);
+          input.addEventListener('change', () => {
+            const current = this._activeFilters[key] || [];
+            this._activeFilters[key] = input.checked
+              ? Array.from(new Set(current.concat(value)))
+              : current.filter((v) => v !== value);
+            if (!this._activeFilters[key].length) delete this._activeFilters[key];
+            this._syncFiltersToUrl();
+            this._renderGrid();
+          });
+          label.appendChild(input);
+          label.appendChild(document.createTextNode(' ' + capitalize(value)));
+          cluster.appendChild(label);
+        });
+        fieldset.appendChild(cluster);
+        wrap.appendChild(fieldset);
       });
-
-      wrap.addEventListener('rueda-filtros:clear', () => {
+      const clear = document.createElement('button');
+      clear.type = 'button';
+      clear.className = 'btn';
+      clear.textContent = 'Limpiar filtros';
+      clear.hidden = true;
+      clear.addEventListener('click', () => {
         this._clearFilters();
+        const first = wrap.querySelector('input[type="checkbox"]');
+        if (first) first.focus();
       });
-
-      this._clearFiltersButton = null;
+      wrap.appendChild(clear);
+      this._clearFiltersButton = clear;
       return wrap;
     }
 
-    _updateFilterWheel() {
-      if (!this._filterWheel) return;
-      this._filterWheel.model = {
-        categories: this._filterWheel.model.categories,
-        active: this._activeFilters
-      };
-    }
 
     _matchesFilters(item) {
       const keys = Object.keys(this._activeFilters).filter((k) => this._activeFilters[k].length);
@@ -1341,7 +1025,6 @@
     ['article-card', ArticleCard],
     ['biblio-card', BiblioCard],
     ['ad-card', AdCard],
-    ['rueda-filtros', RuedaFiltros],
     ['catalog-grid', CatalogGrid]
   ];
 
