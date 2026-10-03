@@ -499,7 +499,7 @@
   }
 
   /* ==========================================================================
-     <catalog-grid>  (Light DOM — reutiliza css/components.css)
+  (Light DOM — reutiliza css/components.css)
      Atributos:
        data-catalog    — id lógico del catálogo (preferido)
        data-source    — URL del JSON del catálogo (compatibilidad local)
@@ -693,18 +693,16 @@
 
     _clearFilters() {
       this._activeFilters = {};
-      this.querySelectorAll('[data-catalog-filters] input[type="checkbox"]').forEach((input) => { input.checked = false; });
       this._syncFiltersToUrl();
       this._renderGrid();
     }
 
     _buildFilters(categoryKeys) {
       const wrap = document.createElement('div');
-      wrap.className = 'cluster';
+      wrap.className = 'catalog-filters';
       wrap.dataset.catalogFilters = 'true';
       wrap.setAttribute('role', 'group');
       wrap.setAttribute('aria-label', 'Filtros del catálogo');
-      wrap.style.marginBlockEnd = 'var(--space-lg)';
 
       const available = this._catalog.categorias_disponibles || {};
 
@@ -713,67 +711,90 @@
         if (!values.length) return;
 
         const fieldset = document.createElement('fieldset');
-        fieldset.style.border = 'none';
-        fieldset.style.padding = '0';
-        fieldset.style.margin = '0';
+        fieldset.className = 'catalog-filters__group';
 
         const legend = document.createElement('legend');
         legend.className = 'anotacion';
         legend.textContent = capitalize(key);
         fieldset.appendChild(legend);
 
-        const cluster = document.createElement('div');
-        cluster.className = 'cluster';
+        const badges = document.createElement('div');
+        badges.className = 'catalog-filters__badges';
 
         values.forEach((value) => {
-          const id = 'filtro-' + this._instanceId + '-' + key + '-' + slugify(value);
-          const label = document.createElement('label');
-          label.style.display = 'inline-flex';
-          label.style.alignItems = 'center';
-          label.style.gap = 'var(--space-xs)';
-          label.setAttribute('for', id);
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'catalog-filter-badge';
+          button.dataset.filterKey = key;
+          button.dataset.filterValue = value;
+          button.textContent = capitalize(value);
+          button.setAttribute(
+            'aria-pressed',
+            (this._activeFilters[key] || []).includes(value) ? 'true' : 'false'
+          );
 
-          const input = document.createElement('input');
-          input.type = 'checkbox';
-          input.id = id;
-          input.value = value;
-          input.checked = (this._activeFilters[key] || []).includes(value);
+          if ((this._activeFilters[key] || []).includes(value)) {
+            button.classList.add('is-active');
+          }
 
-          input.addEventListener('change', () => {
+          button.addEventListener('click', () => {
             const current = this._activeFilters[key] || [];
-            this._activeFilters[key] = input.checked
-              ? Array.from(new Set(current.concat(value)))
-              : current.filter((v) => v !== value);
+            const selected = current.includes(value);
 
-            if (!this._activeFilters[key].length) delete this._activeFilters[key];
+            this._activeFilters[key] = selected
+              ? current.filter((v) => v !== value)
+              : Array.from(new Set(current.concat(value)));
+
+            if (!this._activeFilters[key].length) {
+              delete this._activeFilters[key];
+            }
+
             this._syncFiltersToUrl();
+            this._renderFilterBadges();
             this._renderGrid();
           });
 
-          label.appendChild(input);
-          label.appendChild(document.createTextNode(' ' + capitalize(value)));
-          cluster.appendChild(label);
+          badges.appendChild(button);
         });
 
-        fieldset.appendChild(cluster);
+        fieldset.appendChild(badges);
         wrap.appendChild(fieldset);
       });
 
       const clear = document.createElement('button');
       clear.type = 'button';
-      clear.className = 'btn';
+      clear.className = 'btn catalog-filters__clear';
       clear.textContent = 'Limpiar filtros';
-      clear.hidden = true;
+      clear.hidden = !this._hasActiveFilters();
       clear.addEventListener('click', () => {
         this._clearFilters();
-        // El botón desaparece al limpiar: el foco pasa al primer filtro para no perderlo.
-        const first = wrap.querySelector('input[type="checkbox"]');
+        const first = wrap.querySelector('.catalog-filter-badge');
         if (first) first.focus();
       });
       wrap.appendChild(clear);
+
       this._clearFiltersButton = clear;
       return wrap;
     }
+
+    _renderFilterBadges() {
+      const container = this.querySelector('[data-catalog-filters]');
+      if (!container) return;
+
+      container.querySelectorAll('.catalog-filter-badge').forEach((button) => {
+        const key = button.dataset.filterKey || '';
+        const value = button.dataset.filterValue || '';
+        const active = (this._activeFilters[key] || []).includes(value);
+
+        button.classList.toggle('is-active', active);
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+
+      if (this._clearFiltersButton) {
+        this._clearFiltersButton.hidden = !this._hasActiveFilters();
+      }
+    }
+
 
     _matchesFilters(item) {
       const keys = Object.keys(this._activeFilters).filter((k) => this._activeFilters[k].length);
@@ -795,7 +816,6 @@
 
     _renderGrid() {
       const hasFilters = this._hasActiveFilters();
-      if (this._clearFiltersButton) this._clearFiltersButton.hidden = !hasFilters;
 
       const todos = this._catalog.elementos || [];
       const elementos = todos.filter((item) => this._matchesFilters(item));
@@ -818,8 +838,8 @@
           again.textContent = 'Limpiar filtros';
           again.addEventListener('click', () => {
             this._clearFilters();
-            const first = this.querySelector('[data-catalog-filters] input[type="checkbox"]');
-            if (first) first.focus();
+            const wheel = this.querySelector('rueda-filtros');
+            if (wheel) wheel.focus();
           });
           empty.appendChild(again);
         }

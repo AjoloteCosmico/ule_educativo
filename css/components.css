@@ -70,6 +70,9 @@
   grid-template-columns: minmax(0, 1fr);
   gap: var(--space-md);
   width: 100%;
+  /* Espacio para que el scale/lift del hover no se recorte en los bordes */
+  padding-block: var(--space-sm);
+  overflow: visible;
 }
 
 /* ≥ 480px — 2 columnas */
@@ -113,21 +116,42 @@
   box-shadow: var(--shadow-card);
   overflow: hidden;
   cursor: pointer;
-  transition: box-shadow 0.2s ease, transform 0.15s ease;
+  z-index: 0;
+  transition:
+    box-shadow 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
 }
 
 .catalog-card:hover {
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
-  transform: translateY(-2px);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.16), 0 4px 10px rgba(0, 0, 0, 0.08);
+  transform: translateY(-8px) scale(1.06);
+  z-index: 3;
 }
 
 /* El título es un <button> real: se anuncia como botón, entra en el orden de
-   foco y su ::after cubre toda la card para que cualquier clic abra el detalle. */
+   foco y su ::after cubre toda la card para que cualquier clic abra el detalle.
+   all:unset quita padding/borde, pero button:hover global aún aplica fondo
+   verde oscuro; se anula explícitamente para que el título siga legible. */
 .catalog-card__abrir {
   all: unset;
   box-sizing: border-box;
+  display: block;
+  width: 100%;
   cursor: pointer;
   color: inherit;
+  background-color: transparent;
+  font: inherit;
+  text-align: inherit;
+  line-height: inherit;
+}
+
+.catalog-card__abrir:hover,
+.catalog-card__abrir:active,
+.catalog-card__abrir:focus {
+  background-color: transparent;
+  color: inherit;
+  outline: none;
 }
 
 .catalog-card__abrir::after {
@@ -307,11 +331,17 @@ contenedor-scrolleable {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .catalog-card:hover { transform: none; }
+  .catalog-card:hover {
+    transform: none;
+  }
+
+  .catalog-card:hover .catalog-card__imagen {
+    transform: none;
+  }
 }
 
 :root[data-theme="dark"] .catalog-card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55), 0 4px 12px rgba(0, 0, 0, 0.35);
 }
 
 .catalog-card__imagen {
@@ -319,6 +349,13 @@ contenedor-scrolleable {
   width: 100%;
   object-fit: cover;
   border-radius: 0; /* el contenedor ya tiene el radio */
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  transform-origin: center center;
+}
+
+/* Zoom sutil de la imagen al hacer hover en la card (la card ya escala). */
+.catalog-card:hover .catalog-card__imagen {
+  transform: scale(1.08);
 }
 
 .catalog-card__body {
@@ -327,6 +364,9 @@ contenedor-scrolleable {
   gap: var(--space-sm);
   padding: var(--space-md);
   flex-grow: 1;
+  position: relative;
+  z-index: 1;
+  background-color: var(--color-card);
 }
 
 .catalog-card__titulo {
@@ -335,6 +375,8 @@ contenedor-scrolleable {
   color: var(--color-titulo-card);
   line-height: var(--lh-titulo);
   margin: 0;
+  /* Evita que el texto se “corte” visualmente al escalar la card */
+  overflow-wrap: anywhere;
 }
 
 .catalog-card__badges {
