@@ -263,7 +263,7 @@
         '<style>' + STYLES + '</style>' +
         '<dialog class="auth-modal" aria-labelledby="auth-modal-titulo">' +
         '  <div class="auth-modal__header">' +
-        '    <img class="auth-modal__logo" src="assets/logo/logo.png" alt="" width="40" height="40">' +
+        '    <img class="auth-modal__logo" src="assets/logo/logo.svg" alt="" width="40" height="40">' +
         '    <h2 class="auth-modal__titulo" id="auth-modal-titulo">Inicia sesión</h2>' +
         '    <button type="button" class="auth-modal__cerrar" aria-label="Cerrar">×</button>' +
         '  </div>' +
@@ -271,7 +271,7 @@
         '</dialog>';
 
       var logo = this.shadowRoot.querySelector('.auth-modal__logo');
-      if (logo && window.location.pathname.indexOf('/herramientas/') !== -1) logo.src = '../assets/logo/logo.png';
+      if (logo && window.location.pathname.indexOf('/herramientas/') !== -1) logo.src = '../assets/logo/logo.svg';
 
       var cerrar = this.shadowRoot.querySelector('.auth-modal__cerrar');
       var self = this;
