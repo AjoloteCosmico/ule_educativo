@@ -725,6 +725,8 @@
           const button = document.createElement('button');
           button.type = 'button';
           button.className = 'catalog-filter-badge';
+          button.dataset.filterKey = key;
+          button.dataset.filterValue = value;
           button.textContent = capitalize(value);
           button.setAttribute(
             'aria-pressed',
@@ -780,10 +782,8 @@
       if (!container) return;
 
       container.querySelectorAll('.catalog-filter-badge').forEach((button) => {
-        const fieldset = button.closest('fieldset');
-        const legend = fieldset ? fieldset.querySelector('legend') : null;
-        const key = legend ? String(legend.textContent || '').toLowerCase() : '';
-        const value = button.textContent.trim().toLowerCase();
+        const key = button.dataset.filterKey || '';
+        const value = button.dataset.filterValue || '';
         const active = (this._activeFilters[key] || []).includes(value);
 
         button.classList.toggle('is-active', active);
