@@ -64,6 +64,195 @@
   background-color: var(--color-secundario);
 }
 
+/* ---------- Rueda de filtros reutilizable ---------- */
+.rueda-filtros {
+  --rueda-size: min(100%, 34rem);
+  display: grid;
+  gap: var(--space-sm);
+  width: 100%;
+  margin-block-end: var(--space-lg);
+  padding: var(--space-md);
+  box-sizing: border-box;
+  background:
+    radial-gradient(circle at center,
+      color-mix(in srgb, var(--color-principal) 5%, var(--color-fondo)) 0 24%,
+      transparent 24.5%),
+    var(--color-card);
+  border: 1px solid color-mix(in srgb, var(--color-texto) 10%, transparent);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.rueda-filtros__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.rueda-filtros__heading {
+  font-size: var(--fs-h3);
+  font-weight: 700;
+  color: var(--color-titulo-card);
+}
+
+.rueda-filtros__summary {
+  font-size: var(--fs-anotacion);
+  opacity: .75;
+}
+
+.rueda-filtros__stage {
+  width: var(--rueda-size);
+  max-width: 100%;
+  margin-inline: auto;
+  aspect-ratio: 1;
+  touch-action: manipulation;
+}
+
+.rueda-filtros__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.rueda-filtros__segment {
+  stroke: color-mix(in srgb, var(--color-texto) 12%, transparent);
+  transition: stroke .18s ease, opacity .18s ease, filter .18s ease;
+}
+
+.rueda-filtros__segment.is-selected {
+  stroke: var(--color-principal-accion);
+  filter: drop-shadow(0 2px 3px color-mix(in srgb, var(--color-principal-accion) 28%, transparent));
+}
+
+.rueda-filtros__item {
+  cursor: pointer;
+  outline: none;
+}
+
+.rueda-filtros__item:hover .rueda-filtros__segment {
+  stroke: var(--color-principal-texto);
+  opacity: .9;
+}
+
+.rueda-filtros__item:focus-visible .rueda-filtros__segment {
+  stroke: var(--color-link-focus);
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--color-link-focus) 45%, transparent));
+}
+
+.rueda-filtros__hit {
+  pointer-events: stroke;
+}
+
+.rueda-filtros__category {
+  fill: var(--color-texto);
+  font-family: var(--font-principal);
+  font-size: 13px;
+  font-weight: 700;
+  pointer-events: none;
+  text-transform: capitalize;
+}
+
+.rueda-filtros__center {
+  cursor: pointer;
+  outline: none;
+}
+
+.rueda-filtros__center circle {
+  fill: var(--color-card);
+  stroke: var(--color-principal-accion);
+  stroke-width: 3;
+  transition: fill .18s ease, stroke .18s ease;
+}
+
+.rueda-filtros__center:hover circle,
+.rueda-filtros__center:focus-visible circle {
+  fill: color-mix(in srgb, var(--color-principal-accion) 10%, var(--color-card));
+  stroke: var(--color-principal-texto);
+}
+
+.rueda-filtros__center-count {
+  fill: var(--color-titulo-card);
+  font-family: var(--font-principal);
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.rueda-filtros__center-label,
+.rueda-filtros__center-hint {
+  fill: var(--color-texto);
+  font-family: var(--font-anotaciones);
+  font-size: 12px;
+  opacity: .8;
+}
+
+.rueda-filtros__legend {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--space-xs) var(--space-md);
+  font-size: var(--fs-anotacion);
+}
+
+.rueda-filtros__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  opacity: .62;
+  text-transform: capitalize;
+}
+
+.rueda-filtros__legend-item.is-active {
+  opacity: 1;
+  font-weight: 700;
+}
+
+.rueda-filtros__legend-dot {
+  width: .55rem;
+  height: .55rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-texto) 25%, transparent);
+}
+
+.rueda-filtros__legend-item.is-active .rueda-filtros__legend-dot {
+  background: var(--color-principal-accion);
+}
+
+.rueda-filtros__help {
+  margin: 0;
+  text-align: center;
+  font-size: var(--fs-anotacion);
+  opacity: .68;
+}
+
+@media (max-width: 600px) {
+  .rueda-filtros {
+    padding: var(--space-sm);
+    border-radius: var(--radius-md);
+  }
+
+  .rueda-filtros__category {
+    font-size: 11px;
+  }
+
+  .rueda-filtros__center-count {
+    font-size: 26px;
+  }
+
+  .rueda-filtros__legend {
+    justify-content: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rueda-filtros__segment,
+  .rueda-filtros__center circle {
+    transition: none;
+  }
+}
+
 /* ---------- Catálogo: grid de cards ---------- */
 .catalog-grid {
   display: grid;
