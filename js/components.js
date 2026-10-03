@@ -538,6 +538,7 @@
     }
 
     connectedCallback() {
+      this.tabIndex = -1;
       this._render();
     }
 
@@ -757,6 +758,46 @@
         legend.appendChild(item);
       });
       wrapper.appendChild(legend);
+
+      const valuesLegend = document.createElement('div');
+      valuesLegend.className = 'rueda-filtros__values';
+      categories.forEach((category) => {
+        const group = document.createElement('div');
+        group.className = 'rueda-filtros__values-group';
+
+        const label = document.createElement('span');
+        label.className = 'rueda-filtros__values-label';
+        label.textContent = category.label;
+        group.appendChild(label);
+
+        const buttons = document.createElement('div');
+        buttons.className = 'rueda-filtros__value-list';
+
+        (category.values || []).forEach((entry) => {
+          const selected = (this._model.active[category.key] || []).includes(entry.value);
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'rueda-filtros__value' + (selected ? ' is-selected' : '');
+          button.textContent = entry.label;
+          button.setAttribute('aria-pressed', selected ? 'true' : 'false');
+          button.addEventListener('click', () => {
+            this.dispatchEvent(new CustomEvent('rueda-filtros:change', {
+              bubbles: true,
+              composed: true,
+              detail: {
+                key: category.key,
+                value: entry.value,
+                selected: !selected
+              }
+            }));
+          });
+          buttons.appendChild(button);
+        });
+
+        group.appendChild(buttons);
+        valuesLegend.appendChild(group);
+      });
+      wrapper.appendChild(valuesLegend);
 
       const help = document.createElement('p');
       help.className = 'rueda-filtros__help';
@@ -1080,8 +1121,8 @@
           again.textContent = 'Limpiar filtros';
           again.addEventListener('click', () => {
             this._clearFilters();
-            const first = this.querySelector('[data-catalog-filters] input[type="checkbox"]');
-            if (first) first.focus();
+            const wheel = this.querySelector('rueda-filtros');
+            if (wheel) wheel.focus();
           });
           empty.appendChild(again);
         }
