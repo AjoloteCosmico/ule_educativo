@@ -677,16 +677,6 @@
       window.history.replaceState({}, '', url);
     }
 
-    _restoreFilterInputs() {
-      this.querySelectorAll('[data-catalog-filters] input[type="checkbox"]').forEach((input) => {
-        const fieldset = input.closest('fieldset');
-        const legend = fieldset ? fieldset.querySelector('legend') : null;
-        const key = legend ? legend.textContent.toLowerCase() : '';
-        const values = this._activeFilters[key] || [];
-        input.checked = values.includes(input.value);
-      });
-    }
-
     _hasActiveFilters() {
       return Object.values(this._activeFilters).some((values) => values.length);
     }
