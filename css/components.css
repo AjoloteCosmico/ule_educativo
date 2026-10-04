@@ -154,10 +154,13 @@
   outline: none;
 }
 
+/* Cubre toda la card (imagen + cuerpo). El body NO debe ser position:relative
+   o el containing block se reduce y el clic en la imagen no abre el modal. */
 .catalog-card__abrir::after {
   content: "";
   position: absolute;
   inset: 0;
+  z-index: 2;
 }
 
 .catalog-card:has(.catalog-card__abrir:focus-visible) {
@@ -364,8 +367,8 @@ contenedor-scrolleable {
   gap: var(--space-sm);
   padding: var(--space-md);
   flex-grow: 1;
-  position: relative;
-  z-index: 1;
+  /* Sin position:relative: el ::after del botón ancla al .catalog-card y
+     hace clickeable toda la superficie (imagen incluida). */
   background-color: var(--color-card);
 }
 
@@ -753,6 +756,141 @@ body > header.header--visible {
 
 @media (min-width: 900px) {
   .biblio-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* ---------- Filtros de catálogo (cápsulas por categoría) ---------- */
+.catalog-filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  margin-block-end: var(--space-xl);
+  padding-block: var(--space-sm);
+}
+
+/* Quita el marco nativo del fieldset: el “cuadro con borde” se veía pesado */
+.catalog-filters__group {
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-inline-size: 0;
+}
+
+.catalog-filters__group > legend,
+.catalog-filters__group .anotacion {
+  display: block;
+  padding: 0;
+  margin: 0 0 var(--space-sm);
+  float: none;
+  width: 100%;
+  font-family: var(--font-anotaciones);
+  font-style: italic;
+  font-size: var(--fs-anotacion);
+  font-weight: 400;
+  color: var(--color-texto);
+  opacity: 0.8;
+  letter-spacing: 0.01em;
+}
+
+.catalog-filters__badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+/* Cápsula de filtro: anula el botón verde global; color de categoría al activar */
+.catalog-filter-badge {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  margin: 0;
+  border: 1px solid color-mix(in srgb, var(--color-texto) 18%, transparent);
+  border-radius: var(--radius-pill);
+  padding: 0.4rem 0.9rem;
+  min-height: 2rem;
+  font-family: var(--font-principal);
+  font-size: var(--fs-anotacion);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  color: var(--color-texto);
+  background-color: color-mix(in srgb, var(--color-card) 70%, var(--color-fondo));
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.12s ease;
+}
+
+.catalog-filter-badge:hover {
+  background-color: color-mix(in srgb, var(--filter-color, var(--color-principal)) 14%, var(--color-fondo));
+  border-color: color-mix(in srgb, var(--filter-color, var(--color-principal)) 45%, transparent);
+  color: var(--color-texto);
+}
+
+.catalog-filter-badge:focus-visible {
+  outline: 2px solid var(--color-link-focus);
+  outline-offset: 2px;
+}
+
+.catalog-filter-badge.is-active {
+  background-color: var(--filter-color, var(--color-principal-accion));
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--filter-color, var(--color-principal-accion)) 35%, transparent);
+}
+
+.catalog-filter-badge.is-active:hover {
+  filter: brightness(1.06);
+  color: #fff;
+}
+
+:root[data-theme="dark"] .catalog-filter-badge {
+  background-color: color-mix(in srgb, var(--color-card) 80%, #000);
+  border-color: color-mix(in srgb, var(--color-texto) 22%, transparent);
+}
+
+:root[data-theme="dark"] .catalog-filter-badge:hover {
+  background-color: color-mix(in srgb, var(--filter-color, var(--color-principal-texto)) 18%, var(--color-card));
+}
+
+:root[data-theme="dark"] .catalog-filter-badge.is-active {
+  background-color: var(--filter-color, var(--color-principal-texto));
+  color: #0b1a16;
+  box-shadow: none;
+}
+
+.catalog-filters__clear {
+  align-self: flex-start;
+  margin-block-start: var(--space-xs);
+  /* Variante discreta: no compite con las cápsulas activas */
+  background-color: transparent;
+  color: var(--color-principal-texto);
+  border: 1px solid color-mix(in srgb, var(--color-principal-texto) 40%, transparent);
+  padding: 0.4rem 0.9rem;
+  min-height: 2rem;
+  font-size: var(--fs-anotacion);
+}
+
+.catalog-filters__clear:hover {
+  background-color: color-mix(in srgb, var(--color-principal) 12%, transparent);
+  color: var(--color-principal-texto);
+}
+
+.catalog-filters__clear:focus-visible {
+  outline: 2px solid var(--color-link-focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .catalog-filter-badge {
+    transition: none;
+  }
 }
 
 /* ---------- Barra de filtros (artículos / bibliografía / catálogos) ---------- */

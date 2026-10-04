@@ -728,6 +728,12 @@
           button.dataset.filterKey = key;
           button.dataset.filterValue = value;
           button.textContent = capitalize(value);
+          /* Color de categoría (mismos tokens --badge-* que ule-badge).
+             Si no existe el token, cae al verde de acción. */
+          button.style.setProperty(
+            '--filter-color',
+            'var(--badge-' + key + '-' + slugify(value) + ', var(--color-principal-accion))'
+          );
           button.setAttribute(
             'aria-pressed',
             (this._activeFilters[key] || []).includes(value) ? 'true' : 'false'

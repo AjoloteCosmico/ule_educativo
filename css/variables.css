@@ -48,6 +48,19 @@
   --badge-cultura-maya: #2E5A4A;
   --badge-cultura-azteca: #5A3A2A;
 
+  /* Paleta — tipo de juego / región / superficie / material (contraste AA con texto blanco) */
+  --badge-tipo-cadera: #2F6B4F;
+  --badge-tipo-mazo: #7A4E2A;
+  --badge-tipo-antebrazo: #3D5A6B;
+  --badge-region-sinaloa: #1F6B5C;
+  --badge-region-michoacan: #6B3A4A;
+  --badge-superficie-tierra: #8B6B3C;
+  --badge-superficie-cemento: #5A6A6E;
+  --badge-material-piedra: #5C5A52;
+  --badge-material-ceramica: #8B5A3C;
+  --badge-material-obsidiana: #3A3A48;
+  --badge-material-piedra-caliza: #6A6E5C;
+
   /* ---------- Tipografía ---------- */
   --font-principal: "Ubuntu", system-ui, sans-serif;
   --font-anotaciones: "Helvetica", Arial, sans-serif;
