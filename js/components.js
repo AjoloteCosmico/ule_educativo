@@ -677,16 +677,6 @@
       window.history.replaceState({}, '', url);
     }
 
-    _restoreFilterInputs() {
-      this.querySelectorAll('[data-catalog-filters] input[type="checkbox"]').forEach((input) => {
-        const fieldset = input.closest('fieldset');
-        const legend = fieldset ? fieldset.querySelector('legend') : null;
-        const key = legend ? legend.textContent.toLowerCase() : '';
-        const values = this._activeFilters[key] || [];
-        input.checked = values.includes(input.value);
-      });
-    }
-
     _hasActiveFilters() {
       return Object.values(this._activeFilters).some((values) => values.length);
     }
@@ -694,6 +684,7 @@
     _clearFilters() {
       this._activeFilters = {};
       this._syncFiltersToUrl();
+      this._renderFilterBadges();
       this._renderGrid();
     }
 
@@ -728,6 +719,12 @@
           button.dataset.filterKey = key;
           button.dataset.filterValue = value;
           button.textContent = capitalize(value);
+          /* Color de categoría (mismos tokens --badge-* que ule-badge).
+             Si no existe el token, cae al verde de acción. */
+          button.style.setProperty(
+            '--filter-color',
+            'var(--badge-' + key + '-' + slugify(value) + ', var(--color-principal-accion))'
+          );
           button.setAttribute(
             'aria-pressed',
             (this._activeFilters[key] || []).includes(value) ? 'true' : 'false'
@@ -838,18 +835,20 @@
           again.textContent = 'Limpiar filtros';
           again.addEventListener('click', () => {
             this._clearFilters();
-            const wheel = this.querySelector('rueda-filtros');
-            if (wheel) wheel.focus();
+            const first = this.querySelector('.catalog-filter-badge');
+            if (first) first.focus();
           });
           empty.appendChild(again);
         }
-        this._gridEl.appendChild(empty);
+        this._gridEl.replaceChildren(empty);
         return;
       }
 
+      const fragment = document.createDocumentFragment();
       elementos.forEach((item) => {
-        this._gridEl.appendChild(this._buildCard(item));
+        fragment.appendChild(this._buildCard(item));
       });
+      this._gridEl.replaceChildren(fragment);
     }
 
     _buildCard(item) {
