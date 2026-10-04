@@ -694,6 +694,7 @@
     _clearFilters() {
       this._activeFilters = {};
       this._syncFiltersToUrl();
+      this._renderFilterBadges();
       this._renderGrid();
     }
 
@@ -844,18 +845,20 @@
           again.textContent = 'Limpiar filtros';
           again.addEventListener('click', () => {
             this._clearFilters();
-            const wheel = this.querySelector('rueda-filtros');
-            if (wheel) wheel.focus();
+            const first = this.querySelector('.catalog-filter-badge');
+            if (first) first.focus();
           });
           empty.appendChild(again);
         }
-        this._gridEl.appendChild(empty);
+        this._gridEl.replaceChildren(empty);
         return;
       }
 
+      const fragment = document.createDocumentFragment();
       elementos.forEach((item) => {
-        this._gridEl.appendChild(this._buildCard(item));
+        fragment.appendChild(this._buildCard(item));
       });
+      this._gridEl.replaceChildren(fragment);
     }
 
     _buildCard(item) {
