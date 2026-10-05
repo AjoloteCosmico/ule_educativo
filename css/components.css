@@ -572,6 +572,26 @@ body > header.header--visible {
   fill: var(--color-icono);
 }
 
+.logo-container {
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  background-color: var(--color-fondo);
+  border-radius: var(--radius-sm);
+  padding: 0.125rem;
+}
+
+.logo-container__img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: none;
+}
+
+:root[data-theme="dark"] .logo-container__img {
+  filter: brightness(0) invert(1);
+}
+
 /* ---------- Greca (módulo horizontal divisorio) ---------- */
 .greca {
   display: block;
@@ -579,8 +599,8 @@ body > header.header--visible {
   height: 1.5rem;
   color: var(--color-texto);
   background-color: currentColor;
-  -webkit-mask-image: url('../assets/img/greca.png');
-  mask-image: url('../assets/img/greca.png');
+  -webkit-mask-image: url('../assets/img/greca2.png');
+  mask-image: url('../assets/img/greca2.png');
   -webkit-mask-repeat: repeat-x;
   mask-repeat: repeat-x;
   -webkit-mask-position: center;

@@ -97,7 +97,11 @@
    se puede envolver en un contenedor con esta clase y usar
    mix-blend-mode o invertir según el asset disponible. */
 :root[data-theme="dark"] .logo-lockup__icon img {
-  filter: brightness(1.05);
+  filter: brightness(0) invert(1) brightness(0.5);
+}
+
+:root[data-theme="light"] .logo-lockup__icon img {
+  filter: none;
 }
 
 /* ---------- Placeholder de imagen mientras carga (loader.js) ---------- */
