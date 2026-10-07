@@ -640,6 +640,46 @@ body > header.header--visible {
   opacity: 0.6;
 }
 
+/* Movimiento opcional y autocontenido del separador.
+   Para desactivarlo basta retirar este bloque de animation y @keyframes;
+   no hay que modificar el HTML ni ningún componente que consuma la greca. */
+.greca {
+  --greca-step: 160px;
+  --greca-speed: 28s;
+  animation: greca-marquee var(--greca-speed) linear infinite;
+  will-change: mask-position;
+  -webkit-animation: greca-marquee var(--greca-speed) linear infinite;
+  -webkit-mask-position-x: 0;
+}
+
+@keyframes greca-marquee {
+  from {
+    mask-position: 0 center;
+    -webkit-mask-position: 0 center;
+  }
+  to {
+    mask-position: calc(-1 * var(--greca-step)) center;
+    -webkit-mask-position: calc(-1 * var(--greca-step)) center;
+  }
+}
+
+@-webkit-keyframes greca-marquee {
+  from {
+    -webkit-mask-position: 0 center;
+  }
+  to {
+    -webkit-mask-position: calc(-1 * var(--greca-step)) center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .greca {
+    animation: none;
+    -webkit-animation: none;
+    will-change: auto;
+  }
+}
+
 /* ---------- Artículo / lectura larga ---------- */
 .articulo {
   max-width: 68ch;
