@@ -37,6 +37,14 @@
 
   window.ULE = window.ULE || {};
 
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () {
+      ULE.initGrecaMotion(document);
+    }, { once: true });
+  } else {
+    ULE.initGrecaMotion(document);
+  }
+
   /* Etiquetas de interfaz que comparten componentes y páginas.
      Una sola fuente de verdad: si aparece un tipo nuevo en los datos se agrega aquí. */
   ULE.labels = ULE.labels || {};
@@ -47,6 +55,44 @@
     articulo_web: 'Artículo web',
     web: 'Sitio web'
   };
+  /* ---------- Movimiento de grecas ----------
+     El separador conserva toda su estructura en HTML/CSS; esta utilidad solo
+     calcula el ancho real de una repetición para que el desplazamiento sea
+     perfectamente continuo al cambiar el tamaño de pantalla. */
+  ULE.initGrecaMotion = function (root) {
+    const scope = root || document;
+    const grecas = scope.querySelectorAll ? scope.querySelectorAll('.greca') : [];
+    if (!grecas.length) return;
+
+    grecas.forEach(function (greca) {
+      if (greca.dataset.grecaMotionReady === 'true') return;
+      greca.dataset.grecaMotionReady = 'true';
+
+      const actualizarPaso = function () {
+        const altura = greca.getBoundingClientRect().height;
+        if (!altura) return;
+
+        const imagen = new Image();
+        imagen.onload = function () {
+          if (!imagen.naturalWidth || !imagen.naturalHeight) return;
+          const ancho = altura * (imagen.naturalWidth / imagen.naturalHeight);
+          greca.style.setProperty('--greca-step', Math.max(1, ancho) + 'px');
+        };
+        imagen.src = 'assets/img/greca2.png';
+      };
+
+      actualizarPaso();
+
+      if ('ResizeObserver' in window) {
+        const observer = new ResizeObserver(actualizarPaso);
+        observer.observe(greca);
+        greca._grecaMotionObserver = observer;
+      } else {
+        window.addEventListener('resize', actualizarPaso, { passive: true });
+      }
+    });
+  };
+
   ULE.labels.tipoBiblioLabel = function (tipo) {
     if (!tipo) return '';
     const known = ULE.labels.tipoBiblio[tipo];
