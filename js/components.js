@@ -1040,6 +1040,8 @@
 
         const cleanup = () => viewer.remove();
         viewer.addEventListener('close', cleanup, { once: true });
+        // En pantalla completa, tocar/clicar la propia imagen también cierra el visor.
+        fullImage.addEventListener('click', () => viewer.close());
         viewer.addEventListener('click', (event) => {
           if (event.target === viewer) viewer.close();
         });
