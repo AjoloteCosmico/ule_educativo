@@ -438,3 +438,154 @@
 .content-block__image-preview img[hidden] {
   display: none;
 }
+
+
+/* ---------- Textarea ampliable a pantalla completa ----------
+   Comportamiento aislado: para desactivarlo, retirar este bloque CSS y
+   la inicialización enhanceTextarea() de herramientas/editorial.html. */
+.textarea-expandable {
+  position: relative;
+}
+
+.textarea-expandable > textarea {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  padding-inline-end: 3rem;
+  padding-block-end: 2.75rem;
+}
+
+.textarea-expandable__toggle {
+  position: absolute;
+  inset-inline-end: 0.5rem;
+  inset-block-end: 0.5rem;
+  z-index: 2;
+  display: inline-grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--color-texto) 24%, transparent);
+  border-radius: var(--radius-sm);
+  background: var(--color-card);
+  color: var(--color-texto);
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 12%);
+}
+
+.textarea-expandable__toggle svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.textarea-expandable__toggle:hover {
+  background: var(--color-fondo);
+}
+
+.textarea-expandable__toggle:focus-visible {
+  outline: 2px solid var(--color-link-focus);
+  outline-offset: 2px;
+}
+
+.textarea-expandable--expanded {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 10000 !important;
+  display: flex !important;
+  flex-direction: column;
+  justify-content: stretch;
+  width: 100vw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left)) !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: var(--color-fondo) !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+.textarea-expandable--expanded > label,
+.textarea-expandable--expanded > .form-tool__ayuda {
+  flex: 0 0 auto;
+  width: min(100%, 56rem);
+  align-self: center;
+}
+
+.textarea-expandable--expanded > textarea {
+  flex: 1 1 auto;
+  min-height: 0 !important;
+  height: 0 !important;
+  width: min(100%, 56rem) !important;
+  max-width: 56rem;
+  align-self: center;
+  margin-block: 0.75rem;
+  padding: 1rem 3.25rem 3.5rem 1rem;
+  resize: none;
+  font-size: max(1rem, var(--fs-cuerpo));
+  line-height: 1.65;
+  background: var(--color-card);
+  border: 1px solid color-mix(in srgb, var(--color-principal) 45%, transparent);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 32px rgb(0 0 0 / 10%);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.textarea-expandable--expanded > .textarea-expandable__toggle {
+  position: fixed;
+  inset-inline-end: max(1rem, env(safe-area-inset-right));
+  inset-block-end: max(1rem, env(safe-area-inset-bottom));
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 20%);
+}
+
+body.textarea-expanded-open {
+  overflow: hidden !important;
+}
+
+@media (max-width: 639px) {
+  .textarea-expandable--expanded {
+    padding: max(0.5rem, env(safe-area-inset-top)) max(0.5rem, env(safe-area-inset-right)) max(0.5rem, env(safe-area-inset-bottom)) max(0.5rem, env(safe-area-inset-left)) !important;
+  }
+
+  .textarea-expandable--expanded > label,
+  .textarea-expandable--expanded > .form-tool__ayuda {
+    width: 100%;
+  }
+
+  .textarea-expandable--expanded > textarea {
+    width: 100% !important;
+    max-width: none;
+    margin-block: 0.25rem;
+    padding: 0.75rem 0.75rem 4rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .textarea-expandable--expanded > .textarea-expandable__toggle {
+    inset-inline-end: max(0.75rem, env(safe-area-inset-right));
+    inset-block-end: max(0.75rem, env(safe-area-inset-bottom));
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .textarea-expandable--expanded {
+    animation: textarea-expand-in 140ms ease-out;
+  }
+
+  @keyframes textarea-expand-in {
+    from { opacity: 0.92; }
+    to { opacity: 1; }
+  }
+}
