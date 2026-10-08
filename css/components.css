@@ -687,9 +687,15 @@ body > header.header--visible {
 }
 
 .greca--divider {
-  margin-block: var(--space-xl);
-  height: 10vh;
-  border-radius: 2px;
+  /* Full-bleed: escapa del contenedor con márgenes sin alterar su layout. */
+  position: relative;
+  left: 50%;
+  width: 100vw;
+  max-width: 100vw;
+  margin-block: 0;
+  transform: translateX(-50%);
+  height: 20vh;
+  border-radius: 0;
   opacity: 0.6;
 }
 
@@ -698,7 +704,7 @@ body > header.header--visible {
    no hay que modificar el HTML ni ningún componente que consuma la greca. */
 .greca {
   --greca-step: 160px;
-  --greca-speed: 28s;
+  --greca-speed: 18.67s;
   animation: greca-marquee var(--greca-speed) linear infinite;
   will-change: mask-position;
   -webkit-animation: greca-marquee var(--greca-speed) linear infinite;
