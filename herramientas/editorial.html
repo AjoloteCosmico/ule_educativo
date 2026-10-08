@@ -1237,6 +1237,69 @@
     }
   }
 
+  /* ---------- Textareas ampliables ----------
+     El control vive fuera del textarea: nunca forma parte del texto enviado.
+     Para retirar esta función basta eliminar este bloque y sus estilos CSS. */
+  function enhanceTextarea(textarea) {
+    if (!textarea || textarea.dataset.expandReady === 'true') return;
+    textarea.dataset.expandReady = 'true';
+
+    var group = textarea.closest('.form-tool__grupo, .content-block') || textarea.parentElement;
+    if (!group) return;
+    group.classList.add('textarea-expandable');
+
+    var toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'textarea-expandable__toggle';
+    toggle.setAttribute('aria-label', 'Expandir área de texto a pantalla completa');
+    toggle.setAttribute('title', 'Expandir a pantalla completa');
+    toggle.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 3H3v5M3 3l7 7M16 3h5v5m0-5-7 7M3 16v5h5m-5 0 7-7m11 2v5h-5m5 0-7-7"/></svg>';
+
+    function setExpanded(expanded) {
+      group.classList.toggle('textarea-expandable--expanded', expanded);
+      toggle.classList.toggle('is-close', expanded);
+      toggle.setAttribute('aria-label', expanded ? 'Cerrar pantalla completa' : 'Expandir área de texto a pantalla completa');
+      toggle.setAttribute('title', expanded ? 'Volver al formulario' : 'Expandir a pantalla completa');
+      toggle.innerHTML = expanded
+        ? '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 3v5H3m0-5 7 7M16 3v5h5m0-5-7 7M3 16h5v5m-5 0 7-7m11 2h-5v5m5 0-7-7"/></svg>'
+        : '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 3H3v5M3 3l7 7M16 3h5v5m0-5-7 7M3 16v5h5m-5 0 7-7m11 2v5h-5m5 0-7-7"/></svg>';
+      if (expanded) {
+        document.body.classList.add('textarea-expanded-open');
+        textarea.focus({ preventScroll: true });
+      } else {
+        document.body.classList.remove('textarea-expanded-open');
+        textarea.focus({ preventScroll: true });
+      }
+    }
+
+    toggle.addEventListener('click', function () {
+      setExpanded(!group.classList.contains('textarea-expandable--expanded'));
+    });
+    group.appendChild(toggle);
+    textarea.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && group.classList.contains('textarea-expandable--expanded')) {
+        event.preventDefault();
+        setExpanded(false);
+      }
+    });
+  }
+
+  function enhanceTextareas(root) {
+    (root || form).querySelectorAll('textarea').forEach(enhanceTextarea);
+  }
+
+  var textareaObserver = new MutationObserver(function (mutations) {
+    mutations.forEach(function (mutation) {
+      mutation.addedNodes.forEach(function (node) {
+        if (node.nodeType !== 1) return;
+        if (node.matches && node.matches('textarea')) enhanceTextarea(node);
+        enhanceTextareas(node);
+      });
+    });
+  });
+  textareaObserver.observe(form, { childList: true, subtree: true });
+  enhanceTextareas(form);
+
   form.addEventListener('submit', onSubmit);
   form.addEventListener('input', function (event) {
     if (!editing && (event.target.name === 'titulo' || event.target.name === 'slogan')) generateId();
