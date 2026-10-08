@@ -1011,6 +1011,53 @@
       img.src = item.imagen || '';
       img.className = 'catalog-modal__imagen';
       img.style.objectFit = 'contain';
+      img.style.cursor = 'zoom-in';
+      img.setAttribute('tabindex', '0');
+      img.setAttribute('role', 'button');
+      img.setAttribute('aria-label', 'Ver imagen en pantalla completa');
+
+      const openImageFullscreen = () => {
+        if (!item.imagen) return;
+
+        const viewer = document.createElement('dialog');
+        viewer.className = 'catalog-image-viewer';
+
+        const viewerClose = document.createElement('button');
+        viewerClose.type = 'button';
+        viewerClose.className = 'catalog-image-viewer__close';
+        viewerClose.textContent = '×';
+        viewerClose.setAttribute('aria-label', 'Cerrar imagen');
+        viewerClose.addEventListener('click', () => viewer.close());
+
+        const fullImage = document.createElement('img');
+        fullImage.src = item.imagen;
+        fullImage.alt = item.imagen_alt || item.titulo || '';
+        fullImage.className = 'catalog-image-viewer__image';
+
+        viewer.appendChild(viewerClose);
+        viewer.appendChild(fullImage);
+        document.body.appendChild(viewer);
+
+        const cleanup = () => viewer.remove();
+        viewer.addEventListener('close', cleanup, { once: true });
+        viewer.addEventListener('click', (event) => {
+          if (event.target === viewer) viewer.close();
+        });
+
+        if (typeof viewer.showModal === 'function') {
+          viewer.showModal();
+        } else {
+          viewer.setAttribute('open', '');
+        }
+      };
+
+      img.addEventListener('click', openImageFullscreen);
+      img.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          openImageFullscreen();
+        }
+      });
 
       const h3 = document.createElement('h3');
       h3.id = titleId;
